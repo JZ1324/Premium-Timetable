@@ -1,0 +1,199 @@
+/* filepath: /Users/joshuazheng/Downloads/Vscode/Website/timetable-app/src/assets/themes/minimal.css */
+body {
+    background-color: #ffffff;
+    color: #333333;
+    font-family: 'Helvetica', sans-serif;
+}
+
+header {
+    background-color: transparent;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eeeeee;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.2em;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.timetable-container {
+    margin: 20px auto;
+    width: 95%;
+    max-width: 1200px;
+}
+
+.timetable-header {
+    margin-bottom: 20px;
+}
+
+.timetable-header h2 {
+    font-weight: 300;
+    color: #555;
+}
+
+.template-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.template-controls select, .template-controls input {
+    padding: 6px 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.template-controls button {
+    background-color: transparent;
+    border: 1px solid #ddd;
+    color: #555;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.template-controls button:hover {
+    background-color: #f8f8f8;
+}
+
+.day-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.day-selector button {
+    background-color: transparent;
+    border: 1px solid #eee;
+    color: #555;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.day-selector button.active {
+    background-color: #f8f8f8;
+    border-color: #ddd;
+    font-weight: 500;
+}
+
+.timetable {
+    display: flex;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.periods-column {
+    width: 150px;
+    border-right: 1px solid #eee;
+    background-color: #fafafa;
+}
+
+.period-label {
+    padding: 15px 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+.period-label span {
+    font-size: 14px;
+    color: #777;
+}
+
+.period-label .time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}
+
+.day-column {
+    flex: 1;
+}
+
+.period-row {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    min-height: 70px;
+}
+
+.time-slot {
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.time-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.time-slot h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.time-slot p {
+    margin: 3px 0;
+    font-size: 13px;
+}
+
+.time-slot .code {
+    opacity: 0.7;
+}
+
+.time-slot-actions button {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 8px;
+    color: inherit;
+    opacity: 0.6;
+}
+
+.time-slot-actions button:hover {
+    opacity: 1;
+}
+
+.add-time-slot button {
+    background-color: transparent;
+    border: 1px dashed #ddd;
+    color: #999;
+    padding: 8px 15px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-time-slot button:hover {
+    background-color: #f9f9f9;
+    color: #666;
+}
+
+.theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px;
+}
+
+.theme-switcher select {
+    padding: 5px 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    font-size: 14px;
+}

@@ -1,0 +1,34 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+.timetable {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.time-slot {
+    border: 1px solid #ccc;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.theme-switcher {
+    margin: 20px 0;
+}
+
+.settings {
+    margin-top: 20px;
+}

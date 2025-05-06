@@ -1,0 +1,49 @@
+body {
+    background-color: #f0f8ff;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+.header {
+    background-color: #ff6347;
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.timetable {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.timetable th {
+    background-color: #ff6347;
+    color: white;
+}
+
+.time-slot {
+    background-color: #ffe4e1;
+    border: 1px solid #ff6347;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.button {
+    background-color: #ff6347;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #ff4500;
+}

@@ -1,0 +1,53 @@
+body {
+    background-color: #ffffff;
+    color: #333333;
+    font-family: 'Arial', sans-serif;
+}
+
+header {
+    background-color: #f8f8f8;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5em;
+}
+
+.timetable {
+    margin: 20px auto;
+    width: 90%;
+    max-width: 800px;
+    border-collapse: collapse;
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    text-align: center;
+}
+
+.timetable th {
+    background-color: #f0f0f0;
+}
+
+.time-slot {
+    background-color: #ffffff;
+    transition: background-color 0.3s;
+}
+
+.time-slot:hover {
+    background-color: #f9f9f9;
+}
+
+.theme-switcher {
+    margin: 20px;
+    text-align: center;
+}
+
+.settings {
+    margin: 20px;
+    text-align: center;
+}

@@ -483,3 +483,20 @@
   50% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+/* Make sure the signup form is visible within the login container */
+.login-form .signup-form {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Ensure signup button is visible */
+.signup-form .signup-button {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10;
+}

@@ -42,6 +42,8 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
   }, []);
 
   const validateForm = () => {
+    setError(''); // Clear previous errors
+    
     if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required');
       return false;
@@ -107,6 +109,7 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
     setSuccessMessage('');
 
     try {
+      console.log('Attempting to register user:', username, email);
       const userCredential = await registerUser(username, email, password);
       const user = userCredential.user;
       
@@ -214,13 +217,16 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
           />
         </div>
         
-        <button 
-          type="submit" 
-          className="signup-button"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creating Account...' : 'Create Account'}
-        </button>
+        <div className="form-submit-container" style={{marginTop: '20px', marginBottom: '15px'}}>
+          <button 
+            type="submit" 
+            className="signup-button"
+            disabled={isLoading}
+            style={{display: 'block', width: '100%'}}
+          >
+            {isLoading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </div>
         
         <div className="switch-form">
           <p>Already have an account? <button 

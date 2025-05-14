@@ -3,15 +3,15 @@
  * Provides methods for user authentication and management
  */
 
-// Firebase config from your project
+// Firebase config from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
-  authDomain: "timetable-28639.firebaseapp.com",
-  projectId: "timetable-28639",
-  storageBucket: "timetable-28639.firebasestorage.app",
-  messagingSenderId: "653769103112",
-  appId: "1:653769103112:web:ba7fac1278faff3d843ebd",
-  measurementId: "G-3CSMHJHN2H"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 /**

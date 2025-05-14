@@ -2,6 +2,11 @@
 
 # Administrative script to set a user as admin in Firebase
 # Usage: ./set_admin.sh <user_email>
+#
+# Note: This script requires:
+# 1. Firebase CLI to be installed
+# 2. A service-account-key.json file in this directory
+# 3. Proper environment setup (.env file) - See ENV_SETUP.md for details
 
 # Change to your Firebase project directory
 cd "$(dirname "$0")"

@@ -1,0 +1,7 @@
+{
+  "buildCommand": "bash ./vercel-build.sh",
+  "installCommand": "npm ci",
+  "outputDirectory": "build",
+  "devCommand": "webpack serve --mode development",
+  "framework": null
+}

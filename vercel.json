@@ -2,14 +2,39 @@
   "version": 2,
   "builds": [
     {
-      "src": "vercel-build.sh",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "buildCommand": "npm run build"
       }
     }
   ],
   "routes": [
+    {
+      "src": "/bundle.js",
+      "dest": "/bundle.js",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    },
+    {
+      "src": "/bundle.js\\?v=.*",
+      "dest": "/bundle.js",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    },
+    {
+      "src": "/(\\d+)\\.bundle\\.js",
+      "dest": "/$1.bundle.js",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    },
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"
@@ -23,7 +48,7 @@
       "dest": "/favicon.ico"
     },
     {
-      "src": "/(.+\\.[a-z0-9]{5}\\.(?:js|css))",
+      "src": "/(.*\\.[a-z0-9]{3,}\\.(js|css|jpg|png|gif|svg|ico))",
       "dest": "/$1"
     },
     {

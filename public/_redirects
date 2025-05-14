@@ -1,0 +1,3 @@
+/* /index.html 200
+/bundle.js /bundle.js 200
+/*.bundle.js /:splat.bundle.js 200

@@ -7,6 +7,15 @@ const fs = require('fs');
 
 // Get the environment
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_VERCEL = process.env.VERCEL === '1';
+
+// Determine the appropriate publicPath based on environment
+const getPublicPath = () => {
+  if (IS_VERCEL) {
+    return '/'; // Use absolute paths for Vercel
+  }
+  return NODE_ENV === 'production' ? '/' : '/'; // Ensure consistency in local and prod
+};
 
 // Load the .env file based on the environment
 const envFile = NODE_ENV === 'production' ? '.env.production' : '.env';
@@ -38,7 +47,11 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
-    publicPath: '/'
+    publicPath: getPublicPath(),
+    // Ensure bundle path is correctly referenced in all environments
+    chunkFilename: '[id].bundle.js',
+    // Add hash for cache-busting in production
+    ...(NODE_ENV === 'production' && { filename: 'bundle.js?v=[hash:8]' })
   },
   module: {
     rules: [
@@ -66,9 +79,38 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html',
+      inject: 'body', // Change from true to 'body' to ensure scripts are at the end of body
+      scriptLoading: 'defer', 
+      hash: true, // Add hash to script URLs to prevent caching issues
+      publicPath: getPublicPath(), // Explicitly set publicPath here too
+      // Add public path variable to be used in the template
+      templateParameters: (compilation, assets, options) => {
+        return {
+          PUBLIC_URL: getPublicPath(),
+          IS_VERCEL: IS_VERCEL,
+          webpackConfig: compilation.options,
+          htmlWebpackPlugin: {
+            tags: assets.assetTags,
+            files: assets.files,
+            options: options
+          }
+        };
+      },
+      minify: {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        removeEmptyAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        keepClosingSlash: true,
+        minifyJS: true,
+        minifyCSS: true,
+        minifyURLs: true
+      },
       templateParameters: (compilation, assets, assetTags, options) => {
         return {
-          PUBLIC_URL: '.', // Set to '.' for relative paths
+          PUBLIC_URL: '/', // Set to '/' for absolute paths in production
           compilation: compilation,
           webpackConfig: compilation.options,
           htmlWebpackPlugin: {
@@ -79,7 +121,7 @@ module.exports = {
           REACT_APP_FIREBASE_API_KEY: process.env.REACT_APP_FIREBASE_API_KEY || envParsed.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0',
           REACT_APP_FIREBASE_AUTH_DOMAIN: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || envParsed.REACT_APP_FIREBASE_AUTH_DOMAIN || 'timetable-28639.firebaseapp.com',
           REACT_APP_FIREBASE_PROJECT_ID: process.env.REACT_APP_FIREBASE_PROJECT_ID || envParsed.REACT_APP_FIREBASE_PROJECT_ID || 'timetable-28639',
-          REACT_APP_FIREBASE_STORAGE_BUCKET: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || envParsed.REACT_APP_FIREBASE_STORAGE_BUCKET || 'timetable-28639.firebasestorage.app',
+          REACT_APP_FIREBASE_STORAGE_BUCKET: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || envParsed.REACT_APP_FIREBASE_STORAGE_BUCKET || 'timetable-28639.appspot.com',
           REACT_APP_FIREBASE_MESSAGING_SENDER_ID: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || envParsed.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '653769103112',
           REACT_APP_FIREBASE_APP_ID: process.env.REACT_APP_FIREBASE_APP_ID || envParsed.REACT_APP_FIREBASE_APP_ID || '1:653769103112:web:7b7fe45718bec053843ebd',
           REACT_APP_FIREBASE_MEASUREMENT_ID: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-J0F10129PJ'
@@ -102,7 +144,19 @@ module.exports = {
           from: 'public/favicon.ico',
           to: 'favicon.ico',
           noErrorOnMissing: true
+        },
+        {
+          from: 'public/path-fix.js',
+          to: 'path-fix.js',
+          noErrorOnMissing: true
+        },
+        {
+          from: 'public/vercel-path-fix.js',
+          to: 'vercel-path-fix.js',
+          noErrorOnMissing: true
         }
+        // Removed _redirects to avoid directory/file confusion
+        // We'll handle it in the postbuild script
       ]
     })
   ],
@@ -120,6 +174,11 @@ module.exports = {
     }
   },
   resolve: {
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx'],
+    // Add this alias to help resolve the "run" module error
+    alias: {
+      // This helps prevent the "Can't resolve 'run'" error
+      'run': path.resolve(__dirname, 'src/utils/empty.js')
+    }
   }
 };

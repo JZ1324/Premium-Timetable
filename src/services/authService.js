@@ -11,16 +11,15 @@ const getConfigFromWindow = () => {
     return window.firebaseConfig;
   }
   
-  // Safe placeholders for development - these won't work for authentication
-  // but prevent errors during development without exposing real credentials
+  // Environment variable based config when window object is not available
   return {
-    apiKey: "REPLACE_WITH_ENV_VAR", // Placeholder - will be replaced by environment variables
-    authDomain: "example.firebaseapp.com",
-    projectId: "example-project",
-    storageBucket: "example.appspot.com",
-    messagingSenderId: "000000000000",
-    appId: "1:000000000000:web:0000000000000000000000",
-    measurementId: "G-XXXXXXXXXX"
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.REACT_APP_FIREBASE_APP_ID,
+    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
   };
 };
 
@@ -58,8 +57,15 @@ export const initializeAuth = async () => {
     const { initializeApp } = await import('firebase/app');
     const { getAuth, setPersistence, browserLocalPersistence } = await import('firebase/auth');
     
+    const config = getConfigFromWindow();
+    
+    // Validate Firebase config before initialization
+    if (!config.apiKey) {
+      throw new Error('Firebase API Key is missing. Please check your environment variables.');
+    }
+    
     // Initialize Firebase
-    app = initializeApp(firebaseConfig);
+    app = initializeApp(config);
     auth = getAuth(app);
     
     // Set persistence to LOCAL for better user experience

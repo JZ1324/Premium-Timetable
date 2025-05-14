@@ -3,15 +3,26 @@
  * Provides methods for user authentication and management
  */
 
-// Firebase config from environment variables
+// Fallback Firebase config for development
+const devFirebaseConfig = {
+  apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
+  authDomain: "timetable-28639.firebaseapp.com",
+  projectId: "timetable-28639",
+  storageBucket: "timetable-28639.firebasestorage.app",
+  messagingSenderId: "653769103112",
+  appId: "1:653769103112:web:ba7fac1278faff3d843ebd",
+  measurementId: "G-3CSMHJHN2H"
+};
+
+// Use environment variables if available, otherwise use the fallback config
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+  apiKey: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_API_KEY) || devFirebaseConfig.apiKey,
+  authDomain: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_AUTH_DOMAIN) || devFirebaseConfig.authDomain,
+  projectId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_PROJECT_ID) || devFirebaseConfig.projectId,
+  storageBucket: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_STORAGE_BUCKET) || devFirebaseConfig.storageBucket,
+  messagingSenderId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID) || devFirebaseConfig.messagingSenderId,
+  appId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_APP_ID) || devFirebaseConfig.appId,
+  measurementId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_MEASUREMENT_ID) || devFirebaseConfig.measurementId
 };
 
 /**

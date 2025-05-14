@@ -4,6 +4,33 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Page Not Found</title>
+    <script>
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script takes the current URL and redirects to the index page
+      // while preserving the route for single page app handling
+      
+      // Store the segments of the url
+      const paths = window.location.pathname.split('/');
+      const basePath = '/timetables';
+      
+      // GitHub Pages returns 404.html for all routes so we need to redirect to index
+      // while preserving the route for the single page app to handle
+      const redirectToBase = () => {
+        // Keep the query parameters if any
+        window.location.href = basePath + (window.location.search || '');
+      };
+      
+      // Check if the URL has the base path, otherwise redirect
+      if (paths.length >= 2 && paths[1] === 'timetables') {
+        // We're at the GitHub Pages URL, so let the app handle it
+        window.location.href = basePath;
+      } else {
+        // We're somewhere else, redirect to the base URL
+        redirectToBase();
+      }
+    </script>
     <style media="screen">
       body { 
         background: #ECEFF1; 

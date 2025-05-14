@@ -1,0 +1,23 @@
+.main-content {
+    padding-top: var(--content-spacing, 50px); /* Updated fallback value to 50px */
+    width: 100%;
+    max-width: 100%;
+    min-height: 0 !important; /* Prevent excess height */
+    height: auto !important; /* Only as tall as content */
+    margin-bottom: 0; /* Remove bottom margin */
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+/* Dark theme specific styling for main content */
+.theme-dark .main-content,
+[data-theme="dark"] .main-content {
+    background: linear-gradient(160deg, rgba(10, 10, 10, 0.7), rgba(16, 16, 16, 0.7));
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(40, 40, 40, 0.3);
+}

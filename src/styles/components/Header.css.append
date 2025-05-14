@@ -1,0 +1,10 @@
+/* Disabled user menu button styling */
+.user-menu-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.user-menu-button:disabled:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: none;
+}

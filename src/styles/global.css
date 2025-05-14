@@ -5,14 +5,247 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Poppins', 'Helvetica', sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    min-height: 100vh;
-    overflow-x: hidden;
+/* Apply theme transitions to elements for smoother theme changes */
+html, body, .app, * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Global overscroll behavior to prevent bouncing */
+html {
+    overscroll-behavior: none !important;
+}
+
+body, html {
+    font-family: 'Poppins', 'Helvetica', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: var(--bg-primary, #f4f4f4);
+    /* Prevent overscrolling/bouncing effect */
+    overscroll-behavior-y: none;
+    margin: 0;
+    padding: 0;
+    height: auto !important;
+    overflow-y: auto;
+}
+
+/* Base theme styles that apply to all themes */
+.app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto !important; /* Ensures it only takes needed height */
+    overflow: visible;
+}
+
+/* Prevent overscrolling in the root element */
+#root {
+    overscroll-behavior: none;
+    min-height: 100vh;
+}
+
+/* Theme variables - Light theme (default) */
+:root,
+html[data-theme="light"],
+body[data-theme="light"],
+.theme-light,
+[data-theme="light"] {
+    --bg-primary: #f4f4f4;
+    --bg-secondary: #ffffff;
+    --text-primary: #333;
+    --text-secondary: #636e72;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --accent-color: #4a6cf7;
+    --header-bg: #ffffff;
+    --footer-bg: #f8f9fa;
+    --button-bg: #f8f9fa;
+    --button-hover: #e9ecef;
+    --content-spacing: 50px; /* Updated spacing between header and content */
+}
+
+/* Dark theme */
+html[data-theme="dark"],
+body[data-theme="dark"],
+.theme-dark,
+[data-theme="dark"] {
+    --bg-primary: #0c0c0c;
+    --bg-secondary: #161718;
+    --text-primary: #f0f0f0;
+    --text-secondary: #b0b3b8;
+    --border-color: rgba(40, 40, 40, 0.5);
+    --border-color-rgb: 40, 40, 40;
+    --shadow-color: rgba(0, 0, 0, 0.35);
+    --accent-color: #4e4376;
+    --accent-color-rgb: 78, 67, 118;
+    --header-bg: #101010;
+    --footer-bg: #101010;
+    --button-bg: #222222;
+    --button-hover: #2a2a2a;
+    --content-spacing: 50px;
+}
+
+/* Remove scrollbars in dark theme for cleaner look */
+body.theme-dark::-webkit-scrollbar,
+html.theme-dark::-webkit-scrollbar,
+[data-theme="dark"]::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    background: transparent;
+}
+
+/* Hide scrollbar for Firefox in dark theme */
+body.theme-dark,
+html.theme-dark,
+[data-theme="dark"] {
+    scrollbar-width: none;
+}
+
+/* Full-width header in dark theme */
+body.theme-dark .header,
+html.theme-dark .header,
+[data-theme="dark"] .header {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* Colorful theme */
+html[data-theme="colorful"],
+body[data-theme="colorful"],
+.theme-colorful,
+[data-theme="colorful"] {
+    --bg-primary: #ffeaa7;
+    --bg-secondary: #81ecec;
+    --text-primary: #2d3436;
+    --text-secondary: #2d3436;
+    --border-color: #74b9ff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #6c5ce7;
+    --header-bg: #a29bfe;
+    --footer-bg: #ff7675;
+    --button-bg: rgba(255, 255, 255, 0.7);
+    --button-hover: rgba(255, 255, 255, 0.9);
+}
+
+/* Minimal theme */
+html[data-theme="minimal"],
+body[data-theme="minimal"],
+.theme-minimal,
+[data-theme="minimal"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --border-color: #dfe6e9;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --accent-color: #2d3436;
+    --header-bg: #ffffff;
+    --footer-bg: #ffffff;
+    --button-bg: #ffffff;
+    --button-hover: #f1f2f6;
+}
+
+/* Pastel theme */
+html[data-theme="pastel"],
+body[data-theme="pastel"],
+.theme-pastel,
+[data-theme="pastel"] {
+    --bg-primary: #fdcb6e;
+    --bg-secondary: #55efc4;
+    --text-primary: #2d3436;
+    --text-secondary: #2d3436;
+    --border-color: #fab1a0;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --accent-color: #6c5ce7;
+    --header-bg: #fab1a0;
+    --footer-bg: #fab1a0;
+    --button-bg: #ffeaa7;
+    --button-hover: #fdcb6e;
+}
+
+/* Apply theme variables to elements */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.app {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.header {
+    background: var(--header-bg);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.title-container h1 {
+    color: var(--text-primary);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+}
+
+.help-button {
+    background-color: var(--button-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.help-button:hover {
+    background-color: var(--button-hover);
+}
+
+.theme-switcher-container {
+    background-color: var(--bg-secondary);
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+.theme-switcher-title {
+    color: var(--text-primary);
+}
+
+.theme-button {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+}
+
+.timetable-section {
+    flex: 1;
+    max-width: 1200px;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.5s ease;
+    background-color: var(--bg-secondary);
+    box-shadow: 0 4px 15px var(--shadow-color);
+    width: 100%;
+    height: auto !important; /* Ensure it only takes up the height it needs */
+    min-height: 0 !important; /* Prevent excess height */
+    margin-bottom: 20px; /* Add space at the bottom */
+    overflow: visible;
+}
+
+.main-container.sidebar-collapsed .timetable-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.5rem 2.5rem;
+    width: 100%;
+}
+
+.section-title {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.footer {
+    background-color: var(--footer-bg);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* Retain the rest of the global styles */
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
@@ -50,30 +283,87 @@ a {
     display: none;
 }
 
-.app {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Header Styles */
+/* Header Styles in global.css - ensure fixed position */
 .header {
-    padding: 25px 20px;
-    text-align: center;
-    background-color: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.2rem 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform; /* Performance optimization */
 }
 
-.header-content h1 {
-    font-size: 2.2rem;
-    font-weight: 600;
-    margin-bottom: 5px;
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-.header .subtitle {
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 1rem;
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.3);
+    transition: background 0.3s ease;
+}
+
+.logo-icon {
+    font-size: 1.5rem;
+}
+
+.title-container {
+    flex: 1;
+}
+
+.title-container h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.5px;
+    transition: color 0.3s ease;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.help-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     font-size: 1rem;
-    color: #666;
-    font-weight: 300;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.help-button:hover {
+    transform: translateY(-2px);
 }
 
 /* Main Content */
@@ -81,141 +371,89 @@ a {
     flex: 1;
     padding: 20px;
     max-width: 1400px;
-    margin: 0 auto;
+    margin: var(--content-spacing, 25px) auto 0; /* Using CSS variable for consistent spacing */
     width: 100%;
+    transition: margin-top 0.4s ease;
 }
 
-/* Theme Switcher */
-.theme-switcher {
-    margin: 20px auto;
-    text-align: center;
-}
-
-/* Settings Panel */
-.settings-container {
-    margin: 30px 0;
-}
-
-.settings-toggle {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    color: #495057;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: block;
+/* Main Container Layout */
+.main-container {
+    display: flex;
+    gap: 2rem;
+    max-width: 1400px;
     margin: 0 auto;
+    padding: 1rem;
+    transition: gap 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), justify-content 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    justify-content: flex-start;
+    height: auto !important;
+    min-height: 0 !important;
 }
 
-.settings-toggle:hover {
-    background: #e9ecef;
-}
-
-.settings-panel {
-    margin-top: 20px;
-    padding: 25px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-}
-
-.settings-panel h2 {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: #343a40;
-}
-
-.settings-section {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.settings-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.settings-section h3 {
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-    color: #495057;
-    font-weight: 500;
-}
-
-.setting-item {
-    margin-bottom: 12px;
-}
-
-.setting-item label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 0.95rem;
-}
-
-.setting-item input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-.setting-item select {
-    margin: 0 10px;
-    padding: 5px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-}
-
-.setting-actions {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.export-button, .import-label {
-    padding: 10px 15px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    text-align: center;
-}
-
-.import-label {
-    background: #6c757d;
-    display: inline-block;
-}
-
-.help-text {
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin-top: 10px;
-}
-
-/* Timetable Styles - Universal */
-.timetable-container {
-    border-radius: 8px;
+.sidebar {
+    flex: 0 0 350px;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     overflow: hidden;
+    border-radius: 12px;
 }
 
-.day-selector button {
-    cursor: pointer;
+.sidebar.collapsed {
+    flex: 0 0 0;
+    width: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.main-container.sidebar-collapsed {
+    gap: 0;
+    justify-content: center;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.main-container.sidebar-collapsed .timetable-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    transform: scale(1);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Remove the centering for section title */
+.main-container.sidebar-collapsed .section-title {
+    text-align: left;
+}
+
+/* Responsive adjustments for layout */
+@media (max-width: 992px) {
+    .main-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        flex: none;
+        width: 100%;
+        max-height: initial; /* Changed from 800px to initial */
+        transition: all 0.5s ease;
+        margin-bottom: 20px;
+    }
+    
+    .sidebar.collapsed {
+        max-height: 0;
+        margin-bottom: 0;
+    }
 }
 
 /* Footer */
 .footer {
     text-align: center;
     padding: 15px;
-    margin-top: auto;
-    background-color: #f8f9fa;
-    border-top: 1px solid #dee2e6;
-    color: #6c757d;
+    margin-top: 0; /* No margin top */
     font-size: 0.9rem;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    width: 100%;
+    height: auto; /* Only take needed height */
 }
 
 /* Form Elements */
@@ -227,6 +465,89 @@ input, select {
     font-family: inherit;
 }
 
+/* Animation Classes */
+.animated-container {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    height: auto !important; /* Ensures content fits correctly */
+    min-height: 0 !important; /* Prevents extra space */
+    overflow: visible; /* Ensures content isn't cut off */
+    margin-bottom: 20px; /* Adds space at the bottom */
+}
+
+.fade-in-up {
+    animation-name: fadeInUp;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 30px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-down {
+    animation: slideDown 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes pulse-light {
+    0% {
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Transition effects for task tracking / timetable view switching */
+.timetable-section > div {
+    width: 100%;
+    height: 100%;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes slideRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .header-content h1 {
@@ -235,6 +556,8 @@ input, select {
     
     .main-content {
         padding: 15px;
+        margin-top: 40px; /* Increased from 20px for mobile */
+        --content-spacing: 40px; /* Updated for mobile */
     }
     
     .settings-panel {
@@ -245,4 +568,143 @@ input, select {
         flex-direction: column;
         gap: 10px;
     }
+    
+    .header {
+        padding: 1rem;
+    }
+    
+    .logo {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .title-container h1 {
+        font-size: 1.4rem;
+    }
+    
+    .subtitle {
+        font-size: 0.85rem;
+    }
+}
+
+/* Media query for dark theme and responsive design */
+@media (max-width: 992px) {
+    .theme-dark .main-content,
+    [data-theme="dark"] .main-content {
+        padding-top: calc(var(--content-spacing, 50px) * 0.8); /* Slightly reduced spacing on tablets */
+    }
+    
+    .theme-dark .header,
+    [data-theme="dark"] .header {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .theme-dark .main-content,
+    [data-theme="dark"] .main-content {
+        padding-top: calc(var(--content-spacing, 50px) * 0.7); /* Further reduced spacing on mobile */
+    }
+    
+    .theme-dark .header,
+    [data-theme="dark"] .header {
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+}
+
+/* Global Animation Library */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-light {
+    0% {
+        box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.2);
+    }
+    100% {
+        box-shadow: 0 8px 25px rgba(var(--accent-color-rgb), 0.4);
+    }
+}
+
+@keyframes floating {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Animation utility classes */
+.animate-fadeIn { animation: fadeIn 0.5s ease-in-out forwards; }
+.animate-fadeInUp { animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.animate-fadeInRight { animation: fadeInRight 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.animate-scaleIn { animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-floating { animation: floating 3s ease-in-out infinite; }
+
+/* Animation delays */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* Additional time slot styling - ensuring consistency across themes */
+.time-slot h3 {
+    font-weight: 600;
+    font-size: 0.95rem; /* Standard size across themes */
+}
+
+.time-slot p {
+    font-size: 0.85rem; /* Standard size across themes */
+}
+
+.time-slot .time {
+    font-size: 0.8rem; /* Standard size across themes */
 }

@@ -1,0 +1,622 @@
+.header {
+    background-color: var(--header-bg, rgba(255, 255, 255, 1));
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    box-shadow: 0 4px 30px var(--shadow-color, rgba(0, 0, 0, 0.1));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 1.2rem 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform, width, left, right, border-radius, padding, background-color;
+    height: auto;
+    min-height: 40px;
+    border-bottom: 1px solid rgba(var(--border-color-rgb, 0, 0, 0), 0.08);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+}
+
+/* Add an invisible zone for better header detection */
+.header-trigger-zone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    z-index: 999;
+}
+
+.header.expanding {
+    animation: expandHeader 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    animation-fill-mode: forwards;
+    will-change: border-radius, padding, min-height;
+    transition: all 0.5s cubic-bezier(0.2, 0, 0.2, 1) !important;
+}
+
+@keyframes expandHeader {
+    0% {
+        border-radius: 0 0 25px 25px;
+        padding: 0.8rem 2rem;
+        min-height: 30px;
+    }
+    100% {
+        border-radius: 0;
+        padding: 1.2rem 2rem;
+        min-height: 40px;
+    }
+}
+/* When scrolled, transform header into a compact "blob" */
+.header.scrolled {
+    padding: 0.8rem 2rem;
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 0 0 25px 25px;
+    width: 90%;
+    left: 5%;
+    right: 5%;
+    box-shadow: 0 10px 30px var(--shadow-color, rgba(0, 0, 0, 0.15));
+    border-bottom: none;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform, width, border-radius, padding, left, right;
+    min-height: 30px;
+}
+
+/* Ensure transparency effect for scrolled or shrunk header */
+.header.scrolled, .header.shrunk {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+    /* Keep width full when scrolled */
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-radius: 0 0 25px 25px !important;
+}
+
+/* Theme-specific transparent header styles */
+body.theme-dark .header.scrolled, 
+body.theme-dark .header.shrunk,
+[data-theme="dark"] .header.scrolled,
+[data-theme="dark"] .header.shrunk {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ensure all themes support transparency */
+body[data-theme] .header.scrolled,
+body[data-theme] .header.shrunk,
+html[data-theme] .header.scrolled,
+html[data-theme] .header.shrunk {
+    opacity: 0.95;
+}
+
+/* Additional styling for the blob header mode */
+.header.scrolled .logo-container {
+    transform: scale(0.9) translateZ(0);
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.header.scrolled .title-container {
+    opacity: 1;
+    transform: scale(0.95) translateZ(0);
+    white-space: nowrap;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.header:not(.scrolled) .logo-container,
+.header:not(.scrolled) .title-container {
+    transform: scale(1) translateZ(0);
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.header.scrolled .title-container h1 {
+    font-size: 1.5rem;
+}
+
+.header.scrolled .title-container .subtitle {
+    font-size: 0.85rem;
+}
+
+/* We're handling header hover in React now */
+.header-content {
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    /* Fix width to match the right side for balance */
+    min-width: 140px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    margin-right: 1rem;
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.3);
+}
+
+.logo-icon {
+    font-size: 1.5rem;
+}
+
+/* Sidebar and Calendar Toggle Button Styles */
+.sidebar-toggle,
+.calendar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-color: var(--button-bg, #f8f9fa);
+    border: 2px solid var(--border-color, #e9ecef);
+    color: var(--text-primary, #495057);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-toggle:hover,
+.calendar-toggle:hover {
+    background-color: var(--button-hover, #e9ecef);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Make sidebar toggle button blue when open instead of when closed */
+.sidebar-toggle:not(.collapsed) {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
+}
+
+.sidebar-toggle:not(.collapsed):hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(var(--accent-color-rgb), 0.4);
+}
+
+.sidebar-toggle:not(.collapsed) .toggle-icon {
+    filter: brightness(1.5);
+}
+
+.sidebar-toggle:not(.collapsed)::before {
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+}
+
+/* Similar styling for active calendar toggle */
+.calendar-toggle.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
+}
+
+.calendar-toggle.active:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(var(--accent-color-rgb), 0.4);
+}
+
+.calendar-toggle.active .toggle-icon {
+    filter: brightness(1.5);
+}
+
+/* Active button pulse animation */
+.calendar-toggle.active,
+.sidebar-toggle:not(.collapsed) {
+    animation: pulse-light 2s ease-in-out infinite alternate;
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sidebar-toggle.collapsed .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.title-container {
+    flex: 1;
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.title-container h1,
+.title-container .subtitle {
+    pointer-events: auto; /* Make text clickable again */
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.title-container h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: #2d3436;
+    letter-spacing: -0.5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    position: relative;
+    display: inline-block;
+}
+
+.title-container .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    /* Fix width to match the left side for balance */
+    min-width: 140px;
+    justify-content: flex-end;
+}
+
+.help-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    color: #495057;
+    font-size: 1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.help-button:hover {
+    background-color: #e9ecef;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for smooth transition of header content */
+.title-container h1, 
+.subtitle, 
+.logo-container, 
+.header-actions {
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* When header is in blob mode, make buttons more prominent */
+.header.scrolled .sidebar-toggle,
+.header.scrolled .calendar-toggle,
+.header.scrolled .help-button {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* When header is not in blob mode, reset button styles */
+.header:not(.scrolled) .sidebar-toggle,
+.header:not(.scrolled) .calendar-toggle,
+.header:not(.scrolled) .help-button {
+    transform: scale(1);
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Button styles */
+.sidebar-toggle,
+.calendar-toggle,
+.help-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+    background-color: var(--button-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-toggle:hover,
+.sidebar-toggle:hover,
+.help-button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-toggle:active,
+.sidebar-toggle:active,
+.help-button:active {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-toggle::before,
+.sidebar-toggle::before,
+.help-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    transform: scale(0);
+    transition: transform 0.5s ease-out;
+    z-index: 0;
+    opacity: 0;
+}
+
+.calendar-toggle:hover::before,
+.sidebar-toggle:hover::before,
+.help-button:hover::before {
+    transform: scale(2);
+    opacity: 1;
+}
+
+/* User menu styles */
+.user-menu-container {
+    position: relative;
+    margin-right: 1rem;
+}
+
+.user-profile-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color, #0077ff);
+    background-color: var(--primary-color, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    font-weight: 600;
+    overflow: hidden;
+}
+
+.user-profile-button:hover {
+    background-color: var(--accent-color, #0077ff);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.user-initial {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    min-width: 240px;
+    background-color: var(--popup-bg, #fff);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    padding: 0;
+    animation: fadeIn 0.2s ease;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    overflow: hidden;
+}
+
+.user-info {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    text-align: center;
+    background-color: var(--accent-light, rgba(0, 119, 255, 0.05));
+}
+
+.user-avatar-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--accent-color, #0077ff);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.user-email {
+    font-size: 14px;
+    margin: 0;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-weight: 500;
+}
+
+.user-name {
+    font-size: 16px;
+    margin: 4px 0 0;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.user-menu-actions {
+    padding: 8px;
+}
+
+.user-menu-button,
+.logout-button {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.user-menu-button:hover,
+.logout-button:hover {
+    background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.logout-button {
+    color: #e53935;
+}
+
+.logout-button:hover {
+    background-color: rgba(229, 57, 53, 0.05);
+}
+
+.user-menu-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments for user menu */
+@media (max-width: 768px) {
+    .user-dropdown-menu {
+        right: -20px;
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
+    }
+    
+    .logo {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .title-container h1 {
+        font-size: 1.4rem;
+    }
+    
+    .subtitle {
+        font-size: 0.85rem;
+    }
+}
+
+/* Specific overrides for Cosmos theme to ensure header stays fixed */
+.theme-cosmos .header,
+html[data-theme="cosmos"] .header,
+body.theme-cosmos .header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: linear-gradient(135deg, rgba(10, 10, 40, 0.9), rgba(18, 18, 54, 0.9)) !important;
+    box-shadow: 0 0 15px rgba(110, 60, 191, 0.8), inset 0 0 8px rgba(84, 199, 252, 0.4) !important;
+}
+
+/* Ensure proper content spacing when header is fixed in Cosmos theme */
+.theme-cosmos .main-content,
+.theme-cosmos .app > div:not(.header),
+[data-theme="cosmos"] .main-content,
+[data-theme="cosmos"] .app > div:not(.header) {
+    padding-top: var(--content-spacing, 50px) !important; /* Updated to use CSS variable with 50px fallback */
+}
+
+/* Ensure the header goes back to normal correctly */
+.header.enlarged {
+    border-radius: 0 !important;
+    transition: all 0.3s ease-out !important;
+}
+
+/* Base header styling for dark theme */
+body.theme-dark .header,
+html.theme-dark .header,
+[data-theme="dark"] .header {
+    background-color: var(--header-bg, #101010) !important;
+    background-image: linear-gradient(160deg, rgba(12, 12, 12, 0.95), rgba(16, 16, 16, 0.95)) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid rgba(30, 30, 30, 0.5) !important;
+}
+
+/* Ensure dark theme text colors for header */
+body.theme-dark .title-container h1,
+html.theme-dark .title-container h1,
+[data-theme="dark"] .title-container h1 {
+    color: #f0f0f0 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .subtitle,
+html.theme-dark .subtitle,
+[data-theme="dark"] .subtitle {
+    color: #b0b3b8 !important;
+}
+
+/* Disabled user menu button styling */
+.user-menu-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.user-menu-button:disabled:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: none;
+}

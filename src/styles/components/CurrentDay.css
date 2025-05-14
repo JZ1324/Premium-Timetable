@@ -1,0 +1,78 @@
+/* Animation for the current day button */
+@keyframes pulseToday {
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 4px 18px rgba(0, 114, 255, 0.8);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.5);
+    }
+}
+
+/* Shimmer animation for Today badge */
+@keyframes shimmer {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.day-button.current-day {
+    position: relative;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 114, 255, 0.5);
+    border: 2px solid white;
+    font-weight: bold;
+    animation: pulseToday 2s infinite;
+    /* Remove extra padding */
+}
+
+/* Add the hover effect to show "Today" text on hover */
+.day-button.current-day span {
+    display: inline;
+}
+
+.day-button.current-day .today-text {
+    display: none;
+}
+
+.day-button.current-day:hover span {
+    display: none;
+}
+
+.day-button.current-day:hover .today-text {
+    display: inline;
+}
+
+.day-button.current-day:before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 6px;
+    height: 6px;
+    background: #ff5e3a;
+    border-radius: 50%;
+    border: 1px solid white;
+    animation: pulseToday 2s infinite;
+}
+
+.day-button.current-day:hover:before {
+    opacity: 0; /* Hide the dot on hover */
+}
+
+.day-button.current-day.active {
+    background: linear-gradient(135deg, #ff9500, #ff5e3a);
+    box-shadow: 0 4px 12px rgba(255, 94, 58, 0.5);
+    animation: none;
+}
+
+.day-button.current-day.active:before {
+    background: #ffffff;
+}

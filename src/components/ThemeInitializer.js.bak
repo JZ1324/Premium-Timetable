@@ -1,0 +1,279 @@
+import React, { useEffect } from 'react';
+
+const ThemeInitializer = ({ theme }) => {
+  useEffect(() => {
+    // This component's only job is to apply the theme to the document root element
+    if (theme) {
+      console.log('%c ThemeInitializer: ', 'background: #6e3cbf; color: white; padding: 4px; border-radius: 4px', `Applying theme: ${theme}`);
+      
+      // Apply theme class to both html and body elements
+      document.documentElement.className = `theme-${theme}`;
+      document.body.className = `theme-${theme}`; // Also add theme class to body
+      
+      // Also set data-theme attribute for CSS variable selection
+      document.documentElement.setAttribute('data-theme', theme);
+      document.body.setAttribute('data-theme', theme);
+      
+      // Update document title to reflect theme (for debugging purposes)
+      document.title = `Timetable App - ${theme.charAt(0).toUpperCase() + theme.slice(1)} Theme`;
+      
+      console.log('Applied classes:', {
+        'document.documentElement.className': document.documentElement.className,
+        'document.body.className': document.body.className,
+        'document.documentElement.getAttribute("data-theme")': document.documentElement.getAttribute('data-theme'),
+        'document.body.getAttribute("data-theme")': document.body.getAttribute('data-theme')
+      });
+      
+      // Special handling for cosmos theme
+      if (theme === 'cosmos') {
+        // First apply the cosmic elements
+        addCosmicElements();
+        
+        // Then inject the special CSS
+        injectCosmosSpecificCSS();
+        
+        // Force apply the theme with double-check mechanism
+        debugAppliedCSS();
+        
+        // Set multiple timeouts to ensure theme is applied even if there's a race condition
+        setTimeout(() => {
+          debugAppliedCSS();
+          
+          // Add a final check for extra safety
+          setTimeout(() => {
+            const bodyStyles = window.getComputedStyle(document.body);
+            if (bodyStyles.backgroundColor !== 'rgb(3, 6, 24)') {
+              console.log('%c FINAL COSMOS CHECK - FORCING STYLES', 'background: red; color: white; padding: 4px; border-radius: 4px');
+              forceCosmosStyles();
+            }
+          }, 1000);
+        }, 300);
+      } else {
+        removeCosmicElements();
+        removeCosmosSpecificCSS();
+      }
+    }
+  }, [theme]);
+
+  // Helper functions for the cosmos theme
+  const addCosmicElements = () => {
+    console.log('%c Adding cosmic elements to the page', 'background: #6e3cbf; color: white; padding: 4px; border-radius: 4px');
+    
+    // Debug applied CSS
+    debugAppliedCSS();
+    
+    // Inject Cosmos-specific CSS for higher specificity
+    if (!document.getElementById('cosmos-injector-css')) {
+      console.log('%c Injecting Cosmos-specific CSS', 'background: #6e3cbf; color: white; padding: 4px; border-radius: 4px');
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.id = 'cosmos-injector-css';
+      link.href = './assets/themes/cosmos-injector.css?' + new Date().getTime();
+      document.head.appendChild(link);
+    }
+    
+    // Add shooting stars
+    if (!document.querySelector('.stars-container')) {
+      const starsContainer = document.createElement('div');
+      starsContainer.className = 'stars-container';
+      
+      for (let i = 0; i < 5; i++) {
+        const star = document.createElement('div');
+        star.className = 'shooting-star';
+        star.style.top = `${Math.random() * 70}%`;
+        star.style.right = `${Math.random() * 30}%`;
+        star.style.animationDelay = `${Math.random() * 10}s`;
+        starsContainer.appendChild(star);
+      }
+      
+      document.body.appendChild(starsContainer);
+      console.log('Added shooting stars');
+    }
+    
+    // Add black hole effect
+    if (!document.querySelector('.black-hole')) {
+      const blackHole = document.createElement('div');
+      blackHole.className = 'black-hole';
+      document.body.appendChild(blackHole);
+    }
+    
+    // Add small stars effect
+    if (!document.querySelector('.stars-small')) {
+      const starsSmall = document.createElement('div');
+      starsSmall.className = 'stars-small';
+      document.body.appendChild(starsSmall);
+    }
+    
+    // Add twinkling stars
+    if (!document.querySelector('.twinkling-stars')) {
+      const twinklingStars = document.createElement('div');
+      twinklingStars.className = 'twinkling-stars';
+      
+      for (let i = 0; i < 20; i++) {
+        const star = document.createElement('div');
+        star.className = 'twinkle-star';
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.width = `${Math.random() * 2 + 1}px`;
+        star.style.height = star.style.width;
+        star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+        star.style.animationDelay = `${Math.random() * 3}s`;
+        twinklingStars.appendChild(star);
+      }
+      
+      document.body.appendChild(twinklingStars);
+    }
+  };
+  
+  // Debug function to check applied CSS
+  const debugAppliedCSS = () => {
+    setTimeout(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      const app = document.querySelector('.app');
+      
+      console.log('%c CSS DEBUG', 'background: red; color: white; padding: 4px; border-radius: 4px');
+      
+      // Check classes
+      console.log('HTML class:', html.className);
+      console.log('Body class:', body.className);
+      console.log('App class:', app.className);
+      
+      // Check computed styles
+      const bodyStyles = window.getComputedStyle(body);
+      console.log('Body background-color:', bodyStyles.backgroundColor);
+      console.log('Body color:', bodyStyles.color);
+      
+      const appStyles = window.getComputedStyle(app);
+      console.log('App background-color:', appStyles.backgroundColor);
+      console.log('App color:', appStyles.color);
+      
+      // Check if cosmic elements exist
+      console.log('Stars container exists:', !!document.querySelector('.stars-container'));
+      console.log('Black hole exists:', !!document.querySelector('.black-hole'));
+      console.log('Twinkling stars exists:', !!document.querySelector('.twinkling-stars'));
+      
+      // Force CSS rules as inline styles if cosmos theme isn't applied correctly
+      if (html.className.includes('cosmos') && bodyStyles.backgroundColor !== 'rgb(3, 6, 24)') {
+        console.log('%c FORCING COSMOS STYLES', 'background: red; color: white; padding: 4px; border-radius: 4px');
+        forceCosmosStyles();
+      }
+    }, 500);
+  };
+  
+  // Force cosmos styles directly through inline styles if CSS isn't applied
+  const forceCosmosStyles = () => {
+    const html = document.documentElement;
+    const body = document.body;
+    const app = document.querySelector('.app');
+    const header = document.querySelector('.header');
+    const containers = document.querySelectorAll('.timetable-container, .task-item, .settings-container, .theme-switcher-container');
+    const timetableElements = document.querySelectorAll('.timetable-cell, .timetable-event, .timetable-hour-marker, .timetable-day-header');
+    const buttons = document.querySelectorAll('button');
+    const inputs = document.querySelectorAll('input, select, textarea');
+    
+    // Set critical styles inline
+    body.style.backgroundColor = '#030618';
+    body.style.color = '#e0e0ff';
+    app.style.backgroundColor = 'transparent';
+    app.style.color = '#e0e0ff';
+    
+    if (header) {
+      header.style.background = 'linear-gradient(135deg, rgba(10, 10, 40, 0.8), rgba(18, 18, 54, 0.8))';
+      header.style.borderColor = 'rgba(110, 60, 191, 0.5)';
+      header.style.color = '#e0e0ff';
+      header.style.boxShadow = '0 0 15px rgba(110, 60, 191, 0.6), inset 0 0 8px rgba(84, 199, 252, 0.3)';
+    }
+    
+    containers.forEach(container => {
+      container.style.background = 'linear-gradient(135deg, rgba(10, 10, 40, 0.8), rgba(18, 18, 54, 0.8))';
+      container.style.borderColor = 'rgba(110, 60, 191, 0.5)';
+      container.style.color = '#e0e0ff';
+      container.style.boxShadow = '0 0 15px rgba(110, 60, 191, 0.6), inset 0 0 8px rgba(84, 199, 252, 0.3)';
+    });
+    
+    // Apply styles to timetable elements
+    timetableElements.forEach(element => {
+      element.style.backgroundColor = 'rgba(13, 13, 40, 0.5)';
+      element.style.color = '#e0e0ff';
+      element.style.borderColor = 'rgba(110, 60, 191, 0.3)';
+    });
+    
+    // Apply styles to buttons
+    buttons.forEach(button => {
+      button.style.background = 'linear-gradient(135deg, rgba(30, 15, 60, 0.9), rgba(50, 30, 100, 0.9))';
+      button.style.borderColor = 'rgba(110, 60, 191, 0.5)';
+      button.style.color = '#e0e0ff';
+      button.style.boxShadow = '0 0 10px rgba(110, 60, 191, 0.4)';
+    });
+    
+    // Apply styles to form elements
+    inputs.forEach(input => {
+      input.style.backgroundColor = 'rgba(18, 18, 54, 0.7)';
+      input.style.color = '#e0e0ff';
+      input.style.borderColor = 'rgba(110, 60, 191, 0.5)';
+    });
+    
+    console.log('Applied inline Cosmos styles as fallback');
+  };
+  const removeCosmicElements = () => {
+    // Remove Cosmos-specific CSS
+    const cosmosCSS = document.getElementById('cosmos-injector-css');
+    if (cosmosCSS) {
+      document.head.removeChild(cosmosCSS);
+      console.log('Removed Cosmos-specific CSS');
+    }
+    
+    // Remove shooting stars
+    const starsContainer = document.querySelector('.stars-container');
+    if (starsContainer) {
+      starsContainer.remove();
+    }
+    
+    // Remove black hole
+    const blackHole = document.querySelector('.black-hole');
+    if (blackHole) {
+      blackHole.remove();
+    }
+    
+    // Remove small stars effect
+    const starsSmall = document.querySelector('.stars-small');
+    if (starsSmall) {
+      starsSmall.remove();
+    }
+    
+    // Remove twinkling stars
+    const twinklingStars = document.querySelector('.twinkling-stars');
+    if (twinklingStars) {
+      twinklingStars.remove();
+    }
+  };
+
+  // Function to inject cosmos-specific CSS with high specificity
+  const injectCosmosSpecificCSS = () => {
+    if (!document.getElementById('cosmos-injector-css')) {
+      console.log('%c Injecting Cosmos-specific CSS', 'background: #6e3cbf; color: white; padding: 4px; border-radius: 4px');
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.id = 'cosmos-injector-css';
+      link.href = './assets/themes/cosmos-injector.css?' + new Date().getTime();
+      document.head.appendChild(link);
+    }
+  };
+      document.head.appendChild(link);
+    }
+  };
+
+  // Function to remove cosmos-specific CSS
+  const removeCosmosSpecificCSS = () => {
+    const link = document.getElementById('cosmos-injector-css');
+    if (link) {
+      document.head.removeChild(link);
+    }
+  };
+
+  // This component doesn't render anything
+  return null;
+};
+
+export default ThemeInitializer;

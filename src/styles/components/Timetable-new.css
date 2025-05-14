@@ -1,0 +1,83 @@
+/* TimeTable Component CSS - New Version */
+.timetable-container {
+    background-color: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-origin: center;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible;
+}
+
+.timetable-header {
+    margin-bottom: 25px;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
+    position: relative;
+}
+
+.timetable-header h2 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+}
+
+/* Template Controls */
+.template-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.template-controls select,
+.template-controls input {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.template-controls select:focus,
+.template-controls input:focus {
+    border-color: var(--accent-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
+    transform: translateY(-2px);
+}
+
+.template-controls button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.template-controls button:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}

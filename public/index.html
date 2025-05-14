@@ -4,11 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customizable Timetable App</title>
-    <link rel="stylesheet" href="styles/global.css">
-    <link rel="stylesheet" href="assets/themes/light.css" id="theme-stylesheet">
+    
+    <!-- Firebase SDK - updated for local development -->
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-remote-config-compat.js"></script>
+    <!-- Performance script might be blocked by ad blockers, so we'll handle that gracefully -->
+    <script>
+      // Check if performance script should be loaded
+      const loadPerformance = () => {
+        return new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = "https://www.gstatic.com/firebasejs/11.7.1/firebase-performance-compat.js";
+          script.onload = () => resolve(true);
+          script.onerror = () => {
+            console.warn('Firebase Performance monitoring not loaded (likely blocked by an ad blocker)');
+            resolve(false);
+          };
+          document.head.appendChild(script);
+        });
+      };
+      
+      // Try to load performance script
+      loadPerformance();
+    </script>
+    
+    <!-- Initialize Firebase for local development -->
+    <script>
+      // Your Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
+        authDomain: "timetable-28639.firebaseapp.com",
+        projectId: "timetable-28639",
+        storageBucket: "timetable-28639.firebasestorage.app",
+        messagingSenderId: "653769103112",
+        appId: "1:653769103112:web:ba7fac1278faff3d843ebd",
+        measurementId: "G-3CSMHJHN2H"
+      };
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    
+    <!-- Make sure theme styling works properly -->
+    <style>
+        /* Initial styling to prevent FOUC (Flash Of Unstyled Content) */
+        html, body {
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease;
+            overscroll-behavior: none; /* Prevent bouncing/rubber-band effect */
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
-    <script src="../src/index.js" type="module"></script>
+    <!-- Script to preload theme before React renders -->
+    <script>
+        // Apply saved theme immediately to prevent flash of default theme
+        try {
+            const savedTheme = localStorage.getItem('preferred-theme');
+            if (savedTheme) {
+                document.documentElement.className = `theme-${savedTheme}`;
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.body.className = `theme-${savedTheme}`;
+                document.body.setAttribute('data-theme', savedTheme);
+                console.log('Pre-applied theme from localStorage:', savedTheme);
+            }
+        } catch (error) {
+            console.error('Error pre-applying theme:', error);
+        }
+    </script>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Firebase SDK initialized for local development at http://localhost:3001');
+      });
+    </script>
 </body>
 </html>

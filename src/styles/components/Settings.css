@@ -1,0 +1,225 @@
+/* Settings component styles */
+.settings-container {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.settings-toggle {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Only apply accent color when settings are open */
+.settings-toggle.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-panel {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    animation: slideDown 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.settings-section {
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease forwards;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.settings-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.setting-item {
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: slideRight 0.4s ease forwards;
+    animation-delay: calc(var(--index, 0) * 0.1s);
+}
+
+.setting-item label {
+    display: flex;
+    align-items: center;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.setting-item input[type="checkbox"] {
+    margin-right: 0.8rem;
+}
+
+.setting-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.export-button, .import-label {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer !important;
+    font-size: 0.9rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-block;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 10;
+    pointer-events: auto !important;
+}
+
+.export-button:hover, .import-label:hover {
+    background-color: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    filter: brightness(1.1);
+}
+
+.export-button:active, .import-label:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    filter: brightness(0.95);
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* Dark theme specific styling for settings panel */
+.theme-dark .settings-panel,
+[data-theme="dark"] .settings-panel {
+    background: linear-gradient(145deg, #121212, #181818);
+    border: 1px solid rgba(40, 40, 40, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .settings-section h3,
+[data-theme="dark"] .settings-section h3 {
+    color: #f0f0f0;
+    border-bottom: 1px solid rgba(66, 66, 66, 0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .settings-toggle,
+[data-theme="dark"] .settings-toggle {
+    background: linear-gradient(145deg, #2a2b2c, #222324);
+    border: 1px solid rgba(66, 66, 66, 0.4);
+    color: #e4e6eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .settings-toggle:hover,
+[data-theme="dark"] .settings-toggle:hover {
+    background: linear-gradient(145deg, #2f3031, #272829);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.theme-dark .settings-toggle.active,
+[data-theme="dark"] .settings-toggle.active {
+    background: linear-gradient(145deg, #2b5876, #4e4376);
+    color: #ffffff;
+    border: 1px solid rgba(78, 67, 118, 0.5);
+    box-shadow: 0 4px 12px rgba(78, 67, 118, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Dark theme styling for form elements in settings */
+.theme-dark select,
+.theme-dark input[type="text"],
+.theme-dark input[type="number"],
+.theme-dark input[type="email"],
+[data-theme="dark"] select,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="email"] {
+    background: linear-gradient(145deg, #1e1f20, #262728);
+    border: 1px solid rgba(66, 66, 66, 0.5);
+    color: #e4e6eb;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark select:focus,
+.theme-dark input[type="text"]:focus,
+.theme-dark input[type="number"]:focus,
+.theme-dark input[type="email"]:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] input[type="text"]:focus,
+[data-theme="dark"] input[type="number"]:focus,
+[data-theme="dark"] input[type="email"]:focus {
+    border-color: rgba(78, 67, 118, 0.8);
+    box-shadow: 0 0 0 2px rgba(78, 67, 118, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    outline: none;
+}
+
+/* Dark theme settings toggle and panel */
+.theme-dark .settings-toggle,
+[data-theme="dark"] .settings-toggle {
+    background-color: #161616;
+    border: 1px solid rgba(40, 40, 40, 0.8);
+    color: #d0d0d0;
+}
+
+.theme-dark .settings-toggle:hover,
+[data-theme="dark"] .settings-toggle:hover {
+    background-color: #1a1a1a;
+    border: 1px solid rgba(50, 50, 50, 0.8);
+}
+
+.theme-dark .settings-toggle.active,
+[data-theme="dark"] .settings-toggle.active {
+    background: linear-gradient(145deg, #352f44, #3f3757);
+    color: white;
+    border-color: rgba(78, 67, 118, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.import-container {
+    position: relative;
+    display: inline-block;
+    z-index: 10;
+}
+
+/* Make sure the input is clickable even when hidden */
+.import-container input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer !important;
+    z-index: 5;
+}
+
+.theme-dark .settings-panel,
+[data-theme="dark"] .settings-panel {
+    background: linear-gradient(145deg, #0c0c0c, #161616);
+    border: 1px solid rgba(30, 30, 30, 0.6);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.02);
+}

@@ -1,30 +1,21 @@
-import React, { useEffect } from 'react';
-import Header from './components/Header';
-import Timetable from './components/Timetable';
-import Settings from './components/Settings';
-import ThemeSwitcher from './components/ThemeSwitcher';
-import { initTheme } from './services/themeService';
+import React from 'react';
+import AuthProvider from './components/AuthProvider';
+import AppContent from './components/AppContent';
 import './styles/global.css';
 
-const App = () => {
-    useEffect(() => {
-        // Initialize the theme when the app loads
-        initTheme();
-    }, []);
+// Import theme CSS files
+import './assets/themes/light.css';
+import './assets/themes/dark.css';
+import './assets/themes/colorful.css';
+import './assets/themes/minimal.css';
+import './assets/themes/pastel.css';
 
+const App = () => {
     return (
-        <div className="app">
-            <Header />
-            <main className="main-content">
-                <ThemeSwitcher />
-                <Timetable />
-                <Settings />
-            </main>
-            <footer className="footer">
-                <p>© {new Date().getFullYear()} School Timetable App</p>
-            </footer>
-        </div>
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
     );
-};
+}
 
 export default App;

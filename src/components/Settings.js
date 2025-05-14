@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import timetableService from '../services/timetableService';
 import { getCurrentTheme, setTheme } from '../services/themeService';
+import '../styles/components/Settings.css';
 
 const Settings = () => {
-    const [showSettings, setShowSettings] = useState(false);
+    // Show settings panel by default to make import/export buttons accessible
+    const [showSettings, setShowSettings] = useState(true);
     const [settings, setSettings] = useState({
         displayCode: true,
         displayTeacher: true,
@@ -11,14 +13,19 @@ const Settings = () => {
         useFirstNameForTeachers: false,
         enableNotifications: false,
         notificationTime: 15,
-        weekStartsOn: 'monday'
+        weekStartsOn: 'monday',
+        startWithWeek: 'A' // Default to Week A
     });
 
     // Save settings to localStorage
     useEffect(() => {
         const savedSettings = localStorage.getItem('timetable-settings');
         if (savedSettings) {
-            setSettings(JSON.parse(savedSettings));
+            try {
+                setSettings(JSON.parse(savedSettings));
+            } catch (error) {
+                console.error('Error parsing saved settings:', error);
+            }
         }
     }, []);
 
@@ -32,10 +39,19 @@ const Settings = () => {
         };
         
         setSettings(updatedSettings);
-        localStorage.setItem('timetable-settings', JSON.stringify(updatedSettings));
+        try {
+            localStorage.setItem('timetable-settings', JSON.stringify(updatedSettings));
+        } catch (error) {
+            console.error('Error saving settings to localStorage:', error);
+        }
     };
 
-    const handleExport = () => {
+    const handleExport = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log("Exporting timetable...");
+        
         const timetableData = {
             timeSlots: timetableService.getTimeSlots(),
             settings: settings
@@ -84,11 +100,18 @@ const Settings = () => {
         reader.readAsText(file);
     };
 
+    const toggleSettings = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowSettings(!showSettings);
+    };
+
     return (
         <div className="settings-container">
             <button 
-                className="settings-toggle" 
-                onClick={() => setShowSettings(!showSettings)}
+                className={`settings-toggle ${showSettings ? 'active' : ''}`}
+                type="button"
+                onClick={toggleSettings}
             >
                 {showSettings ? 'Hide Settings' : 'Show Settings'}
             </button>
@@ -200,24 +223,43 @@ const Settings = () => {
                                 </select>
                             </label>
                         </div>
+                        
+                        <div className="setting-item">
+                            <label>
+                                Start with Week:
+                                <select 
+                                    name="startWithWeek" 
+                                    value={settings.startWithWeek} 
+                                    onChange={handleChange}
+                                >
+                                    <option value="A">Week A</option>
+                                    <option value="B">Week B</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
                     
                     <div className="settings-section">
                         <h3>Import/Export</h3>
                         
                         <div className="setting-actions">
-                            <button onClick={handleExport} className="export-button">
+                            <button 
+                                type="button"
+                                onClick={handleExport} 
+                                className="export-button"
+                            >
                                 Export Timetable
                             </button>
                             
                             <div className="import-container">
-                                <label className="import-label">
+                                <label className="import-label" role="button" tabIndex="0">
                                     Import Timetable
                                     <input 
                                         type="file" 
                                         accept=".json" 
                                         onChange={handleImport} 
                                         style={{ display: 'none' }}
+                                        aria-label="Import Timetable"
                                     />
                                 </label>
                             </div>

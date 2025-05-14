@@ -1,0 +1,501 @@
+import React, { useState } from 'react';
+import '../styles/components/ImportTimetable.css';
+
+const ImportTimetable = ({ onImport, onCancel }) => {
+    const [importText, setImportText] = useState('');
+    const [parseError, setParseError] = useState(null);
+    const [parsedData, setParsedData] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Tab state
+    const [activeTab, setActiveTab] = useState('paste');
+    
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+    };
+
+    const handleTextChange = (e) => {
+        setImportText(e.target.value);
+        setParseError(null);
+    };
+
+    const parseTimetableText = (text) => {
+        try {
+            setIsProcessing(true);
+            
+            // Handle text that might have been pasted with line breaks instead of tabs
+            // First, standardize the text by replacing multiple spaces with tabs where appropriate
+            let processedText = text;
+            
+            // Split the text into lines
+            const lines = processedText.trim().split('\n');
+            
+            // Check if we have enough lines to process
+            if (lines.length < 3) {
+                setParseError('Not enough data to parse. Please check your input format.');
+                setIsProcessing(false);
+                return null;
+            }
+            
+            // First line contains the days
+            const dayHeaderRow = lines[0];
+            const days = dayHeaderRow.split('\t').map(day => day.trim());
+            
+            if (days.length < 2) {
+                // Try splitting by multiple spaces if tabs didn't work
+                const daysBySpace = dayHeaderRow.split(/\s{2,}/).map(day => day.trim()).filter(day => day);
+                if (daysBySpace.length >= 2) {
+                    // Use space-separated days instead
+                    days.length = 0;
+                    days.push(...daysBySpace);
+                } else {
+                    setParseError('Could not detect day columns. Please ensure your data has tab or space separated columns.');
+                    setIsProcessing(false);
+                    return null;
+                }
+            }
+            
+            // Initialize timetable data structure
+            const timetableData = {
+                days: days.slice(1), // Remove the first column header
+                periods: [],
+                classes: {}
+            };
+            
+            // Initialize days in classes object
+            timetableData.days.forEach(day => {
+                timetableData.classes[day] = {};
+            });
+            
+            // Process remaining rows
+            let currentPeriod = null;
+            let rowIndex = 1; // Start from the second line
+            let classDataBuffer = [];
+            
+            const classesByPeriodAndDay = {};
+            
+            while (rowIndex < lines.length) {
+                const line = lines[rowIndex].trim();
+                
+                // Skip empty lines
+                if (!line) {
+                    rowIndex++;
+                    continue;
+                }
+                
+                // If this line starts with "Period", "Tutorial", or "After School", it's a period header
+                if (line.startsWith('Period') || line.startsWith('Tutorial') || line.startsWith('After School')) {
+                    // Start a new period
+                    const periodName = line;
+                    
+                    // If we have a time on the next line, include it
+                    let startTime = null;
+                    let endTime = null;
+                    
+                    if (rowIndex + 1 < lines.length) {
+                        const timeLine = lines[rowIndex + 1].trim();
+                        const timeMatch = timeLine.match(/(\d+:\d+[ap]m)[-–](\d+:\d+[ap]m)/);
+                        
+                        if (timeMatch) {
+                            startTime = timeMatch[1];
+                            endTime = timeMatch[2];
+                            rowIndex++; // Skip the time line
+                        }
+                    }
+                    
+                    currentPeriod = {
+                        name: periodName,
+                        startTime,
+                        endTime
+                    };
+                    
+                    timetableData.periods.push(currentPeriod);
+                    
+                    // Initialize this period in each day
+                    timetableData.days.forEach(day => {
+                        if (!timetableData.classes[day][currentPeriod.name]) {
+                            timetableData.classes[day][currentPeriod.name] = [];
+                        }
+                    });
+                    
+                    // Setup a buffer for collecting class data for this period
+                    classesByPeriodAndDay[currentPeriod.name] = {};
+                    for (let i = 0; i < timetableData.days.length; i++) {
+                        classesByPeriodAndDay[currentPeriod.name][timetableData.days[i]] = [];
+                    }
+                    
+                    classDataBuffer = [];
+                    
+                    rowIndex++;
+                } 
+                // If we're not at a period header and we have a current period, this is class data
+                else if (currentPeriod) {
+                    // Add to the class data buffer
+                    classDataBuffer.push(line);
+                    rowIndex++;
+                    
+                    // If this was the last line or the next line is a period header, process the buffer
+                    const isLastLine = rowIndex >= lines.length;
+                    const nextLineIsPeriodHeader = !isLastLine && 
+                        (lines[rowIndex].trim().startsWith('Period') || 
+                         lines[rowIndex].trim().startsWith('Tutorial') ||
+                         lines[rowIndex].trim().startsWith('After School'));
+                    
+                    if (isLastLine || nextLineIsPeriodHeader) {
+                        // Process collected class data
+                        if (classDataBuffer.length > 0) {
+                            processClassData(timetableData, currentPeriod, classDataBuffer, classesByPeriodAndDay);
+                            classDataBuffer = [];
+                        }
+                    }
+                } else {
+                    // Skip rows that don't fit our format
+                    rowIndex++;
+                }
+            }
+            
+            // Add all collected classes to the timetable data
+            Object.keys(classesByPeriodAndDay).forEach(periodName => {
+                Object.keys(classesByPeriodAndDay[periodName]).forEach(day => {
+                    const classes = classesByPeriodAndDay[periodName][day];
+                    if (classes.length > 0) {
+                        timetableData.classes[day][periodName] = classes;
+                    }
+                });
+            });
+            
+            setIsProcessing(false);
+            setParsedData(timetableData);
+            return timetableData;
+        } catch (error) {
+            console.error('Error parsing timetable data:', error);
+            setParseError('Failed to parse the timetable data: ' + error.message);
+            setIsProcessing(false);
+            return null;
+        }
+    };
+    
+    // Function to process class data for a period
+    const processClassData = (timetableData, period, classDataBuffer, classesByPeriodAndDay) => {
+        // Group the lines by day
+        const classDataByDay = [];
+        
+        // Initialize for each day
+        for (let i = 0; i < timetableData.days.length; i++) {
+            classDataByDay[i] = [];
+        }
+        
+        // Group lines into chunks of data for each day
+        // This approach assumes that class data is ordered sequentially by day
+        let currentLine = 0;
+        let currentDay = 0;
+        
+        while (currentLine < classDataBuffer.length) {
+            if (currentDay >= timetableData.days.length) {
+                // If we've processed all days, move to the next row of data
+                currentDay = 0;
+            }
+            
+            classDataByDay[currentDay].push(classDataBuffer[currentLine]);
+            currentLine++;
+            currentDay++;
+        }
+        
+        // Now process each day's data
+        for (let dayIndex = 0; dayIndex < timetableData.days.length; dayIndex++) {
+            const dayData = classDataByDay[dayIndex];
+            const day = timetableData.days[dayIndex];
+            
+            // If we have data for this day, create a class
+            if (dayData.length > 0) {
+                let subject = dayData[0];
+                let code = null;
+                let room = null;
+                let teacher = null;
+                
+                // Extract code from subject if present
+                const codeMatch = subject.match(/\(([\w\d]+)\)/);
+                if (codeMatch) {
+                    code = codeMatch[1];
+                    subject = subject.replace(/\([\w\d]+\)/, '').trim();
+                }
+                
+                // Look for room and teacher in remaining lines
+                for (let i = 1; i < dayData.length; i++) {
+                    const line = dayData[i];
+                    
+                    // Look for code if not already found
+                    if (!code) {
+                        const codeMatch = line.match(/\(([\w\d]+)\)/);
+                        if (codeMatch) {
+                            code = codeMatch[1];
+                            continue;
+                        }
+                    }
+                    
+                    // Look for room pattern (letter followed by number)
+                    if (!room) {
+                        const roomMatch = line.match(/^([A-Z]\s*\d+)/);
+                        if (roomMatch) {
+                            room = roomMatch[0];
+                            
+                            // If this line also has teacher information after the room
+                            const teacherPart = line.substring(roomMatch[0].length).trim();
+                            if (teacherPart && (teacherPart.includes('Mr') || teacherPart.includes('Ms') || 
+                                              teacherPart.includes('Mrs') || teacherPart.includes('Dr') || 
+                                              teacherPart.includes('Miss'))) {
+                                teacher = teacherPart;
+                            }
+                            continue;
+                        }
+                    }
+                    
+                    // Look for teacher pattern
+                    if (!teacher) {
+                        if (line.includes('Mr') || line.includes('Ms') || line.includes('Mrs') || 
+                            line.includes('Dr') || line.includes('Miss')) {
+                            teacher = line;
+                        }
+                    }
+                }
+                
+                // Add class to the timetable
+                classesByPeriodAndDay[period.name][day].push({
+                    subject,
+                    code,
+                    room,
+                    teacher,
+                    startTime: period.startTime,
+                    endTime: period.endTime
+                });
+            }
+        }
+    };
+            
+    // Function to parse JSON timetable data (from AI output)
+    const parseJsonTimetable = (jsonText) => {
+        try {
+            setIsProcessing(true);
+            
+            // Try to parse the JSON
+            let parsedJson;
+            
+            try {
+                // Handle the case where jsonText might include backticks, markdown code blocks, or extra text
+                // Extract just the JSON part
+                const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsedJson = JSON.parse(jsonMatch[0]);
+                } else {
+                    throw new Error("No JSON object found in the text");
+                }
+            } catch (jsonError) {
+                setParseError("Failed to parse JSON. Make sure it's valid JSON format. Error: " + jsonError.message);
+                setIsProcessing(false);
+                return null;
+            }
+            
+            // Validate the JSON structure
+            if (!parsedJson.days || !Array.isArray(parsedJson.days) || parsedJson.days.length === 0) {
+                setParseError("Invalid JSON structure: 'days' array is missing or empty");
+                setIsProcessing(false);
+                return null;
+            }
+            
+            if (!parsedJson.periods || !Array.isArray(parsedJson.periods) || parsedJson.periods.length === 0) {
+                setParseError("Invalid JSON structure: 'periods' array is missing or empty");
+                setIsProcessing(false);
+                return null;
+            }
+            
+            if (!parsedJson.classes || typeof parsedJson.classes !== 'object') {
+                setParseError("Invalid JSON structure: 'classes' object is missing");
+                setIsProcessing(false);
+                return null;
+            }
+            
+            // Verify each day has class data
+            for (const day of parsedJson.days) {
+                if (!parsedJson.classes[day]) {
+                    setParseError(`Invalid JSON structure: No class data for day '${day}'`);
+                    setIsProcessing(false);
+                    return null;
+                }
+            }
+            
+            setIsProcessing(false);
+            setParsedData(parsedJson);
+            return parsedJson;
+            
+        } catch (error) {
+            console.error('Error parsing JSON timetable data:', error);
+            setParseError('Failed to parse the JSON timetable data: ' + error.message);
+            setIsProcessing(false);
+            return null;
+        }
+    };
+
+    const handleImport = () => {
+        if (!importText.trim()) {
+            setParseError('Please paste your timetable data first.');
+            return;
+        }
+        
+        let data;
+        
+        if (activeTab === 'paste') {
+            data = parseTimetableText(importText);
+        } else if (activeTab === 'ai') {
+            data = parseJsonTimetable(importText);
+        }
+        
+        if (data) {
+            onImport(data);
+        }
+    };
+
+    return (
+        <div className="import-timetable-modal">
+            <div className="import-timetable-content">
+                <h2>Import Timetable</h2>
+                
+                <div className="import-tabs">
+                    <button 
+                        className={`import-tab ${activeTab === 'paste' ? 'active' : ''}`} 
+                        onClick={() => handleTabChange('paste')}
+                    >
+                        Paste Timetable
+                    </button>
+                    <button 
+                        className={`import-tab ${activeTab === 'ai' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('ai')}
+                    >
+                        AI Import Instructions
+                    </button>
+                </div>
+                
+                <div className={`import-tab-content ${activeTab === 'paste' ? 'active' : ''}`}>
+                    <div className="import-instructions">
+                        <p>Copy and paste your timetable data directly from your school's timetable system.</p>
+                        <p>The format should have:</p>
+                        <ul>
+                            <li>First line with day labels (Day 1, Day 2, etc.)</li>
+                            <li>Period headers with times (Period 1, 8:35am-9:35am)</li>
+                            <li>Class details with subject, code, room, and teacher</li>
+                        </ul>
+                        
+                        <div className="import-format-note">
+                            <strong>Note:</strong> Make sure to select all cells in your timetable before copying to maintain the structure.
+                        </div>
+                    </div>
+                    
+                    <textarea
+                        className="import-textarea"
+                        placeholder="Paste your timetable data here..."
+                        value={importText}
+                        onChange={handleTextChange}
+                        rows={15}
+                    />
+                    
+                    {parseError && (
+                        <div className="parse-error">
+                            {parseError}
+                        </div>
+                    )}
+                    
+                    {parsedData && (
+                        <div className="parse-success">
+                            ✓ Timetable data parsed successfully. Click "Import" to apply.
+                        </div>
+                    )}
+                </div>
+
+                <div className={`import-tab-content ${activeTab === 'ai' ? 'active' : ''}`}>
+                    <div className="ai-instructions">
+                        <h3>AI Assistant Import Instructions</h3>
+                        <p>Copy the instructions below and paste them to ChatGPT or another AI assistant along with your timetable data:</p>
+                        
+                        <div className="ai-prompt">
+                            <pre>
+{`Please convert this school timetable into a structured JSON format. 
+The format should follow this structure:
+
+{
+  "days": ["Day 1", "Day 2", ...],
+  "periods": [
+    {"name": "Period 1", "startTime": "8:35am", "endTime": "9:35am"},
+    {"name": "Period 2", "startTime": "9:40am", "endTime": "10:40am"},
+    ...
+  ],
+  "classes": {
+    "Day 1": {
+      "Period 1": [
+        {
+          "subject": "Mathematics",
+          "code": "10MAT101",
+          "room": "B12",
+          "teacher": "Mr Smith",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [...],
+      ...
+    },
+    "Day 2": {...},
+    ...
+  }
+}
+
+Here's my timetable data:
+
+[PASTE YOUR TIMETABLE HERE]`}
+                            </pre>
+                        </div>
+                        
+                        <p>After the AI generates the JSON, paste it in the textarea below and click "Parse & Import".</p>
+                    </div>
+                    
+                    <textarea
+                        className="import-textarea"
+                        placeholder="Paste the JSON from your AI assistant here..."
+                        value={importText}
+                        onChange={handleTextChange}
+                        rows={15}
+                    />
+                    
+                    {parseError && (
+                        <div className="parse-error">
+                            {parseError}
+                        </div>
+                    )}
+                    
+                    {parsedData && (
+                        <div className="parse-success">
+                            ✓ Timetable data parsed successfully. Click "Import" to apply.
+                        </div>
+                    )}
+                </div>
+                
+                <div className="import-actions">
+                    <button 
+                        className="import-cancel-button" 
+                        onClick={onCancel}
+                        disabled={isProcessing}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        className="import-submit-button" 
+                        onClick={handleImport}
+                        disabled={isProcessing}
+                    >
+                        {isProcessing ? 'Processing...' : parsedData ? 'Import' : 'Parse & Import'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ImportTimetable;

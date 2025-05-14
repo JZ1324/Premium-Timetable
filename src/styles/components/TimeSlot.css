@@ -1,0 +1,156 @@
+/* TimeSlot Component Styles */
+
+/* Animation for current period highlight */
+@keyframes floatEffect {
+    0% {
+        transform: translateY(-3px) translateX(0) scale(1.0);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        transform: translateY(-5px) translateX(-2px) scale(1.0); /* Changed from right to left movement */
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+    100% {
+        transform: translateY(-3px) translateX(0) scale(1.0);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Glow effect animation */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.5),
+                    0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.7),
+                    0 6px 10px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.5),
+                    0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Update the label pulse animation to not change position */
+@keyframes labelPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.9;
+    }
+}
+
+.time-slot.current-period {
+    position: relative; /* Changed from absolute to relative */
+    transform: translateY(-3px) scale(1.02);
+    z-index: 1000; /* Much higher z-index to appear above absolutely everything */
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    animation: floatEffect 3s ease-in-out infinite, glowPulse 2s infinite alternate;
+    overflow: visible !important; /* Ensure nothing gets clipped */
+    box-sizing: border-box;
+    margin-right: 15px; /* Add extra margin on right side */
+    width: calc(100% - 15px); /* Adjusted to prevent overflow */
+    background-image: linear-gradient(135deg, rgba(255, 94, 58, 0.08) 0%, rgba(255, 149, 0, 0.08) 100%);
+}
+
+.time-slot.current-period:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.8);
+    z-index: 1500;
+    animation-play-state: paused;
+    background-image: linear-gradient(135deg, rgba(255, 94, 58, 0.35) 0%, rgba(255, 149, 0, 0.35) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Subtle dot indicator for current period */
+.time-slot.current-period::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(to right, #ff5e3a, #ff9500);
+    border: 1px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 6;
+    animation: glowPulse 1.5s infinite alternate;
+}
+
+/* Change label on hover */
+.time-slot.current-period::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    z-index: 4;
+    opacity: 0.3;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.time-slot.current-period:hover::before {
+    content: attr(data-subject);
+    position: absolute;
+    width: auto;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 8px 16px;
+    font-size: 18px;
+    border-radius: 12px;
+    background: linear-gradient(to right, #ff8a00, #ff5e3a);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    text-align: center;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+    z-index: 10;
+    animation: labelPulse 1.5s infinite ease-in-out;
+    border: none;
+}
+
+.time-slot.current-period .subject-title {
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.time-slot.current-period:hover .subject-title,
+.time-slot.current-period:hover .room,
+.time-slot.current-period:hover .teacher,
+.time-slot.current-period:hover .code,
+.time-slot.current-period:hover .time {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.time-slot.current-period .room,
+.time-slot.current-period .teacher,
+.time-slot.current-period .code {
+    font-weight: 500;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.time-slot.current-period:hover .room,
+.time-slot.current-period:hover .teacher,
+.time-slot.current-period:hover .code {
+    opacity: 1;
+}

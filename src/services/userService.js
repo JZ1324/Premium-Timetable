@@ -5,8 +5,8 @@
 import { getFirestore, collection, doc, setDoc, getDoc, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { getApp, initializeApp } from 'firebase/app';
 
-// Import the Firebase configuration from authService
-import { getFirebaseConfig } from './authService';
+// Import Firebase config directly
+import firebaseConfig from '../firebase-config';
 
 let db;
 
@@ -21,7 +21,6 @@ export const initializeFirestore = () => {
       app = getApp();
     } catch (error) {
       // If no app exists, initialize a new one
-      const firebaseConfig = getFirebaseConfig();
       app = initializeApp(firebaseConfig);
     }
     

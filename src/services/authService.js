@@ -3,24 +3,18 @@
  * Provides methods for user authentication and management
  */
 
-// Access the Firebase config from window object (set by index.html)
-// This approach is safer than hardcoding credentials in source code
+// Import Firebase configuration directly
+import firebaseConfigDefault from '../firebase-config';
+
+// Access the Firebase config from window object (set by index.html) or use the imported config
 const getConfigFromWindow = () => {
   // Check if we're in a browser environment and the config exists
-  if (typeof window !== 'undefined' && window.firebaseConfig) {
+  if (typeof window !== 'undefined' && window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "%REACT_APP_FIREBASE_API_KEY%") {
     return window.firebaseConfig;
   }
   
-  // Environment variable based config when window object is not available
-  return {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.REACT_APP_FIREBASE_APP_ID,
-    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
-  };
+  // Use imported config as a reliable fallback
+  return firebaseConfigDefault;
 };
 
 // Use the config from the window object, which is populated in index.html

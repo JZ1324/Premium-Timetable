@@ -1,6 +1,6 @@
 import React from 'react';
 import AuthProvider from './components/AuthProvider';
-import AppContent from './components/AppContent';
+import Router from './components/Router';
 import './styles/global.css';
 
 // Import theme CSS files
@@ -13,7 +13,7 @@ import './assets/themes/pastel.css';
 const App = () => {
     return (
         <AuthProvider>
-            <AppContent />
+            <Router />
         </AuthProvider>
     );
 }

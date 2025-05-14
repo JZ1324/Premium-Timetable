@@ -1,9 +1,9 @@
 // Firebase Authentication Test Environment JavaScript
 // This file contains the JavaScript code for the Firebase Authentication Test Environment
 
-// Firebase configuration - same as in the main app
+// Firebase configuration - using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
+  apiKey: "", // API key should be set via environment variable
   authDomain: "timetable-28639.firebaseapp.com",
   projectId: "timetable-28639",
   storageBucket: "timetable-28639.appspot.com",

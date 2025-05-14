@@ -4,6 +4,5 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
-# Do not ignore .env.production as it contains PUBLIC_URL setting needed for GitHub Pages
-!.env.production
+.env.production
 service-account-key.json

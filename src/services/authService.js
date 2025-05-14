@@ -3,27 +3,29 @@
  * Provides methods for user authentication and management
  */
 
-// Fallback Firebase config for development
-const devFirebaseConfig = {
-  apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
-  authDomain: "timetable-28639.firebaseapp.com",
-  projectId: "timetable-28639",
-  storageBucket: "timetable-28639.firebasestorage.app",
-  messagingSenderId: "653769103112",
-  appId: "1:653769103112:web:ba7fac1278faff3d843ebd",
-  measurementId: "G-3CSMHJHN2H"
+// Access the Firebase config from window object (set by index.html)
+// This approach is safer than hardcoding credentials in source code
+const getConfigFromWindow = () => {
+  // Check if we're in a browser environment and the config exists
+  if (typeof window !== 'undefined' && window.firebaseConfig) {
+    return window.firebaseConfig;
+  }
+  
+  // Safe placeholders for development - these won't work for authentication
+  // but prevent errors during development without exposing real credentials
+  return {
+    apiKey: "REPLACE_WITH_ENV_VAR", // Placeholder - will be replaced by environment variables
+    authDomain: "example.firebaseapp.com",
+    projectId: "example-project",
+    storageBucket: "example.appspot.com",
+    messagingSenderId: "000000000000",
+    appId: "1:000000000000:web:0000000000000000000000",
+    measurementId: "G-XXXXXXXXXX"
+  };
 };
 
-// Use environment variables if available, otherwise use the fallback config
-const firebaseConfig = {
-  apiKey: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_API_KEY) || devFirebaseConfig.apiKey,
-  authDomain: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_AUTH_DOMAIN) || devFirebaseConfig.authDomain,
-  projectId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_PROJECT_ID) || devFirebaseConfig.projectId,
-  storageBucket: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_STORAGE_BUCKET) || devFirebaseConfig.storageBucket,
-  messagingSenderId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID) || devFirebaseConfig.messagingSenderId,
-  appId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_APP_ID) || devFirebaseConfig.appId,
-  measurementId: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_FIREBASE_MEASUREMENT_ID) || devFirebaseConfig.measurementId
-};
+// Use the config from the window object, which is populated in index.html
+const firebaseConfig = getConfigFromWindow();
 
 /**
  * Get Firebase configuration for use in other services

@@ -2,13 +2,15 @@
   "name": "timetable-app",
   "version": "1.0.0",
   "description": "A customizable timetable application that allows users to personalize their own timetable and select from different themes.",
+  "homepage": "https://jz1324.github.io/timetables/",
   "main": "src/index.js",
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "test": "jest",
     "deploy": "npm run build && firebase target:apply hosting timetable timetable-28639-f04f7 && firebase deploy --only hosting:timetable",
-    "deploy:github": "npm run build && gh-pages -d build"
+    "deploy:github": "gh-pages -d build",
+    "predeploy:github": "npm run build && touch build/.nojekyll"
   },
   "keywords": [
     "timetable",

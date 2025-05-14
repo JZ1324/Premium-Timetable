@@ -38,7 +38,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
-    publicPath: NODE_ENV === 'production' ? '/Premium-Timetable/' : '/'
+    publicPath: './'
   },
   module: {
     rules: [
@@ -66,15 +66,24 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html',
-      templateParameters: {
-        PUBLIC_URL: process.env.PUBLIC_URL || '',
-        REACT_APP_FIREBASE_API_KEY: process.env.REACT_APP_FIREBASE_API_KEY || envParsed.REACT_APP_FIREBASE_API_KEY || '',
-        REACT_APP_FIREBASE_AUTH_DOMAIN: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || envParsed.REACT_APP_FIREBASE_AUTH_DOMAIN || '',
-        REACT_APP_FIREBASE_PROJECT_ID: process.env.REACT_APP_FIREBASE_PROJECT_ID || envParsed.REACT_APP_FIREBASE_PROJECT_ID || '',
-        REACT_APP_FIREBASE_STORAGE_BUCKET: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || envParsed.REACT_APP_FIREBASE_STORAGE_BUCKET || '',
-        REACT_APP_FIREBASE_MESSAGING_SENDER_ID: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || envParsed.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '',
-        REACT_APP_FIREBASE_APP_ID: process.env.REACT_APP_FIREBASE_APP_ID || envParsed.REACT_APP_FIREBASE_APP_ID || '',
-        REACT_APP_FIREBASE_MEASUREMENT_ID: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || ''
+      templateParameters: (compilation, assets, assetTags, options) => {
+        return {
+          PUBLIC_URL: '.', // Set to '.' for relative paths
+          compilation: compilation,
+          webpackConfig: compilation.options,
+          htmlWebpackPlugin: {
+            tags: assetTags,
+            files: assets,
+            options: options
+          },
+          REACT_APP_FIREBASE_API_KEY: process.env.REACT_APP_FIREBASE_API_KEY || envParsed.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0',
+          REACT_APP_FIREBASE_AUTH_DOMAIN: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || envParsed.REACT_APP_FIREBASE_AUTH_DOMAIN || 'timetable-28639.firebaseapp.com',
+          REACT_APP_FIREBASE_PROJECT_ID: process.env.REACT_APP_FIREBASE_PROJECT_ID || envParsed.REACT_APP_FIREBASE_PROJECT_ID || 'timetable-28639',
+          REACT_APP_FIREBASE_STORAGE_BUCKET: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || envParsed.REACT_APP_FIREBASE_STORAGE_BUCKET || 'timetable-28639.firebasestorage.app',
+          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || envParsed.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '653769103112',
+          REACT_APP_FIREBASE_APP_ID: process.env.REACT_APP_FIREBASE_APP_ID || envParsed.REACT_APP_FIREBASE_APP_ID || '1:653769103112:web:7b7fe45718bec053843ebd',
+          REACT_APP_FIREBASE_MEASUREMENT_ID: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-J0F10129PJ'
+        };
       }
     }),
     new webpack.DefinePlugin(envKeys),

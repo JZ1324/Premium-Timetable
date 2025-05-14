@@ -7,7 +7,7 @@
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "test": "jest",
-    "deploy": "npm run build && firebase deploy",
+    "deploy": "npm run build && firebase target:apply hosting timetable timetable-28639-f04f7 && firebase deploy --only hosting:timetable",
     "deploy:github": "npm run build && gh-pages -d build"
   },
   "keywords": [

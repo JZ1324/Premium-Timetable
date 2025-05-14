@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Authentication Test</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .result {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Firebase Authentication Test</h1>
+    
+    <div class="panel">
+        <h2>Configuration</h2>
+        <div id="current-config" class="result">Loading...</div>
+    </div>
+    
+    <div class="panel">
+        <h2>Test Firebase Initialization</h2>
+        <button onclick="testInitialization()">Test Initialization</button>
+        <div id="init-result" class="result">Click the button to test</div>
+    </div>
+    
+    <div class="panel">
+        <h2>Test Anonymous Login</h2>
+        <button onclick="testAnonymousLogin()">Test Anonymous Login</button>
+        <div id="login-result" class="result">Click the button to test</div>
+    </div>
+    
+    <div class="panel">
+        <h2>API Key Validation</h2>
+        <p>Enter an API key to test:</p>
+        <input type="text" id="api-key-input" placeholder="Firebase API Key" style="width: 300px; padding: 8px;">
+        <button onclick="testCustomApiKey()">Test This API Key</button>
+        <div id="api-key-result" class="result">Enter an API key and click the button to test</div>
+    </div>
+    
+    <script>
+        // Display the Firebase configuration values we're using
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase configuration (directly hardcoded for testing)
+            window.firebaseConfig = {
+                apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
+                authDomain: "timetable-28639.firebaseapp.com",
+                projectId: "timetable-28639",
+                storageBucket: "timetable-28639.firebasestorage.app",
+                messagingSenderId: "653769103112",
+                appId: "1:653769103112:web:7b7fe45718bec053843ebd",
+                measurementId: "G-J0F10129PJ",
+                hostingSite: "timetable-28639-f04f7" // Site ID for Firebase hosting
+            };
+            
+            // Show the current config (with masked API key)
+            const configDisplay = { ...window.firebaseConfig };
+            if (configDisplay.apiKey) {
+                const apiKey = configDisplay.apiKey;
+                configDisplay.apiKey = apiKey.substring(0, 6) + '...' + apiKey.substring(apiKey.length - 4);
+            }
+            
+            document.getElementById('current-config').textContent = JSON.stringify(configDisplay, null, 2);
+        });
+        
+        // Test Firebase initialization
+        function testInitialization() {
+            const resultElement = document.getElementById('init-result');
+            resultElement.textContent = 'Testing...';
+            resultElement.className = 'result';
+            
+            try {
+                // Check if Firebase is already initialized
+                if (firebase.apps.length > 0) {
+                    firebase.app().delete().then(() => {
+                        console.log('Existing Firebase app deleted');
+                    }).catch(error => {
+                        console.error('Error deleting Firebase app:', error);
+                    });
+                }
+                
+                // Initialize Firebase with our config
+                firebase.initializeApp(window.firebaseConfig);
+                
+                resultElement.textContent = '✅ Firebase initialized successfully!';
+                resultElement.className = 'result success';
+            } catch (error) {
+                resultElement.textContent = `❌ Error: ${error.message}`;
+                resultElement.className = 'result error';
+                console.error('Firebase initialization error:', error);
+            }
+        }
+        
+        // Test anonymous login
+        function testAnonymousLogin() {
+            const resultElement = document.getElementById('login-result');
+            resultElement.textContent = 'Testing...';
+            resultElement.className = 'result';
+            
+            try {
+                // Check if Firebase is initialized
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(window.firebaseConfig);
+                }
+                
+                // Attempt anonymous sign-in
+                firebase.auth().signInAnonymously()
+                    .then(() => {
+                        resultElement.textContent = '✅ Anonymous login successful!';
+                        resultElement.className = 'result success';
+                    })
+                    .catch((error) => {
+                        resultElement.textContent = `❌ Error: ${error.code} - ${error.message}`;
+                        resultElement.className = 'result error';
+                        console.error('Anonymous login error:', error);
+                    });
+            } catch (error) {
+                resultElement.textContent = `❌ Error: ${error.message}`;
+                resultElement.className = 'result error';
+                console.error('Test execution error:', error);
+            }
+        }
+        
+        // Test a custom API key
+        function testCustomApiKey() {
+            const apiKeyInput = document.getElementById('api-key-input').value.trim();
+            const resultElement = document.getElementById('api-key-result');
+            
+            if (!apiKeyInput) {
+                resultElement.textContent = 'Please enter an API key to test';
+                resultElement.className = 'result error';
+                return;
+            }
+            
+            resultElement.textContent = 'Testing...';
+            resultElement.className = 'result';
+            
+            try {
+                // Delete existing Firebase app if any
+                if (firebase.apps.length > 0) {
+                    firebase.app().delete().then(() => {
+                        console.log('Existing Firebase app deleted');
+                    }).catch(error => {
+                        console.error('Error deleting Firebase app:', error);
+                    });
+                }
+                
+                // Create a new config with the custom API key
+                const customConfig = {
+                    ...window.firebaseConfig,
+                    apiKey: apiKeyInput
+                };
+                
+                // Initialize Firebase with the custom config
+                firebase.initializeApp(customConfig);
+                
+                // Test anonymous login with this API key
+                firebase.auth().signInAnonymously()
+                    .then(() => {
+                        resultElement.textContent = '✅ API key is valid! Anonymous login successful.';
+                        resultElement.className = 'result success';
+                    })
+                    .catch((error) => {
+                        resultElement.textContent = `❌ API key test failed: ${error.code} - ${error.message}`;
+                        resultElement.className = 'result error';
+                        console.error('API key test error:', error);
+                    });
+            } catch (error) {
+                resultElement.textContent = `❌ Error: ${error.message}`;
+                resultElement.className = 'result error';
+                console.error('Test execution error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

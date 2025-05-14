@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "timetable-28639"
+  },
+  "targets": {
+    "timetable-28639": {
+      "hosting": {
+        "timetable": [
+          "timetable-28639-f04f7"
+        ]
+      }
+    }
   }
 }

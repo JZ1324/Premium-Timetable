@@ -3,6 +3,10 @@
  * Provides methods for user authentication and management
  */
 
+// Import Firebase modules (will be used if window.firebase is not available)
+import { initializeApp } from "firebase/app";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+
 // Access the Firebase config from window object (set by index.html)
 // This approach is safer than hardcoding credentials in source code
 const getConfigFromWindow = () => {
@@ -54,17 +58,17 @@ export const initializeAuth = async () => {
       return auth;
     }
     
-    // If not available globally, dynamically import Firebase modules
-    const { initializeApp } = await import('firebase/app');
-    const { getAuth, setPersistence, browserLocalPersistence } = await import('firebase/auth');
-    
-    // Initialize Firebase
+    // If not available globally, use imported Firebase modules
+    console.log('Using imported Firebase SDK modules');
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     
-    // Set persistence to LOCAL for better user experience
-    // This keeps the user logged in even after browser restarts
-    await setPersistence(auth, browserLocalPersistence);
+    // Set persistence to local (keep user logged in until they sign out)
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch (error) {
+      console.error('Error setting persistence:', error);
+    }
     
     initialized = true;
     

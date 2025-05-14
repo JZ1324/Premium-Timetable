@@ -2,6 +2,11 @@
   "name": "timetable-app",
   "version": "1.0.0",
   "description": "A customizable timetable application that allows users to personalize their own timetable and select from different themes.",
+  "homepage": "https://jz1324.github.io/Premium-Timetable/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JZ1324/Premium-Timetable.git"
+  },
   "main": "src/index.js",
   "scripts": {
     "start": "webpack serve --mode development",

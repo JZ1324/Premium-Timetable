@@ -10,7 +10,7 @@ const handleGitHubPagesRouting = () => {
   
   if (isGitHubPages) {
     // Set base path for GitHub Pages
-    window.basePath = '/timetables';
+    window.basePath = '/Premium-Timetable';
     
     // Check if we're being redirected with a route parameter
     const urlParams = new URLSearchParams(window.location.search);

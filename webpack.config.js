@@ -38,7 +38,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
-    publicPath: NODE_ENV === 'production' ? '/timetables/' : '/'
+    publicPath: NODE_ENV === 'production' ? '/Premium-Timetable/' : '/'
   },
   module: {
     rules: [

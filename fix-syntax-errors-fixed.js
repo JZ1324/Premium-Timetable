@@ -42,7 +42,7 @@ htmlContent = htmlContent.replace(
 
 // Fix 5: Fix DOMContentLoaded with extra closing parenthesis
 htmlContent = htmlContent.replace(
-  /document\.addEventListener\("DOMContentLoaded",\(function\(\)\{.*?\}\)\;/g,
+  /document\.addEventListener\("DOMContentLoaded",\(function\(\)\{.*?\}\)\;/gs,
   'document.addEventListener("DOMContentLoaded",(function(){if(window.__VERCEL_DEPLOYMENT){document.querySelectorAll(\'script[src*="bundle.js"]\').forEach((e=>{e.src.includes("./bundle.js")&&(e.src="/bundle.js")}));console.log("Adjusted bundle.js path for Vercel deployment")}});'
 );
 

@@ -6,13 +6,16 @@ import timetableService from '../services/timetableService';
 import parseTimetable from '../utils/timetableParser';
 import convertStructuredDataToTimeSlots from '../utils/convertStructuredDataToTimeSlots';
 import { getCurrentSchoolDay, getCurrentPeriod, shouldShowBreakPeriod } from '../utils/dateUtils';
+import { saveCurrentTimetableDay, getLastActiveTimetableDay, saveCurrentTemplate, getLastActiveTemplate } from '../utils/userPreferences';
 import { useAuth } from './AuthProvider';
 import { isAdmin } from '../services/userService';
 import AdminTerminal from './AdminTerminal';
+import { isNotificationSupported, requestNotificationPermission, checkUpcomingClasses } from '../services/notificationService';
 import '../styles/components/Timetable.css';
 import '../styles/components/TimeSlot.css';
 import '../styles/components/CurrentDay.css';
 import '../styles/components/BreakPeriods.css';
+import '../styles/components/DefaultButton.css';
 
 const Timetable = () => {
     const { user } = useAuth();
@@ -37,8 +40,14 @@ const Timetable = () => {
         Lunch: false
     });
     const [editingRowHeight, setEditingRowHeight] = useState(null);
+    const [notificationSettings, setNotificationSettings] = useState({
+        enabled: false,
+        permissionGranted: false,
+        timeMinutes: 15
+    });
     const editingRowRef = useRef(null);
     const labelRefs = useRef({});
+    const notificationIntervalRef = useRef(null);
 
     // Get all days from 1 to 10
     const days = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -60,6 +69,8 @@ const Timetable = () => {
         
         console.log("Switching to day:", day);
         setCurrentDay(day);
+        // Save the current day to localStorage
+        saveCurrentTimetableDay(day);
         // Close any open editing form when switching days
         setCurrentEditingSlot(null);
     };
@@ -69,15 +80,20 @@ const Timetable = () => {
         const templateNames = timetableService.getTemplateNames();
         setTemplates(templateNames);
         
-        // Load the school template by default
-        if (templateNames.includes('school')) {
+        // Load the last active template from localStorage (defaults to 'school')
+        const lastActiveTemplate = getLastActiveTemplate();
+        if (templateNames.includes(lastActiveTemplate)) {
+            loadTemplate(lastActiveTemplate);
+        } else if (templateNames.includes('school')) {
             loadTemplate('school');
         }
 
-        // Set current day based on today's date
+        // Get the last active day or use today's date
+        const lastActiveDay = getLastActiveTimetableDay();
         const todayDay = getCurrentSchoolDay();
-        setCurrentDay(todayDay); // Automatically select today's day
-        console.log(`Today is day ${todayDay}`);
+        const dayToUse = lastActiveDay !== null ? lastActiveDay : todayDay;
+        setCurrentDay(dayToUse);
+        console.log(`Using day ${dayToUse} (${lastActiveDay ? 'from saved preference' : 'today'})`);
         
         // Set current period based on current time
         const nowPeriod = getCurrentPeriod();
@@ -123,11 +139,113 @@ const Timetable = () => {
                     displayRoom: parsedSettings.displayRoom !== undefined ? parsedSettings.displayRoom : true,
                     useFirstNameForTeachers: parsedSettings.useFirstNameForTeachers || false
                 });
+                
+                // Load notification settings
+                setNotificationSettings({
+                    enabled: parsedSettings.enableNotifications || false,
+                    permissionGranted: false, // Will be updated later
+                    timeMinutes: parsedSettings.notificationTime || 15
+                });
             } catch (error) {
                 console.error('Error parsing settings:', error);
             }
         }
     }, []);
+    
+    // Initialize notification system
+    useEffect(() => {
+        const initializeNotifications = async () => {
+            // Check if notifications are supported
+            if (!isNotificationSupported()) {
+                console.log('Browser notifications are not supported');
+                return;
+            }
+            
+            // Check if notifications are enabled in settings
+            if (!notificationSettings.enabled) {
+                console.log('Notifications are disabled in settings');
+                return;
+            }
+            
+            // Request permission if needed
+            const permissionGranted = await requestNotificationPermission();
+            setNotificationSettings(prev => ({
+                ...prev,
+                permissionGranted
+            }));
+            
+            if (!permissionGranted) {
+                console.log('Notification permission denied');
+                return;
+            }
+            
+            console.log(`Notification system initialized with ${notificationSettings.timeMinutes} minute alert time`);
+        };
+        
+        initializeNotifications();
+    }, [notificationSettings.enabled]);
+    
+    // Set up notification checking interval
+    useEffect(() => {
+        // Clear any existing interval
+        if (notificationIntervalRef.current) {
+            clearInterval(notificationIntervalRef.current);
+            notificationIntervalRef.current = null;
+        }
+        
+        // If notifications are enabled and permission is granted, set up the interval
+        if (notificationSettings.enabled && notificationSettings.permissionGranted) {
+            // Check every minute for upcoming classes
+            notificationIntervalRef.current = setInterval(() => {
+                const todayDay = getCurrentSchoolDay();
+                
+                // Only check for notifications if we're viewing today's timetable
+                if (todayDay === currentDay) {
+                    const notificationResult = checkUpcomingClasses(
+                        timeSlots,
+                        notificationSettings.timeMinutes,
+                        currentDay
+                    );
+                    
+                    if (notificationResult && notificationResult.length > 0) {
+                        notificationResult.forEach(result => {
+                            console.log('Notification sent for upcoming class:', result.slot.subject);
+                        });
+                    }
+                }
+            }, 60000); // Check every minute
+            
+            // Run an initial check
+            const todayDay = getCurrentSchoolDay();
+            if (todayDay === currentDay) {
+                const notificationResult = checkUpcomingClasses(
+                    timeSlots,
+                    notificationSettings.timeMinutes,
+                    currentDay
+                );
+                
+                if (notificationResult && notificationResult.length > 0) {
+                    notificationResult.forEach(result => {
+                        console.log('Initial notification sent for upcoming class:', result.slot.subject);
+                    });
+                }
+            }
+        }
+        
+        // Clean up on unmount
+        return () => {
+            if (notificationIntervalRef.current) {
+                clearInterval(notificationIntervalRef.current);
+                notificationIntervalRef.current = null;
+            }
+        };
+    }, [
+        notificationSettings.enabled, 
+        notificationSettings.permissionGranted, 
+        notificationSettings.timeMinutes,
+        timeSlots,
+        currentDay
+    ]);
     
     // Handle importing timetable data
     const importTimetable = (data) => {
@@ -148,6 +266,15 @@ const Timetable = () => {
             
             // Update the UI
             setTimeSlots(convertedSlots);
+            
+            // Make sure we have a current day that exists in the data
+            // Get unique days from the imported data
+            const importedDays = [...new Set(convertedSlots.map(slot => slot.day))];
+            if (importedDays.length > 0) {
+                const newDay = importedDays.includes(currentDay) ? currentDay : importedDays[0];
+                setCurrentDay(newDay);
+                saveCurrentTimetableDay(newDay);
+            }
             
             // Show success notification
             alert('Timetable imported successfully!');
@@ -189,6 +316,8 @@ const Timetable = () => {
         timetableService.loadTemplate(templateName);
         setTimeSlots(timetableService.getTimeSlots());
         setCurrentTemplate(templateName);
+        // Save the current template to localStorage
+        saveCurrentTemplate(templateName);
         // Close any open editing form when loading a template
         setCurrentEditingSlot(null);
     };
@@ -199,6 +328,8 @@ const Timetable = () => {
             setTemplates(timetableService.getTemplateNames());
             setNewTemplateName('');
             setCurrentTemplate(newTemplateName);
+            // Save current template to localStorage
+            saveCurrentTemplate(newTemplateName);
         }
     };
     
@@ -461,17 +592,20 @@ const Timetable = () => {
                 </div>
                 
                 <div className="template-controls">
-                    <select 
-                        value={currentTemplate} 
-                        onChange={(e) => loadTemplate(e.target.value)}
-                    >
-                        <option value="">Templates</option>
-                        {templates.map(template => (
-                            <option key={template} value={template}>
-                                {template.charAt(0).toUpperCase() + template.slice(1)}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="default-timetable-dropdown-container">
+                        <select 
+                            value={currentTemplate} 
+                            onChange={(e) => loadTemplate(e.target.value)}
+                            className="default-timetable-btn"
+                        >
+                            <option value="" disabled>Default Timetable</option>
+                            {templates.map(template => (
+                                <option key={template} value={template}>
+                                    {template.charAt(0).toUpperCase() + template.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     
                     <div className="save-template">
                         <input 

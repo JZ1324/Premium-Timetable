@@ -10,6 +10,9 @@ try {
   if (fs.existsSync('./fix-html-js-syntax.js')) {
     require('./fix-html-js-syntax.js');
     console.log('✅ HTML syntax fixes applied successfully');
+  } else if (fs.existsSync('./fix-syntax-errors-fixed.js')) {
+    require('./fix-syntax-errors-fixed.js');
+    console.log('✅ Updated HTML syntax fixes applied');
   } else if (fs.existsSync('./fix-syntax-errors.js')) {
     require('./fix-syntax-errors.js');
     console.log('✅ Original HTML syntax fixes applied');

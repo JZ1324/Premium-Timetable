@@ -1,0 +1,53 @@
+/* Default Timetable Dropdown styles */
+.default-timetable-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.default-timetable-btn {
+    padding: 6px 12px;
+    min-height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, var(--accent-color) 0%, var(--accent-hover) 100%);
+    color: white;
+    border: 1px solid var(--accent-color);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+    min-width: 180px;
+}
+
+.default-timetable-btn:hover {
+    background: linear-gradient(to bottom, var(--accent-hover) 0%, var(--accent-color) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.default-timetable-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.3), 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.default-timetable-btn option {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .default-timetable-btn {
+        padding: 5px 10px 5px 8px;
+        font-size: 0.8rem;
+        min-width: 150px;
+    }
+}

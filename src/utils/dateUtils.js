@@ -36,6 +36,19 @@ export const getEndOfWeek = (date) => {
     return end;
 };
 
+// Get the ISO week number of the year
+export const getWeekNumber = (date) => {
+    const target = new Date(date.valueOf());
+    const dayNumber = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNumber + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+        target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    return 1 + Math.ceil((firstThursday - target) / 604800000);
+};
+
 // Get the current school day number (1-10) based on the current date and user settings
 export const getCurrentSchoolDay = () => {
     const today = new Date();
@@ -58,22 +71,43 @@ export const getCurrentSchoolDay = () => {
         }
     }
     
-    // If it's weekend, return the first day of next week
+    // If it's weekend, calculate based on the following Monday
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-        return settings.startWithWeek === 'A' ? 1 : 6; // Monday of Week A or B
+        // Calculate the correct week type for the upcoming Monday
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + (dayOfWeek === 0 ? 1 : 2)); // Add days to get to Monday
+        return determineSchoolDay(nextMonday, settings.startWithWeek);
     }
     
-    // Calculate the day number (1-10)
-    let dayNumber;
-    if (settings.startWithWeek === 'A') {
-        // Week A: Days 1-5, Week B: Days 6-10
-        dayNumber = dayOfWeek; // Monday = 1, Tuesday = 2, etc.
+    // For weekdays, calculate the current day number
+    return determineSchoolDay(today, settings.startWithWeek);
+};
+
+// Determine the school day (1-10) based on the date and user preference
+const determineSchoolDay = (date, userPreferredStart) => {
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Calculate the week of the year
+    const weekNumber = getWeekNumber(date);
+    
+    // Determine if this is Week A or Week B
+    // Week A is odd-numbered weeks, Week B is even-numbered weeks
+    // This can be flipped if user sets preference to start with Week B
+    let isWeekA = weekNumber % 2 === 1; // Odd weeks are Week A by default
+    
+    // If user prefers to start with Week B, flip the week type
+    if (userPreferredStart === 'B') {
+        isWeekA = !isWeekA;
+    }
+    
+    // Calculate day number based on week type and day of week
+    if (isWeekA) {
+        // Week A: Days 1-5
+        return dayOfWeek; // Monday = 1, Tuesday = 2, etc.
     } else {
-        // Week B: Days 1-5, Week A: Days 6-10
-        dayNumber = dayOfWeek + 5; // Monday = 6, Tuesday = 7, etc.
+        // Week B: Days 6-10
+        return dayOfWeek + 5; // Monday = 6, Tuesday = 7, etc.
     }
-    
-    return dayNumber;
 };
 
 // Get the current period based on the current time

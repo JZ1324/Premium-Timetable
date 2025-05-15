@@ -37,7 +37,7 @@ const ImportButton = ({ onImport }) => {
                 role="button" 
                 tabIndex="0"
             >
-                Import Timetable
+                Import
             </button>
             
             {showImportModal && (

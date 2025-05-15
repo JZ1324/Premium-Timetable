@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import timetableService from '../services/timetableService';
 import { getCurrentTheme, setTheme } from '../services/themeService';
+import { isNotificationSupported, requestNotificationPermission } from '../services/notificationService';
 import '../styles/components/Settings.css';
 
 const Settings = () => {
@@ -38,11 +39,32 @@ const Settings = () => {
             [name]: newValue
         };
         
+        // If enabling notifications, request permission
+        if (name === 'enableNotifications' && checked === true) {
+            handleNotificationPermission();
+        }
+        
         setSettings(updatedSettings);
         try {
             localStorage.setItem('timetable-settings', JSON.stringify(updatedSettings));
         } catch (error) {
             console.error('Error saving settings to localStorage:', error);
+        }
+    };
+    
+    // Handle notification permission request
+    const handleNotificationPermission = async () => {
+        // Check if notifications are supported in this browser
+        if (!isNotificationSupported()) {
+            alert('Browser notifications are not supported in your browser.');
+            return;
+        }
+        
+        // Request permission to show notifications
+        const permissionGranted = await requestNotificationPermission();
+        
+        if (!permissionGranted) {
+            alert('Notification permission was denied. Please enable notifications in your browser settings to receive class reminders.');
         }
     };
 
@@ -185,6 +207,15 @@ const Settings = () => {
                                 />
                                 Enable class notifications
                             </label>
+                            {isNotificationSupported() ? (
+                                <small className="setting-help-text">
+                                    Get notifications before your classes start.
+                                </small>
+                            ) : (
+                                <small className="setting-help-text error">
+                                    Notifications are not supported in your browser.
+                                </small>
+                            )}
                         </div>
                         
                         {settings.enableNotifications && (
@@ -226,7 +257,7 @@ const Settings = () => {
                         
                         <div className="setting-item">
                             <label>
-                                Start with Week:
+                                First week of year is:
                                 <select 
                                     name="startWithWeek" 
                                     value={settings.startWithWeek} 

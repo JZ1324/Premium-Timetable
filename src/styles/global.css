@@ -84,20 +84,31 @@ body[data-theme="dark"],
     --content-spacing: 50px;
 }
 
-/* Remove scrollbars in dark theme for cleaner look */
-body.theme-dark::-webkit-scrollbar,
-html.theme-dark::-webkit-scrollbar,
-[data-theme="dark"]::-webkit-scrollbar {
+/* Remove scrollbars in all themes for cleaner look */
+::-webkit-scrollbar,
+body::-webkit-scrollbar,
+html::-webkit-scrollbar,
+.timetable::-webkit-scrollbar,
+.day-column::-webkit-scrollbar,
+.periods-column::-webkit-scrollbar,
+.timeslot-card::-webkit-scrollbar,
+.timetable-container::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
     display: none;
     width: 0;
     background: transparent;
 }
 
-/* Hide scrollbar for Firefox in dark theme */
-body.theme-dark,
-html.theme-dark,
-[data-theme="dark"] {
+/* Hide scrollbar for Firefox in all themes */
+body, html, 
+.timetable, 
+.day-column, 
+.periods-column, 
+.timeslot-card, 
+.timetable-container, 
+.main-content {
     scrollbar-width: none;
+    -ms-overflow-style: none; /* IE and Edge */
 }
 
 /* Full-width header in dark theme */

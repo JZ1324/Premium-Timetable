@@ -8,18 +8,19 @@
 .import-button {
     display: inline-block;
     cursor: pointer !important;
-    padding: 10px 15px;
+    padding: 6px 10px;  /* Reduced padding */
     border-radius: 8px;
     background-color: var(--accent-color);
     color: white;
     font-weight: 500;
     transition: all 0.3s ease;
-    font-size: 0.95rem;
+    font-size: 0.85rem; /* Smaller font */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid transparent;
     position: relative;
     z-index: 10;
     pointer-events: auto !important;
+    min-height: 32px; /* Match other buttons */
 }
 
 .import-button:hover {

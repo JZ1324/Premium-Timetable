@@ -217,12 +217,12 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
           />
         </div>
         
-        <div className="form-submit-container" style={{marginTop: '20px', marginBottom: '15px'}}>
+        <div className="form-submit-container" style={{marginTop: '20px', marginBottom: '15px', position: 'relative', zIndex: 100}}>
           <button 
             type="submit" 
             className="signup-button"
             disabled={isLoading}
-            style={{display: 'block', width: '100%'}}
+            style={{display: 'block !important', width: '100%', visibility: 'visible !important'}}
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>

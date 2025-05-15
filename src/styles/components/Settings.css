@@ -111,6 +111,19 @@
     margin-top: 0.5rem;
 }
 
+.setting-help-text {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+    margin-left: 1.9rem;
+    opacity: 0.8;
+}
+
+.setting-help-text.error {
+    color: var(--error-color, #f44336);
+}
+
 /* Dark theme specific styling for settings panel */
 .theme-dark .settings-panel,
 [data-theme="dark"] .settings-panel {

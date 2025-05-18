@@ -1,0 +1,505 @@
+// AI Timetable Parser Service using Together.ai API
+
+import Together from "together-ai";
+import { getTogetherApiKey } from "../utils/apiKeyManager";
+
+/**
+ * Helper function to clean and validate JSON before returning
+ * @param {Object} jsonObject - The parsed JSON object
+ * @returns {Object} - The cleaned and validated JSON object
+ */
+const cleanAndValidateJson = (jsonObject) => {
+  try {
+    // Ensure all required top-level properties exist
+    if (!jsonObject.days || !Array.isArray(jsonObject.days)) {
+      jsonObject.days = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"];
+    }
+
+    if (!jsonObject.periods || !Array.isArray(jsonObject.periods) || jsonObject.periods.length < 3) {
+      jsonObject.periods = [
+        { name: "Period 1", startTime: "8:35am", endTime: "9:35am" },
+        { name: "Period 2", startTime: "9:40am", endTime: "10:40am" },
+        { name: "Tutorial", startTime: "10:45am", endTime: "10:55am" },
+        { name: "Recess", startTime: "10:55am", endTime: "11:25am" },
+        { name: "Period 3", startTime: "11:25am", endTime: "12:25pm" },
+        { name: "Period 4", startTime: "12:30pm", endTime: "1:30pm" },
+        { name: "Lunch", startTime: "1:30pm", endTime: "2:25pm" },
+        { name: "Period 5", startTime: "2:25pm", endTime: "3:25pm" }
+      ];
+    }
+
+    if (!jsonObject.classes || typeof jsonObject.classes !== 'object') {
+      jsonObject.classes = {};
+    }
+
+    // Ensure each day has an entry in classes
+    jsonObject.days.forEach(day => {
+      if (!jsonObject.classes[day]) {
+        jsonObject.classes[day] = {};
+      }
+      
+      // Ensure each period exists for each day
+      jsonObject.periods.forEach(period => {
+        if (!jsonObject.classes[day][period.name]) {
+          jsonObject.classes[day][period.name] = [];
+        }
+      });
+    });
+
+    // Return the validated object
+    return jsonObject;
+  } catch (error) {
+    console.error("Error while cleaning and validating JSON:", error);
+    // If anything goes wrong, return the original object
+    return jsonObject;
+  }
+};
+
+/**
+ * Parse timetable data using Together.ai API
+ * @param {string} timetableText - Raw text of the timetable to parse
+ * @returns {Promise<Object>} - Parsed timetable data in structured format
+ */
+export const parseWithAI = async (timetableText) => {
+  try {
+    // Get API key from our key manager
+    const apiKey = getTogetherApiKey();
+    
+    // API key is now managed internally
+    if (!apiKey) {
+      console.warn("Together API key not found. API access will fail.");
+      throw new Error("AI Parser service unavailable. Please try again later or contact support.");
+    }
+    
+    // Initialize Together AI client with API key
+    const together = new Together({
+      apiKey: apiKey
+    });
+    
+    // Create the system prompt with instructions for parsing
+    const systemPrompt = `You are a JSON-structure generator for school timetables.
+
+Return only a valid JSON object with this exact structure:
+{
+  "days": ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"],
+  "periods": [
+    { "name": "Period 1", "startTime": "8:35am", "endTime": "9:35am" },
+    { "name": "Period 2", "startTime": "9:40am", "endTime": "10:40am" },
+    { "name": "Tutorial", "startTime": "10:45am", "endTime": "10:55am" },
+    { "name": "Recess", "startTime": "10:55am", "endTime": "11:25am" },
+    { "name": "Period 3", "startTime": "11:25am", "endTime": "12:25pm" },
+    { "name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm" },
+    { "name": "Lunch", "startTime": "1:30pm", "endTime": "2:25pm" },
+    { "name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm" }
+  ],
+  "classes": {
+    "Day 1": {
+      "Period 1": [{"subject": "Subject Name", "code": "SubjectCode", "room": "Room#", "teacher": "Teacher Name", "startTime": "8:35am", "endTime": "9:35am"}],
+      "Period 2": [], "Tutorial": [], "Recess": [], "Period 3": [], "Period 4": [], "Lunch": [], "Period 5": []
+    },
+    "Day 2": { /* similar structure for all periods */ }
+    /* and so on for all days */
+  }
+}
+
+CRITICAL JSON FORMATTING REQUIREMENTS:
+1. PROVIDE ONLY PURE JSON AS YOUR RESPONSE - no explanations, no "```json" code blocks, no other text.
+2. Double-check your JSON for syntax errors - trailing commas are not allowed.
+3. Ensure all property names are surrounded by double quotes.
+4. Ensure all string values are surrounded by double quotes.
+5. Escape any double quotes within string values with backslash: \\"
+6. Never use undefined or NaN values - use empty strings "" instead.
+7. Each class must include: subject, code, room, teacher, startTime, endTime (use empty string "" if unknown).
+8. Make sure to parse subjects accurately - e.g., "English" is different from "English Literature"
+9. Be sure to include recess and lunch periods with the same times as shown in the example
+10. Always validate your response is proper JSON that can be parsed with JSON.parse()
+
+Convert the following timetable data to this format:
+${timetableText}`;
+
+    // Call the Together AI API
+    const response = await together.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: ""
+        }
+      ],
+      model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+      stream: false // Set to false for simplicity in handling the response
+    });
+
+    // Extract the response content
+    const aiResponse = response.choices[0]?.message?.content;
+    
+    if (!aiResponse) {
+      throw new Error("No response from AI parser");
+    }
+    
+    // Try to parse the response as JSON
+    try {
+      // Clean up any markdown or extra text that might be in the response
+      const jsonStartIndex = aiResponse.indexOf('{');
+      const jsonEndIndex = aiResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex === -1 || jsonEndIndex === -1) {
+        throw new Error("Could not find valid JSON in AI response");
+      }
+      
+      let jsonContent = aiResponse.substring(jsonStartIndex, jsonEndIndex);
+      
+      // Additional JSON cleaning: fix common formatting issues
+      // 1. Handle trailing commas in arrays and objects (common JSON parsing error)
+      jsonContent = jsonContent.replace(/,\s*([}\]])/g, '$1');
+      
+      // 2. Replace any invalid control characters
+      jsonContent = jsonContent.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+      
+      // Try direct parsing first as it's most reliable
+      try {
+        const jsonObj = JSON.parse(jsonContent);
+        return cleanAndValidateJson(jsonObj);
+      } catch (directParseError) {
+        console.warn("Direct JSON parse failed:", directParseError.message);
+        
+        // Apply more fixes
+        
+        // 3. Fix unescaped quotes in a simpler way (less error-prone)
+        jsonContent = jsonContent.replace(/:\s*"([^"]*?)([^\\])"([^"]*?)"/g, ': "$1$2\\"$3"');
+        
+        // 4. Fix missing quotes around keys
+        jsonContent = jsonContent.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+        
+        // 5. Fix missing quotes around string values
+        jsonContent = jsonContent.replace(/:\s*([a-zA-Z][a-zA-Z0-9_\s-]*[a-zA-Z0-9])(\s*[,}])/g, ': "$1"$2');
+        
+        try {
+          // First attempt with fixes
+          return cleanAndValidateJson(JSON.parse(jsonContent));
+        } catch (initialParseError) {
+          console.warn("Initial JSON parse failed, attempting more aggressive fixes:", initialParseError.message);
+          
+          // 6. Fix problematic values - undefined, NaN, null
+          jsonContent = jsonContent.replace(/:\s*(undefined|NaN|null)\s*([,}])/g, ': ""$2');
+          
+          // 7. Fix unclosed strings
+          jsonContent = jsonContent.replace(/"([^"]*)(?:[^"\\])(,|\n|\r\n|\})/g, '"$1"$2');
+          
+          // 8. Remove comments from JSON
+          jsonContent = jsonContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+          
+          // 9. Fix incorrect boolean formatting (True/False instead of true/false)
+          jsonContent = jsonContent.replace(/:\s*True\s*([,}])/g, ': true$1');
+          jsonContent = jsonContent.replace(/:\s*False\s*([,}])/g, ': false$1');
+          
+          try {
+            // Second attempt with more aggressive cleaning
+            const parsedJson = cleanAndValidateJson(JSON.parse(jsonContent));
+            return parsedJson;
+          } catch (secondParseError) {
+            console.error("Second JSON parse attempt failed:", secondParseError.message);
+            
+            // 10. Last resort: try to extract just the structure and fill with empty values
+            try {
+              // This is our structure extractor to get the basic structure even if the content is problematic
+              const structureRegex = /"days"\s*:\s*\[(.*?)\].*?"periods"\s*:\s*\[(.*?)\]/s;
+              const structureMatch = jsonContent.match(structureRegex);
+              
+              if (structureMatch) {
+                // We at least have days and periods, try to construct a valid JSON
+                const daysMatch = structureMatch[1].match(/"([^"]*)"/g);
+                
+                if (daysMatch && daysMatch.length > 0) {
+                  // We can build a minimal structure with the days we found
+                  const days = daysMatch.map(day => day.replace(/"/g, ''));
+                  
+                  // Create a basic structure with empty classes
+                  const fallbackStructure = {
+                    days: days,
+                    periods: [
+                      { name: "Period 1", startTime: "8:35am", endTime: "9:35am" },
+                      { name: "Period 2", startTime: "9:40am", endTime: "10:40am" },
+                      { name: "Tutorial", startTime: "10:45am", endTime: "10:55am" },
+                      { name: "Recess", startTime: "10:55am", endTime: "11:25am" },
+                      { name: "Period 3", startTime: "11:25am", endTime: "12:25pm" },
+                      { name: "Period 4", startTime: "12:30pm", endTime: "1:30pm" },
+                      { name: "Lunch", startTime: "1:30pm", endTime: "2:25pm" },
+                      { name: "Period 5", startTime: "2:25pm", endTime: "3:25pm" }
+                    ],
+                    classes: {}
+                  };
+                  
+                  // Initialize the classes structure
+                  days.forEach(day => {
+                    fallbackStructure.classes[day] = {
+                      "Period 1": [],
+                      "Period 2": [],
+                      "Tutorial": [],
+                      "Recess": [],
+                      "Period 3": [],
+                      "Period 4": [],
+                      "Lunch": [],
+                      "Period 5": []
+                    };
+                  });
+                  
+                  console.warn("Using extracted structure as fallback");
+                  return fallbackStructure;
+                }
+              }
+              
+              throw new Error("Could not extract valid JSON structure");
+            } catch (structureError) {
+              console.error("Structure extraction failed:", structureError.message);
+              throw new Error("Could not parse AI response: " + secondParseError.message);
+            }
+          }
+        }
+      }
+    } catch (parseError) {
+      console.error("Error parsing AI response:", parseError.message);
+      throw new Error("Failed to parse AI response into valid JSON. Details: " + parseError.message);
+    }
+  } catch (error) {
+    console.error("Error using Together AI parser:", error);
+    
+    // Provide a more user-friendly error message
+    if (error.message && error.message.includes("401")) {
+      throw new Error("API authentication failed. Please contact support if this issue persists.");
+    } else if (error.message && error.message.includes("429")) {
+      throw new Error("Too many requests to the AI service. Please try again in a few minutes.");
+    } else if (error.message && error.message.includes("5")) {
+      throw new Error("The AI service is temporarily unavailable. Please try again later.");
+    } else if (error.message && error.message.includes("timeout")) {
+      throw new Error("The AI service took too long to respond. Please try with a smaller timetable or try again later.");
+    } else if (error.message && error.message.includes("JSON")) {
+      throw new Error("There was a problem with the AI response format. Please try again with a clearer timetable format.");
+    } else {
+      // Generic error with more detail for easier debugging
+      console.warn("Full error details for debugging:", error);
+      throw new Error(`AI parsing failed. ${error.message || "Please try again or use another import method."}`);
+    }
+  }
+};
+
+/**
+ * Fallback parser if AI parsing fails
+ * @param {string} timetableText - Raw text of the timetable to parse
+ * @returns {Object} - Best attempt at parsing the timetable data
+ */
+export const fallbackParser = (timetableText) => {
+  try {
+    console.log("Using fallback parser for text:", timetableText.substring(0, 100) + "...");
+    
+    // Enhanced structure template with additional periods
+    const result = {
+      days: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"],
+      periods: [
+        { name: "Period 1", startTime: "8:35am", endTime: "9:35am" },
+        { name: "Period 2", startTime: "9:40am", endTime: "10:40am" },
+        { name: "Tutorial", startTime: "10:45am", endTime: "10:55am" },
+        { name: "Recess", startTime: "10:55am", endTime: "11:25am" },
+        { name: "Period 3", startTime: "11:25am", endTime: "12:25pm" },
+        { name: "Period 4", startTime: "12:30pm", endTime: "1:30pm" },
+        { name: "Lunch", startTime: "1:30pm", endTime: "2:25pm" },
+        { name: "Period 5", startTime: "2:25pm", endTime: "3:25pm" }
+      ],
+      classes: {}
+    };
+    
+    // Initialize classes object for each day and period
+    result.days.forEach(day => {
+      result.classes[day] = {};
+      result.periods.forEach(period => {
+        result.classes[day][period.name] = [];
+      });
+    });
+    
+    // Try to parse days from the first line if possible
+    const lines = timetableText.trim().split('\n');
+    if (lines.length > 0) {
+      // Try to detect days in the header
+      const headerLine = lines[0].trim();
+      const possibleDays = headerLine.split(/\s{2,}|\t/)
+                             .map(day => day.trim())
+                             .filter(day => day.length > 0 && !day.match(/^period|^time/i));
+      
+      if (possibleDays.length >= 2) {
+        console.log("Detected days from header:", possibleDays);
+        // If we found at least 2 days, use them instead of the default days
+        result.days = possibleDays;
+        
+        // Reinitialize classes for the new days
+        result.classes = {};
+        possibleDays.forEach(day => {
+          result.classes[day] = {};
+          result.periods.forEach(period => {
+            result.classes[day][period.name] = [];
+          });
+        });
+      }
+    }
+    
+    // Try to extract some basic subject information - look for patterns in the text
+    // This is a simple heuristic approach
+    let currentPeriod = null;
+    let currentDay = null;
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      // Check if this is a period header line
+      const periodMatch = line.match(/^period\s*(\d+)|^p(\d+)|^tut(orial)?|^lunch|^recess/i);
+      if (periodMatch) {
+        if (periodMatch[0].match(/^tut(orial)?/i)) {
+          currentPeriod = "Tutorial";
+        } else if (periodMatch[0].match(/^lunch/i)) {
+          currentPeriod = "Lunch";
+        } else if (periodMatch[0].match(/^recess/i)) {
+          currentPeriod = "Recess";
+        } else {
+          const periodNum = periodMatch[1] || periodMatch[2];
+          currentPeriod = `Period ${periodNum}`;
+        }
+        console.log("Detected period:", currentPeriod);
+        continue;
+      }
+      
+      // Check if it might be a day indicator
+      for (const day of result.days) {
+        if (line.includes(day)) {
+          currentDay = day;
+          console.log("Detected day:", currentDay);
+          break;
+        }
+      }
+      
+      // If we have potential subject data and a current period
+      if (currentPeriod && result.days.length > 0) {
+        // Look for subject names (typically words without numbers)
+        const subjectName = line.replace(/\d+/g, '').trim();
+        
+        // Look for room numbers - they often have a letter followed by numbers
+        const roomMatch = line.match(/([A-Z][-\s]?\d+)/i);
+        const room = roomMatch ? roomMatch[1] : "";
+        
+        // Look for teacher names - often preceded by Mr, Mrs, Ms, Dr
+        const teacherMatch = line.match(/(Mr|Mrs|Ms|Dr|Miss)\.?\s+[A-Za-z\s]+/i);
+        const teacher = teacherMatch ? teacherMatch[0] : "";
+        
+        // Look for subject codes - often alphanumeric with some pattern
+        const codeMatch = line.match(/\b([A-Z0-9]{3,10})\b/);
+        const code = codeMatch ? codeMatch[1] : "";
+        
+        if (subjectName && subjectName.length > 3) {
+          // Choose the current day if detected, otherwise use the first day
+          const dayToUse = currentDay || result.days[0];
+          
+          if (result.classes[dayToUse] && result.classes[dayToUse][currentPeriod]) {
+            console.log(`Adding subject "${subjectName}" to ${dayToUse} ${currentPeriod}`);
+            
+            // Check if we already have this subject for this period/day
+            const existingClassIndex = result.classes[dayToUse][currentPeriod].findIndex(
+              cls => cls.subject === subjectName
+            );
+            
+            if (existingClassIndex >= 0) {
+              // Update existing class with any new information
+              const existingClass = result.classes[dayToUse][currentPeriod][existingClassIndex];
+              
+              if (room && !existingClass.room) existingClass.room = room;
+              if (teacher && !existingClass.teacher) existingClass.teacher = teacher;
+              if (code && !existingClass.code) existingClass.code = code;
+            } else {
+              // Add as a new class
+              result.classes[dayToUse][currentPeriod].push({
+                subject: subjectName,
+                code: code || "",
+                room: room || "",
+                teacher: teacher || "",
+                startTime: result.periods.find(p => p.name === currentPeriod)?.startTime || "",
+                endTime: result.periods.find(p => p.name === currentPeriod)?.endTime || ""
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    return cleanAndValidateJson(result);
+  } catch (error) {
+    console.error("Error in fallback parser:", error);
+    
+    // Return minimal structure that won't break the app
+    return cleanAndValidateJson({
+      days: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"],
+      periods: [
+        { name: "Period 1", startTime: "8:35am", endTime: "9:35am" },
+        { name: "Period 2", startTime: "9:40am", endTime: "10:40am" },
+        { name: "Tutorial", startTime: "10:45am", endTime: "10:55am" },
+        { name: "Recess", startTime: "10:55am", endTime: "11:25am" },
+        { name: "Period 3", startTime: "11:25am", endTime: "12:25pm" },
+        { name: "Period 4", startTime: "12:30pm", endTime: "1:30pm" },
+        { name: "Lunch", startTime: "1:30pm", endTime: "2:25pm" },
+        { name: "Period 5", startTime: "2:25pm", endTime: "3:25pm" }
+      ],
+      classes: {
+        "Day 1": {
+          "Period 1": [],
+          "Period 2": [],
+          "Tutorial": [],
+          "Recess": [],
+          "Period 3": [],
+          "Period 4": [],
+          "Lunch": [],
+          "Period 5": []
+        },
+        "Day 2": {
+          "Period 1": [],
+          "Period 2": [],
+          "Tutorial": [],
+          "Recess": [],
+          "Period 3": [],
+          "Period 4": [],
+          "Lunch": [],
+          "Period 5": []
+        },
+        "Day 3": {
+          "Period 1": [],
+          "Period 2": [],
+          "Tutorial": [],
+          "Recess": [],
+          "Period 3": [],
+          "Period 4": [],
+          "Lunch": [],
+          "Period 5": []
+        },
+        "Day 4": {
+          "Period 1": [],
+          "Period 2": [],
+          "Tutorial": [],
+          "Recess": [],
+          "Period 3": [],
+          "Period 4": [],
+          "Lunch": [],
+          "Period 5": []
+        },
+        "Day 5": {
+          "Period 1": [],
+          "Period 2": [],
+          "Tutorial": [],
+          "Recess": [],
+          "Period 3": [], 
+          "Period 4": [],
+          "Lunch": [],
+          "Period 5": []
+        }
+      }
+    });
+  }
+};

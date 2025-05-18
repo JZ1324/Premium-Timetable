@@ -1,0 +1,10 @@
+{
+  "name": "enhance-class-data-test",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Test script for enhanceClassData method",
+  "main": "test-enhance-class-data.js",
+  "scripts": {
+    "test": "node test-enhance-class-data.js"
+  }
+}

@@ -1,0 +1,1323 @@
+/**
+ * AI Parser Service
+ * 
+ * This service extracts structured timetable data using OpenRouter's AI API
+ * with DeepSeek's Chat model.
+ */
+
+// Import the tab-delimited parser module
+import tabDelimitedParser from './tabDelimitedParser.js';
+
+class AiParserService {
+  constructor() {
+    // Update to the provided API key
+    this.API_KEY = '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';
+    this.API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    this.MODEL = 'deepseek/deepseek-chat-v3-0324:free';
+    
+    // Default timetable structure
+    this.defaultDays = [
+      "Day 1", "Day 2", "Day 3", "Day 4", "Day 5",
+      "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"
+    ];
+    
+    this.defaultPeriods = [
+      { "name": "Period 1", "startTime": "8:35am", "endTime": "9:35am" },
+      { "name": "Period 2", "startTime": "9:40am", "endTime": "10:40am" },
+      { "name": "Period 3", "startTime": "11:25am", "endTime": "12:25pm" },
+      { "name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm" },
+      { "name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm" }
+    ];
+    
+    // Common weekday names for mapping
+    this.weekdayMap = {
+      'mon': 'Day 1',
+      'monday': 'Day 1',
+      'tue': 'Day 2',
+      'tuesday': 'Day 2',
+      'wed': 'Day 3',
+      'wednesday': 'Day 3',
+      'thu': 'Day 4',
+      'thursday': 'Day 4',
+      'fri': 'Day 5',
+      'friday': 'Day 5'
+    };
+    
+    // Initialize the tab-delimited parser
+    this.tabParser = tabDelimitedParser;
+  }
+
+  /**
+   * Helper method to check if a text is likely to be a day header
+   * @param {string} text - The text to check
+   * @returns {boolean} - True if the text is likely a day header
+   */
+  isDayHeader(text) {
+    if (!text) return false;
+    
+    const lowerText = text.trim().toLowerCase();
+    
+    // Check for common day header patterns
+    if (lowerText.includes('day') && /\d+/.test(lowerText)) {
+      return true;  // "Day 1", "Day 2", etc.
+    }
+    
+    // Check for weekday names (full or abbreviated)
+    const weekdayPatterns = [
+      /\b(mon|monday)\b/i,
+      /\b(tue|tues|tuesday)\b/i,
+      /\b(wed|wednesday)\b/i,
+      /\b(thu|thur|thurs|thursday)\b/i,
+      /\b(fri|friday)\b/i,
+      /\b(sat|saturday)\b/i,
+      /\b(sun|sunday)\b/i
+    ];
+    
+    for (const pattern of weekdayPatterns) {
+      if (pattern.test(lowerText)) {
+        return true;
+      }
+    }
+    
+    // If it's just the word "Day" with nothing else, it's not a complete day header
+    if (lowerText === 'day') {
+      return false;
+    }
+    
+    // Check for day numbers (1-10) that might be used as day identifiers
+    if (/^(day)?\s*[1-9]0?$/.test(lowerText)) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Parse timetable data using AI
+   * @param {string} timetableData - The raw timetable data in grid format
+   * @returns {Promise<object>} - Parsed timetable JSON
+   */
+  /**
+   * Helper method to parse a single class cell
+   * @param {string} classText - The text of a single class cell
+   * @param {string} periodStartTime - Start time of the period
+   * @param {string} periodEndTime - End time of the period
+   * @returns {object} - Parsed class entry
+   */
+  parseClassCell(classText, periodStartTime, periodEndTime) {
+    if (!classText || classText.trim().length === 0) {
+      return null;
+    }
+    
+    // Skip cells that just contain placeholder text
+    const placeholderTerms = ['n/a', 'free', 'lunch', 'recess', 'break'];
+    if (placeholderTerms.some(term => classText.toLowerCase().includes(term))) {
+      console.log('Skipping cell with placeholder text:', classText);
+      return null;
+    }
+    
+    console.log('Parsing class cell:', classText.substring(0, 50) + (classText.length > 50 ? '...' : ''));
+    
+    // Try to extract the most important parts: subject code and subject name
+    // These are the minimum required for a meaningful class entry
+    
+    // Look for subject code in parentheses (most reliable identifier)
+    // Enhanced to handle codes like (10SPE251101)
+    const codeMatches = classText.match(/\(([A-Z0-9]{5,})\)/);
+    const code = codeMatches ? codeMatches[1] : '';
+    
+    // If we found a code, that's a strong indicator this is a class
+    if (code) {
+      console.log(`Found subject code: ${code}`);
+    } else {
+      // If no code pattern found, check if this might not be a class cell at all
+      if (classText.length < 5 || !/[A-Za-z]{3,}/.test(classText)) {
+        console.log('Text too short or lacks enough letters to be a class');
+        return null;
+      }
+    }
+    
+    // Try different parsing approaches
+    
+    // 1. Standard format: Subject\n(Code)\nRoom Teacher
+    const lines = classText.split('\n').map(line => line.trim()).filter(line => line);
+    if (lines.length >= 3) {
+      console.log('Using multi-line parsing approach with', lines.length, 'lines');
+      let subject = lines[0];
+      let code = '';
+      let room = '';
+      let teacher = '';
+      
+      // Look for code in any line (usually second line)
+      for (let i = 0; i < lines.length; i++) {
+        const codeMatch = lines[i].match(/\(([A-Z0-9]{5,})\)/);
+        if (codeMatch) {
+          code = codeMatch[1];
+          // If code is in first line, subject may need to be adjusted
+          if (i === 0) {
+            subject = subject.replace(/\([A-Z0-9]{5,}\)/, '').trim();
+          }
+          break;
+        }
+      }
+      
+      // Try to find teacher (starts with Mr, Mrs, Ms, Miss, Dr, etc.)
+      const teacherPattern = /\b(Mr|Mrs|Ms|Miss|Dr|Prof|Professor)\b\.?\s+[A-Za-z]+/i;
+      const teacherLines = lines.filter(line => teacherPattern.test(line));
+      
+      if (teacherLines.length > 0) {
+        // Line with teacher reference
+        const teacherLine = teacherLines[0];
+        const teacherMatch = teacherLine.match(teacherPattern);
+        
+        if (teacherMatch) {
+          const teacherStartIndex = teacherMatch.index;
+          // Room might be before the teacher name
+          if (teacherStartIndex > 0) {
+            room = teacherLine.substring(0, teacherStartIndex).trim();
+          }
+          teacher = teacherLine.substring(teacherStartIndex).trim();
+        } else {
+          teacher = teacherLine;
+        }
+      } 
+      // If we couldn't find a teacher reference, assume room is in the last line
+      else if (lines.length >= 3) {
+        const roomLine = lines[lines.length - 1];
+        
+        // Room typically has numbers and is shorter
+        const roomPattern = /\b[A-Z][\s-]?[0-9]+\b/;
+        const roomMatch = roomLine.match(roomPattern);
+        
+        if (roomMatch) {
+          room = roomMatch[0];
+          // Teacher might be remainder of the line
+          const remainingText = roomLine.replace(roomMatch[0], '').trim();
+          if (remainingText.length > 0) {
+            teacher = remainingText;
+          }
+        }
+        // Fallback: split the last line by spaces and assume structure
+        else {
+          const parts = roomLine.split(' ').filter(p => p);
+          
+          if (parts.length >= 3) {
+            // First 1-2 words might be room
+            room = parts.slice(0, 2).join(' ');
+            teacher = parts.slice(2).join(' ');
+          } else if (parts.length === 2) {
+            room = parts[0];
+            teacher = parts[1];
+          } else if (parts.length === 1) {
+            // Just one word - likely a room
+            room = parts[0];
+          }
+        }
+      }
+      
+      // Ensure subject isn't blank
+      if (!subject && code) {
+        subject = `Class ${code}`;
+      }
+      
+      return {
+        subject,
+        code,
+        room,
+        teacher,
+        startTime: periodStartTime,
+        endTime: periodEndTime
+      };
+    }
+    
+    // 2. Compact format: everything in one line
+    else if (lines.length === 1) {
+      console.log('Using single-line parsing approach');
+      const line = lines[0];
+      
+      let subject = '';
+      let code = '';
+      let room = '';
+      let teacher = '';
+      
+      // Try to match patterns for common formats
+      
+      // Format: Subject (CODE) Room Teacher
+      const fullFormatMatch = line.match(/^(.*?)\s*\(([A-Z0-9]{5,})\)(?:\s+(.*))?$/);
+      if (fullFormatMatch) {
+        subject = fullFormatMatch[1].trim();
+        code = fullFormatMatch[2];
+        
+        // Process remaining text for room and teacher
+        if (fullFormatMatch[3]) {
+          const remaining = fullFormatMatch[3].trim();
+          
+          // Try to find teacher pattern
+          const teacherMatch = remaining.match(/\b(Mr|Mrs|Ms|Miss|Dr|Prof)\b\.?\s+[A-Za-z]+/);
+          if (teacherMatch) {
+            teacher = teacherMatch[0];
+            // Room might be before teacher
+            room = remaining.substring(0, remaining.indexOf(teacherMatch[0])).trim();
+          } 
+          // If no teacher found, try to find room pattern
+          else {
+            const roomMatch = remaining.match(/\b[A-Z][\s-]?[0-9]+\b/);
+            if (roomMatch) {
+              room = roomMatch[0];
+              // Anything after might be teacher
+              teacher = remaining.substring(remaining.indexOf(roomMatch[0]) + roomMatch[0].length).trim();
+            } else {
+              // Just split by spaces and assume first part is room, rest is teacher
+              const parts = remaining.split(' ');
+              if (parts.length > 1) {
+                room = parts[0];
+                teacher = parts.slice(1).join(' ');
+              } else {
+                room = remaining;
+              }
+            }
+          }
+        }
+      }
+      // Format without explicit code parentheses
+      else {
+        // Look for potential subject (usually first part of the text)
+        const parts = line.split(/\s{2,}|\t/);
+        if (parts.length >= 2) {
+          subject = parts[0];
+          
+          // Check for code pattern in any part
+          for (let i = 0; i < parts.length; i++) {
+            const codePart = parts[i];
+            if (/^[A-Z0-9]{5,}$/.test(codePart)) {
+              code = codePart;
+              break;
+            }
+          }
+          
+          // Room might be a short code with numbers
+          for (let i = 0; i < parts.length; i++) {
+            const roomPart = parts[i];
+            if (/^[A-Z]\s?[0-9]+$/.test(roomPart) && roomPart !== code) {
+              room = roomPart;
+              break;
+            }
+          }
+          
+          // Teacher might have Mr/Mrs/etc.
+          for (let i = 0; i < parts.length; i++) {
+            const teacherPart = parts[i];
+            if (/\b(Mr|Mrs|Ms|Miss|Dr)\b/i.test(teacherPart)) {
+              teacher = teacherPart;
+              break;
+            }
+          }
+          
+          // If we still don't have room or teacher, use remaining parts
+          if (!room && parts.length >= 2) {
+            room = parts[1];
+          }
+          
+          if (!teacher && parts.length >= 3) {
+            teacher = parts.slice(2).join(' ');
+          }
+        } else {
+          // Just one part - use as subject
+          subject = line;
+        }
+      }
+      
+      // Ensure subject isn't blank
+      if (!subject && code) {
+        subject = `Class ${code}`;
+      } else if (!subject) {
+        subject = line;
+      }
+      
+      return {
+        subject,
+        code,
+        room,
+        teacher,
+        startTime: periodStartTime,
+        endTime: periodEndTime
+      };
+    }
+    
+    // 3. Minimal parsing - just use what we have
+    console.log('Using minimal parsing approach');
+    
+    // If we at least have a code, create a basic entry
+    if (code) {
+      return {
+        subject: `Class ${code}`,  // Will be enhanced later by enhanceClassData
+        code,
+        room: '',
+        teacher: '',
+        startTime: periodStartTime,
+        endTime: periodEndTime
+      };
+    }
+    
+    return {
+      subject: classText.trim(),
+      code: '',
+      room: '',
+      teacher: '',
+      startTime: periodStartTime,
+      endTime: periodEndTime
+    };
+  }
+
+  /**
+   * Analyze the timetable format to determine the optimal parsing approach
+   * @param {string} timetableData - The raw timetable data
+   * @returns {Object} - Analysis results including format type and recommendations
+   */
+  analyzeTimetableFormat(timetableData) {
+    if (!timetableData || timetableData.trim() === '') {
+      return { isTabDelimited: false, tabCount: 0, lineCount: 0 };
+    }
+    
+    try {
+      // Split the input by lines and get the first non-empty line
+      const lines = timetableData.trim().split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      if (lines.length === 0) {
+        return { isTabDelimited: false, tabCount: 0, lineCount: 0 };
+      }
+      
+      const firstLine = lines[0];
+      
+      // Check for tab-delimited format
+      const tabCount = (firstLine.match(/\t/g) || []).length;
+      console.log(`Tabs detected in first line: ${tabCount}`);
+      
+      // Check if first line contains multiple day headers
+      let dayHeaderCount = 0;
+      
+      // Check for day headers like "Day 1", "Day 2", etc.
+      const dayMatches = firstLine.match(/Day\s*\d+/gi) || [];
+      dayHeaderCount += dayMatches.length;
+      
+      // Check for weekday names
+      const weekdayPatterns = [
+        /\b(Mon|Monday)\b/i,
+        /\b(Tue|Tuesday)\b/i,
+        /\b(Wed|Wednesday)\b/i,
+        /\b(Thu|Thurs|Thursday)\b/i,
+        /\b(Fri|Friday)\b/i
+      ];
+      
+      for (const pattern of weekdayPatterns) {
+        if (pattern.test(firstLine)) {
+          dayHeaderCount++;
+        }
+      }
+      
+      // Analyze if this is likely a tab-delimited timetable
+      // A tab-delimited format usually has tabs in the first line and contains multiple day headers
+      const isTabDelimited = tabCount >= 2 || (tabCount > 0 && dayHeaderCount >= 2);
+      
+      return {
+        isTabDelimited,
+        tabCount,
+        dayHeaderCount,
+        lineCount: lines.length,
+        hasWeekdayHeaders: weekdayPatterns.some(p => p.test(firstLine))
+      };
+    } catch (error) {
+      console.error('Error analyzing timetable format:', error);
+      return { isTabDelimited: false, error: error.message };
+    }
+  }
+  
+  async parseTimeTable(timetableData) {
+    try {
+      console.log("Starting timetable parsing process");
+      
+      // Run format analysis to help with debugging
+      this.analyzeTimetableFormat(timetableData);
+      
+      // Check if this is likely a timetable at all
+      const hasTimetableIndicators = 
+        timetableData.toLowerCase().includes('period') || 
+        timetableData.toLowerCase().includes('day') ||
+        /\d+[:\.]\d+\s*[ap]m/i.test(timetableData) ||
+        (timetableData.includes('(') && timetableData.includes(')'));
+      
+      if (!hasTimetableIndicators) {
+        console.log("WARNING: Input doesn't appear to be a timetable. Missing key indicators.");
+        throw new Error("Input doesn't appear to be a valid timetable format");
+      }
+      
+      // Check for tab-delimited format which is likely a valid timetable
+      const hasTabFormat = timetableData.includes('\t');
+      const hasDayHeaderPattern = /day\s*\d+/i.test(timetableData);
+      const hasPeriodPattern = /period\s*\d+/i.test(timetableData);
+      
+      // Special handling for various formats
+      const isUnusualFormat = 
+        timetableData.includes('‎') || // Contains invisible characters
+        timetableData.split('\n').length < 5 || // Very few lines
+        timetableData.includes('\\u') || // Contains escaped unicode
+        (timetableData.match(/\(/g) || []).length < 3; // Very few parentheses
+      
+      // If it has tabs and looks like a timetable, prioritize direct parsing
+      const isLikelyValidTimetable = (hasTabFormat && (hasDayHeaderPattern || hasPeriodPattern)) ||
+                                     (timetableData.match(/\([A-Z0-9]+\)/g) || []).length >= 3;
+      
+      if (isUnusualFormat && !isLikelyValidTimetable) {
+        console.log("Detected unusual format - enabling special parsing mode");
+        // Will enable special processing in direct parser
+        this.specialParsingMode = true;
+      } else {
+        this.specialParsingMode = false;
+        if (isLikelyValidTimetable) {
+          console.log("Detected likely valid timetable format - prioritizing direct parsing");
+        }
+      }
+      
+      // First try our direct parser
+      try {
+        console.log("Attempting direct parsing first");
+        const directResult = this.parseTimeTableDirectly(timetableData);
+        
+        // Check if we got meaningful results
+        let totalClasses = 0;
+        for (const day in directResult.classes) {
+          for (const period in directResult.classes[day]) {
+            totalClasses += directResult.classes[day][period].length;
+          }
+        }
+        
+        console.log(`Direct parsing found ${totalClasses} classes total`);
+        
+        // For tab-delimited formats that look like valid timetables,
+        // be more lenient about accepting direct parsing results
+        const directParsingThreshold = isLikelyValidTimetable ? 1 : 5;
+        
+        if (totalClasses >= directParsingThreshold) {
+          console.log("Direct parsing successful with classes found");
+          return this.enhanceClassData(directResult);
+        } else {
+          console.log("Direct parsing completed but insufficient classes found");
+        }
+      } catch (directError) {
+        console.error("Direct parsing failed with error:", directError);
+      }
+      
+      // Fallback to AI parsing
+      try {
+        console.log("Attempting AI-based parsing with DeepSeek Chat model");
+        
+        // Check if this is a tab-delimited format that needs specialized handling
+        const formatAnalysis = this.analyzeTimetableFormat(timetableData);
+        console.log("Format analysis result:", formatAnalysis);
+        
+        let response;
+        
+        // If this is a tab-delimited format, use specialized parsing
+        if (formatAnalysis.isTabDelimited) {
+          console.log("Using specialized tab-delimited parser with DeepSeek model");
+          
+          // First try with the tabDelimitedParser module
+          try {
+            const tabResult = this.tabParser.parseTabDelimitedTimetable(
+              timetableData, 
+              this.defaultDays, 
+              this.defaultPeriods
+            );
+            
+            // Check if we got meaningful results
+            let tabTotalClasses = 0;
+            for (const day in tabResult.classes) {
+              for (const period in tabResult.classes[day]) {
+                tabTotalClasses += tabResult.classes[day][period].length;
+              }
+            }
+            
+            console.log(`Tab parser found ${tabTotalClasses} classes total`);
+            
+            if (tabTotalClasses >= 3) {
+              console.log("Tab parser successful with classes found");
+              return this.enhanceClassData(tabResult);
+            }
+          } catch (tabError) {
+            console.error("Tab parser failed with error:", tabError);
+          }
+          
+          // If tabParser didn't work well, try with the specialized DeepSeek prompt
+          console.log("Using specialized DeepSeek prompt for tab-delimited format");
+          const tabDelimitedPrompt = this.constructTabDelimitedPrompt(timetableData);
+          response = await this.callAiApi(tabDelimitedPrompt);
+        } else {
+          // Standard AI parsing
+          console.log("Using standard prompt for timetable format");
+          response = await this.callAiApi(timetableData);
+        }
+        
+        // Check if AI returned actual class data
+        let aiTotalClasses = 0;
+        if (response && response.classes) {
+          for (const day in response.classes) {
+            for (const period in response.classes[day]) {
+              aiTotalClasses += response.classes[day][period].length;
+            }
+          }
+        }
+        
+        console.log(`AI parsing found ${aiTotalClasses} classes total`);
+        
+        if (aiTotalClasses > 0) {
+          return this.enhanceClassData(response);
+        } else {
+          console.log("AI parsing returned empty results, attempting force extraction");
+          
+          // Try to force extraction with specialized prompt
+          const forcePrompt = this.constructForceExtractionPrompt(timetableData);
+          const forceResponse = await this.callAiApi(forcePrompt);
+          
+          let forceTotalClasses = 0;
+          if (forceResponse && forceResponse.classes) {
+            for (const day in forceResponse.classes) {
+              for (const period in forceResponse.classes[day]) {
+                forceTotalClasses += forceResponse.classes[day][period].length;
+              }
+            }
+          }
+          
+          console.log(`Force extraction found ${forceTotalClasses} classes`);
+          
+          if (forceTotalClasses > 0) {
+            return this.enhanceClassData(forceResponse);
+          }
+          
+          throw new Error("All parsing methods failed to extract timetable data");
+        }
+      } catch (aiError) {
+        console.error("AI parsing failed with error:", aiError);
+        throw new Error(`Failed to parse timetable: ${aiError.message}`);
+      }
+    } catch (error) {
+      console.error('Error in parseTimeTable:', error);
+      throw new Error(`Failed to parse timetable data: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Parse the timetable data directly without using AI
+   * This is more reliable when the input format is consistent
+   * @param {string} timetableData - Raw timetable data in grid format
+   * @returns {object} - Structured timetable data
+   */
+  parseTimeTableDirectly(timetableData) {
+    console.log('Starting direct parsing of timetable data');
+    
+    // Initialize result structure
+    const result = {
+      days: [...this.defaultDays],
+      periods: [...this.defaultPeriods],
+      classes: {}
+    };
+    
+    // Initialize classes object with empty structure for all days and periods
+    this.defaultDays.forEach(day => {
+      result.classes[day] = {};
+      this.defaultPeriods.forEach(period => {
+        result.classes[day][period.name] = [];
+      });
+    });
+    
+    // Check if we're in special parsing mode
+    if (this.specialParsingMode) {
+      console.log('Using special parsing mode for unusual timetable format');
+      
+      // Pre-process the data to clean it up
+      timetableData = timetableData
+        // Remove invisible characters and odd whitespace
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        // Normalize quotes and special characters
+        .replace(/[""'']/g, '"')
+        // Ensure proper line breaks
+        .replace(/\\n/g, '\n')
+        // Normalize tabs
+        .replace(/\\t/g, '\t')
+        // Add space after parentheses to help splitting
+        .replace(/\)/g, ') ')
+        // Add extra whitespace between letters and numbers to help splitting
+        .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+        .replace(/(\d)([a-zA-Z])/g, '$1 $2');
+    }
+
+    try {
+      // Log the first few lines of data to debug
+      console.log('Timetable data preview:', 
+        timetableData.split('\n').slice(0, 5).join('\n'));
+      
+      // Split input by lines and remove empty lines
+      const lines = timetableData.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      if (lines.length === 0) {
+        console.error('No lines found in timetable data');
+        return result;
+      }
+      
+      console.log(`Found ${lines.length} non-empty lines in timetable data`);
+      
+      // Extract day headers with much more flexible approaches
+      console.log('First line:', lines[0]);
+      
+      // Function to score how likely text is to be a day header
+      const scoreDayHeader = (text) => {
+        let score = 0;
+        const lowerText = text.trim().toLowerCase();
+        
+        // Check for "day" keyword
+        if (lowerText.includes('day')) {
+          score += 5;
+          // Check for day number pattern (Day 1, Day 2, etc.)
+          if (/day\s*\d+/.test(lowerText)) {
+            score += 3;
+          }
+        }
+        
+        // Check for weekday names (full or abbreviated)
+        const weekdayPatterns = [
+          /\b(mon|monday)\b/i,
+          /\b(tue|tues|tuesday)\b/i,
+          /\b(wed|wednesday)\b/i,
+          /\b(thu|thur|thurs|thursday)\b/i,
+          /\b(fri|friday)\b/i,
+          /\b(sat|saturday)\b/i,
+          /\b(sun|sunday)\b/i
+        ];
+        
+        for (const pattern of weekdayPatterns) {
+          if (pattern.test(lowerText)) {
+            score += 5;
+            break;
+          }
+        }
+        
+        // Check for just numbers that might represent days
+        if (/^[1-9][0-9]?$/.test(lowerText)) {
+          score += 2;
+        }
+        
+        // Higher score for standalone words
+        if (lowerText.split(/\s+/).length <= 2) {
+          score += 1;
+        }
+        
+        return score;
+      };
+      
+      // Try various splitting methods with tab-delimited format given priority
+      const possibleDelimiters = ['\t', /\s{2,}/, ',', '|', ';', /\s+/];
+      let allCandidateHeaders = [];
+      
+      // First check if this is a tab-delimited timetable (most common pasted format)
+      if (lines[0].includes('\t')) {
+        console.log("Tab-delimited format detected in header row");
+        const tabCandidates = lines[0].split('\t')
+          .map(d => d.trim())
+          .filter(d => d && d.length > 0);
+          
+        if (tabCandidates.length >= 2) {
+          // For tab-delimited formats, we'll be more lenient about accepting day headers
+          // because they're more likely to be correctly formatted
+          const scoredTabCandidates = tabCandidates
+            .map(text => ({ text, score: scoreDayHeader(text) * 1.5 })) // Higher weight for tab-split
+            .filter(c => c.score > 0.5);  // More lenient filter for tabs
+            
+          if (scoredTabCandidates.length >= 2) {
+            console.log("Found day headers using tab delimiter:", 
+              scoredTabCandidates.map(c => c.text).join(', '));
+            allCandidateHeaders = [...scoredTabCandidates];
+            
+            // If we found at least 5 day headers with tabs, trust it and skip other delimiters
+            if (scoredTabCandidates.length >= 5) {
+              console.log("Found 5+ tab-delimited day headers - using these exclusively");
+              // Continue with these headers only
+            } else {
+              // Try other delimiters as fallback
+              for (let i = 1; i < possibleDelimiters.length; i++) {
+                const delimiter = possibleDelimiters[i];
+                const candidates = lines[0].split(delimiter)
+                  .map(d => d.trim())
+                  .filter(d => d && d.length > 0);
+                
+                const scoredCandidates = candidates
+                  .map(text => ({ text, score: scoreDayHeader(text) }))
+                  .filter(c => c.score > 1);
+                
+                if (scoredCandidates.length >= 2) {
+                  allCandidateHeaders = [...allCandidateHeaders, ...scoredCandidates];
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // If no tabs found, try all delimiters
+        for (const delimiter of possibleDelimiters) {
+          const candidates = lines[0].split(delimiter)
+            .map(d => d.trim())
+            .filter(d => d && d.length > 0);
+          
+          const scoredCandidates = candidates
+            .map(text => ({ text, score: scoreDayHeader(text) }))
+            .filter(c => c.score > 1);  // Filter low-scored candidates
+          
+          if (scoredCandidates.length >= 2) {
+            allCandidateHeaders = [...allCandidateHeaders, ...scoredCandidates];
+          }
+        }
+      }
+      
+      console.log('Candidate day headers:', allCandidateHeaders.map(c => `${c.text} (score: ${c.score})`));
+      
+      // Sort by score (highest first) and take unique values
+      const uniqueHeaders = [...new Set(allCandidateHeaders
+        .sort((a, b) => b.score - a.score)
+        .map(c => c.text))];
+      
+      let dayHeaders = uniqueHeaders;
+      
+      // If still nothing, look through first few lines for day headers
+      if (dayHeaders.length < 2 && lines.length > 3) {
+        for (let lineIdx = 1; lineIdx < Math.min(5, lines.length); lineIdx++) {
+          const potentialHeaderLine = lines[lineIdx];
+          // Check for day keywords or weekday names
+          if (this.isDayHeader(potentialHeaderLine)) {
+            // Try different splitting approaches
+            const splitters = ['\t', /\s{2,}/, /\s+/];
+            
+            for (const splitter of splitters) {
+              const candidateHeaders = potentialHeaderLine.split(splitter)
+                .map(d => d.trim())
+                .filter(d => d && this.isDayHeader(d));
+              
+              if (candidateHeaders.length >= 2) {
+                dayHeaders = candidateHeaders;
+                console.log(`Found day headers on line ${lineIdx} using splitter:`, splitter);
+                console.log('Headers:', dayHeaders);
+                break;
+              }
+            }
+            
+            if (dayHeaders.length >= 2) {
+              break;
+            }
+          }
+        }
+      }
+      
+      // Map weekday names to day format if needed
+      dayHeaders = dayHeaders.map(header => {
+        const lowerHeader = header.toLowerCase();
+        for (const [weekday, dayEquiv] of Object.entries(this.weekdayMap)) {
+          if (lowerHeader.includes(weekday)) {
+            console.log(`Mapped weekday "${header}" to "${dayEquiv}"`);
+            return dayEquiv;
+          }
+        }
+        return header;
+      });
+      
+      // If we still don't have day headers, use default day names
+      if (dayHeaders.length < 2) {
+        console.log('No day headers found in data, using default day names');
+        dayHeaders = this.defaultDays.slice(0, 10);
+      }
+      
+      console.log(`Found ${dayHeaders.length} day headers:`, dayHeaders);
+      
+      if (dayHeaders.length === 0) {
+        console.error('No day headers found in timetable data');
+        return result;
+      }
+      
+      // Clean up and deduplicate the day headers
+      dayHeaders = this.cleanupDayHeaders(dayHeaders);
+      console.log('After cleanup, using day headers:', dayHeaders);
+      
+      // Update result with actual day headers we found
+      result.days = dayHeaders;
+      
+      // Process each period block
+      let currentPeriod = null;
+      let periodStartTime = '';
+      let periodEndTime = '';
+      let periodStartLine = -1;
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Check if this is a period header line with more flexible matching
+        const containsPeriod = line.toLowerCase().includes('period');
+        const containsTimePattern = 
+          (line.includes('am') || line.includes('pm')) && 
+          (line.includes(':') || line.includes('.'));
+        
+        // More flexible period header detection - better handling for tab-delimited timetables
+        if (containsPeriod && containsTimePattern) {
+          console.log('Potential period header found:', line);
+          
+          // Try multiple regex patterns for period extraction
+          let periodNum = null;
+          let startTime = null;
+          let endTime = null;
+          
+          // Try standard format: "Period X 9:00am-10:00am"
+          // Note: Using a more flexible pattern that handles various dash characters
+          const standardMatch = line.match(/Period\s+(\d+).*?(\d+[:\.]\d+\s*[ap]m)[–\-\—\–](\d+[:\.]\d+\s*[ap]m)/i);
+          if (standardMatch) {
+            periodNum = standardMatch[1];
+            startTime = standardMatch[2].replace(/\s+/g, '');
+            endTime = standardMatch[3].replace(/\s+/g, '');
+          } else {
+            // Try other common formats
+            const periodMatch = line.match(/Period\s+(\d+)/i);
+            if (periodMatch) {
+              periodNum = periodMatch[1];
+            }
+            
+            // Try to find time range with different separators including unicode dashes
+            const timeMatchers = [
+              /(\d+[:\.]\d+\s*[ap]m)[–\-\—\–](\d+[:\.]\d+\s*[ap]m)/i,   // 9:00am-10:00am with any dash
+              /(\d+[:\.]\d+\s*[ap]m)\s+to\s+(\d+[:\.]\d+\s*[ap]m)/i, // 9:00am to 10:00am
+              /(\d+[:\.]\d+\s*[ap]m)/i  // Just find any time
+            ];
+            
+            for (const timeMatcher of timeMatchers) {
+              const timeMatch = line.match(timeMatcher);
+              if (timeMatch) {
+                if (timeMatch.length >= 3) {
+                  // Full time range found
+                  startTime = timeMatch[1].replace(/\s+/g, '');
+                  endTime = timeMatch[2].replace(/\s+/g, '');
+                  break;
+                } else if (!startTime) {
+                  // Just found a single time
+                  startTime = timeMatch[1].replace(/\s+/g, '');
+                }
+              }
+            }
+            
+            // Enhanced: Check for special tab-delimited period format where time
+            // is on the next line after "Period X" line
+            if (!startTime && !endTime && periodNum) {
+              console.log(`Found period ${periodNum}, checking next line for times`);
+              if (i + 1 < lines.length) {
+                const nextLine = lines[i + 1].trim();
+                // Look for time range with various dash characters
+                const nextLineTimeMatch = nextLine.match(/(\d+[:\.]\d+\s*[ap]m)[–\-\—\–](\d+[:\.]\d+\s*[ap]m)/i);
+                if (nextLineTimeMatch) {
+                  startTime = nextLineTimeMatch[1].replace(/\s+/g, '');
+                  endTime = nextLineTimeMatch[2].replace(/\s+/g, '');
+                  // Skip the next line since we've processed it
+                  i++;
+                }
+              }
+            }
+            
+            // Look ahead for end time if we only found start time
+            if (startTime && !endTime && i + 1 < lines.length) {
+              const nextLine = lines[i + 1];
+              const nextTimeMatch = nextLine.match(/(\d+[:\.]\d+\s*[ap]m)/i);
+              if (nextTimeMatch) {
+                endTime = nextTimeMatch[1].replace(/\s+/g, '');
+              }
+            }
+          }
+          
+          // If we found a period number but no times, use default times
+          if (periodNum && (!startTime || !endTime)) {
+            const defaultPeriod = this.defaultPeriods.find(p => p.name === `Period ${periodNum}`);
+            if (defaultPeriod) {
+              startTime = startTime || defaultPeriod.startTime;
+              endTime = endTime || defaultPeriod.endTime;
+            }
+          }              // If we have all necessary information, set the current period
+          if (periodNum && startTime && endTime) {
+            currentPeriod = `Period ${periodNum}`;
+            
+            // Standardize time formats
+            periodStartTime = this.standardizeTimeFormat(startTime);
+            periodEndTime = this.standardizeTimeFormat(endTime);
+            
+            periodStartLine = i + 1; // Classes start on next line
+            
+            // Update the periods in the result to match what we found
+            const periodIndex = parseInt(periodNum) - 1;
+            if (periodIndex >= 0 && periodIndex < result.periods.length) {
+              result.periods[periodIndex] = {
+                name: currentPeriod,
+                startTime: periodStartTime,
+                endTime: periodEndTime
+              };
+            }
+            
+            console.log(`Found ${currentPeriod}: ${periodStartTime}-${periodEndTime} at line ${i}`);
+          } else {
+            console.log(`Potential period line not fully matched: ${line}`);
+          }
+        } 
+        // Process data lines within a period block (skip tutorial lines)
+        else if (currentPeriod && i >= periodStartLine && !line.toLowerCase().includes('tutorial')) {
+          // Try multiple approaches to split the line into cells
+          let cells = [];
+          
+          // Approach 1: Tab splitting (most common in copy-pasted timetables)
+          const tabCells = line.split('\t');
+          if (tabCells.length > 1) {
+            cells = tabCells;
+            console.log(`Line ${i} split into ${cells.length} cells using tabs`);
+            
+            // For tab-delimited formats, we need special handling because sometimes
+            // a class can span multiple lines in the input
+            if (cells.length === dayHeaders.length && line.includes('(') && line.includes(')')) {
+              // This line contains class codes, likely the subject line
+              const subjectCells = [...cells];
+              
+              // Try to look ahead for additional class info (room, teacher)
+              if (i + 1 < lines.length) {
+                const nextLine = lines[i + 1];
+                // Check if next line has the same tab structure and NO parentheses (likely room info)
+                if (nextLine.split('\t').length === cells.length && 
+                    !nextLine.includes('(') && !nextLine.includes(')') &&
+                    !nextLine.toLowerCase().includes('period')) {
+                  
+                  const roomCells = nextLine.split('\t');
+                  // Combine with subject cells
+                  for (let j = 0; j < Math.min(cells.length, roomCells.length); j++) {
+                    cells[j] = cells[j] + '\n' + roomCells[j];
+                  }
+                  
+                  // Skip the next line since we've incorporated it
+                  i++;
+                  
+                  // Check if there's a teacher line after this
+                  if (i + 1 < lines.length) {
+                    const teacherLine = lines[i + 1];
+                    // Teacher lines often contain Mr/Mrs/etc.
+                    if (teacherLine.split('\t').length === cells.length && 
+                        (teacherLine.includes('Mr') || teacherLine.includes('Ms') || 
+                         teacherLine.includes('Mrs') || teacherLine.includes('Dr'))) {
+                      
+                      const teacherCells = teacherLine.split('\t');
+                      // Combine with existing cells
+                      for (let j = 0; j < Math.min(cells.length, teacherCells.length); j++) {
+                        cells[j] = cells[j] + '\n' + teacherCells[j];
+                      }
+                      
+                      // Skip the teacher line
+                      i++;
+                    }
+                  }
+                }
+              }
+            }
+          } 
+          // Approach 2: Multiple consecutive spaces (common in formatted text)
+          else {
+            const spaceCells = line.split(/\s{2,}/);
+            if (spaceCells.length > 1) {
+              cells = spaceCells;
+              console.log(`Line ${i} split into ${cells.length} cells using multiple spaces`);
+            }
+            // Approach 3: Custom pattern detection
+            else if (line.includes('(') && line.includes(')')) {
+              // Try to detect cells based on patterns in the line
+              cells = [];
+              // Split by course code pattern "(XXXNNN)" if present multiple times
+              const codeSplitPattern = /\([A-Z0-9]+\)/g;
+              const codes = line.match(codeSplitPattern);
+              
+              if (codes && codes.length > 1) {
+                let lastIndex = 0;
+                const positions = [];
+                
+                // Find positions of all code occurrences
+                const codeRegex = /\([A-Z0-9]+\)/g;
+                let match;
+                while ((match = codeRegex.exec(line)) !== null) {
+                  positions.push(match.index);
+                }
+                
+                // Use code positions to split the line
+                for (let j = 0; j < positions.length; j++) {
+                  if (j > 0) {
+                    const cellText = line.substring(lastIndex, positions[j]).trim();
+                    cells.push(cellText);
+                  }
+                  lastIndex = positions[j];
+                  
+                  // For the last code, add everything after it
+                  if (j === positions.length - 1) {
+                    cells.push(line.substring(lastIndex).trim());
+                  }
+                }
+                
+                console.log(`Line ${i} split into ${cells.length} cells using code pattern detection`);
+              } 
+              // If we couldn't split by codes, just use the whole line as one cell
+              else {
+                cells = [line];
+                console.log(`Line ${i} could not be split, treating as single cell`);
+              }
+            } else {
+              cells = [line];
+              console.log(`Line ${i} could not be split, treating as single cell`);
+            }
+          }
+          
+          console.log(`Line ${i} final split: ${cells.length} cells`);
+          
+          // Process each day's class entry
+          console.log(`Line ${i}: Processing ${cells.length} cells for ${dayHeaders.length} days in ${currentPeriod}`);
+          
+          // Use the actual dayHeader values for mapping
+          for (let dayIndex = 0; dayIndex < Math.min(dayHeaders.length, cells.length); dayIndex++) {
+            const dayHeader = dayHeaders[dayIndex];
+            const classData = cells[dayIndex].trim();
+            
+            console.log(`Day ${dayIndex + 1}: Processing cell "${classData.substring(0, 30)}${classData.length > 30 ? '...' : ''}"`);
+            
+            if (classData && !classData.toLowerCase().includes('tutorial')) {
+              // Use helper method to parse class data
+              const classEntry = this.parseClassCell(classData, periodStartTime, periodEndTime);
+              
+              if (classEntry && classEntry.subject) {
+                console.log(`Parsed class: ${classEntry.subject} (${classEntry.code || 'no code'}), Room: ${classEntry.room || 'none'}, Teacher: ${classEntry.teacher || 'none'}`);
+                
+                // First try direct match with the dayHeader
+                if (result.classes[dayHeader] && result.classes[dayHeader][currentPeriod]) {
+                  result.classes[dayHeader][currentPeriod].push(classEntry);
+                  console.log(`Added class to ${dayHeader}, ${currentPeriod}: ${classEntry.subject}`);
+                  continue; // Skip other fallbacks if we found a place
+                }
+                
+                // Try with "Day X" format
+                const dayX = `Day ${dayIndex + 1}`;
+                if (result.classes[dayX] && result.classes[dayX][currentPeriod]) {
+                  result.classes[dayX][currentPeriod].push(classEntry);
+                  console.log(`Added class to ${dayX} (converted from ${dayHeader}), ${currentPeriod}: ${classEntry.subject}`);
+                  continue;
+                }
+                
+                // Try mapping from weekday names
+                if (dayHeader.match(/\b(mon|tue|wed|thu|fri|sat|sun)\w*\b/i)) {
+                  // Find corresponding day from weekdayMap
+                  const lowerDayHeader = dayHeader.toLowerCase();
+                  for (const [weekday, mappedDay] of Object.entries(this.weekdayMap)) {
+                    if (lowerDayHeader.includes(weekday) && result.classes[mappedDay] && result.classes[mappedDay][currentPeriod]) {
+                      result.classes[mappedDay][currentPeriod].push(classEntry);
+                      console.log(`Added class to ${mappedDay} (mapped from ${dayHeader}), ${currentPeriod}: ${classEntry.subject}`);
+                      break;
+                    }
+                  }
+                }
+                
+                // Final fallback: add to first available day
+                if (!Object.values(result.classes).some(dayData => 
+                  dayData[currentPeriod]?.some(cls => cls.subject === classEntry.subject))) {
+                  
+                  // Find first day with setup for this period
+                  for (const day of Object.keys(result.classes)) {
+                    if (result.classes[day][currentPeriod]) {
+                      result.classes[day][currentPeriod].push(classEntry);
+                      console.log(`Added class to ${day} (final fallback), ${currentPeriod}: ${classEntry.subject}`);
+                      break;
+                    }
+                  }
+                }
+              } else {
+                console.log(`Failed to parse class data: ${classData.substring(0, 50)}...`);
+              }
+            }
+          }
+        }
+      }
+      
+      // Log summary of parsed results
+      let totalClasses = 0;
+      for (const day in result.classes) {
+        for (const period in result.classes[day]) {
+          totalClasses += result.classes[day][period].length;
+        }
+      }
+      
+      console.log(`Direct parsing complete. Found ${totalClasses} classes across all days and periods.`);
+      
+      return this.enhanceClassData(result);
+    } catch (error) {
+      console.error("Direct parsing failed:", error);
+      console.error("Error details:", error.message);
+      console.error("Stack trace:", error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Construct a special prompt for force extracting timetable data
+   * @param {string} timetableData - The raw timetable data
+   * @returns {string} - Formatted prompt
+   */
+  constructForceExtractionPrompt(timetableData) {
+    return `You are an expert at extracting timetable data from even badly formatted or confusing timetables.
+
+EMERGENCY EXTRACTION MODE: Previous parsing attempts have failed. You must find ANY potential class data in the text.
+
+Look for these patterns:
+1. Any mention of subjects, courses or classes
+2. Any text in parentheses that could be course codes
+3. Any names that could be teacher names (starting with Mr, Mrs, Ms, etc.)
+4. Any text that appears to be room numbers (like "Room 101" or "A12")
+5. Any mention of days (Day 1, Monday, etc.)
+6. Any mention of periods or times
+
+Your task is to extract ANY class information you can find and organize it into the required JSON format.
+
+If you cannot determine which days or periods classes belong to:
+- Just distribute the classes evenly across the days and periods in the output format
+- Make your best guess about which classes might belong together in the same period
+
+CRITICAL: Your output MUST follow this EXACT structure:
+
+{
+  "days": [
+    "Day 1", "Day 2", "Day 3", "Day 4", "Day 5", 
+    "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"
+  ],
+  "periods": [
+    { "name": "Period 1", "startTime": "8:35am", "endTime": "9:35am" },
+    { "name": "Period 2", "startTime": "9:35am", "endTime": "10:35am" },
+    { "name": "Tutorial", "startTime": "10:35am", "endTime": "11:05am" },
+    { "name": "Period 3", "startTime": "11:30am", "endTime": "12:30pm" },
+    { "name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm" },
+    { "name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm" }
+  ],
+  "classes": {
+    "Day 1": {
+      "Period 1": [ {"subject": "...", "code": "...", "room": "...", "teacher": "...", "startTime": "...", "endTime": "..."} ],
+      "Period 2": [...],
+      "Period 3": [...],
+      "Period 4": [...],
+      "Period 5": [...]
+    },
+    ...rest of days...
+  }
+}
+
+IMPORTANT: Make your best effort to put at least ONE class in SOME period. Do not return empty class arrays for all periods.
+
+Return only JSON - no explanations.
+
+Here is the text to analyze:
+
+${timetableData}`;
+  }
+
+  /**
+   * Construct a specialized prompt for tab-delimited timetable formats
+   * @param {string} timetableData - The raw timetable data
+   * @returns {string} - The specialized prompt for DeepSeek
+   */
+  constructTabDelimitedPrompt(timetableData) {
+    return `You are an expert at extracting structured timetable data from tab-delimited formats.
+
+I will provide you with a school timetable where days are organized in columns separated by tabs.
+Each row typically represents a period, subject, course code, room, or teacher information.
+
+Your task is to convert this into a structured JSON format, organizing classes by day and period.
+
+IMPORTANT: Pay special attention to tab characters (\\t) in the first line, which typically separate day headers.
+Each column in the tab-separated data represents a different day.
+
+Convert the timetable into this EXACT JSON format:
+
+{
+  "days": ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"],
+  "periods": [
+    { "name": "Period 1", "startTime": "8:35am", "endTime": "9:35am" },
+    { "name": "Period 2", "startTime": "9:35am", "endTime": "10:35am" },
+    { "name": "Tutorial", "startTime": "10:35am", "endTime": "11:05am" },
+    { "name": "Period 3", "startTime": "11:30am", "endTime": "12:30pm" },
+    { "name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm" },
+    { "name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm" }
+  ],
+  "classes": {
+    "Day 1": {
+      "Period 1": [
+        {
+          "subject": "Subject Name",
+          "code": "Course Code",
+          "room": "Room Number",
+          "teacher": "Teacher Name",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [],
+      "Tutorial": [],
+      "Period 3": [],
+      "Period 4": [],
+      "Period 5": []
+    },
+    "Day 2": {
+      "Period 1": [],
+      "Period 2": [],
+      "Tutorial": [],
+      "Period 3": [],
+      "Period 4": [],
+      "Period 5": []
+    }
+    // ... and so on for all days
+  }
+}
+
+For each class entry, extract:
+1. subject: The name of the subject (e.g., "Mathematics", "English")
+2. code: The course code, typically in parentheses (e.g., "10SPE251101")
+3. room: The room number/code (e.g., "M 07", "S 01")
+4. teacher: The teacher's name (e.g., "Mr Paul Jefimenko")
+5. startTime: Start time of the period
+6. endTime: End time of the period
+
+Return ONLY valid JSON without explanations or markdown formatting.
+
+Here is the tab-delimited timetable data:
+
+${timetableData}`;
+  }
+}
+
+// Create a singleton instance of the service
+const aiParserService = new AiParserService();
+
+// Export the direct parser as the fallbackParser for ImportTimetable.js
+export const fallbackParser = (timetableText) => {
+  const result = aiParserService.parseTimeTableDirectly(timetableText);
+  return aiParserService.enhanceClassData(result);
+};
+
+// Export the main parse method as parseTimetableText for backwards compatibility
+export const parseTimetableText = async (timetableText) => {
+  try {
+    const result = await aiParserService.parseTimeTable(timetableText);
+    return result;
+  } catch (error) {
+    console.error('Error in parseTimetableText:', error);
+    throw error;
+  }
+};
+
+// Export the main service as default
+export default aiParserService;

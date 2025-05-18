@@ -33,7 +33,9 @@
     /* Remove extra padding */
 }
 
-/* Add the hover effect to show "Today" text on hover */
+/* No special styling for Sunday indicator */
+
+/* Add the hover effect to show the appropriate text on hover (Today, 1 day, or 2 days) */
 .day-button.current-day span {
     display: inline;
 }

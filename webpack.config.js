@@ -39,7 +39,8 @@ const envKeys = Object.keys(envParsed).reduce((prev, key) => {
   'process.env.REACT_APP_FIREBASE_STORAGE_BUCKET': JSON.stringify(process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || envParsed.REACT_APP_FIREBASE_STORAGE_BUCKET || ''),
   'process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || envParsed.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || ''),
   'process.env.REACT_APP_FIREBASE_APP_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_APP_ID || envParsed.REACT_APP_FIREBASE_APP_ID || ''),
-  'process.env.REACT_APP_FIREBASE_MEASUREMENT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || '')
+  'process.env.REACT_APP_FIREBASE_MEASUREMENT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || ''),
+  'process.env.REACT_APP_OPENROUTER_API_KEY': JSON.stringify(process.env.REACT_APP_OPENROUTER_API_KEY || envParsed.REACT_APP_OPENROUTER_API_KEY || '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')
 });
 
 module.exports = {

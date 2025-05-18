@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import TimeSlot from './TimeSlot';
 import ImportButton from './ImportButton';
 import ImportTimetable from './ImportTimetable';
+import TemplateNamePopup from './TemplateNamePopup';
+import NotificationPopup from './NotificationPopup';
+import ConfirmDialog from './ConfirmDialog';
 import timetableService from '../services/timetableService';
 import parseTimetable from '../utils/timetableParser';
 import convertStructuredDataToTimeSlots from '../utils/convertStructuredDataToTimeSlots';
@@ -16,6 +19,9 @@ import '../styles/components/TimeSlot.css';
 import '../styles/components/CurrentDay.css';
 import '../styles/components/BreakPeriods.css';
 import '../styles/components/DefaultButton.css';
+import '../styles/components/TemplateNamePopup.css';
+import '../styles/components/NotificationPopup.css';
+import '../styles/components/ConfirmDialog.css';
 
 const Timetable = () => {
     const { user } = useAuth();
@@ -29,6 +35,26 @@ const Timetable = () => {
     const [currentPeriod, setCurrentPeriod] = useState('');
     const [isAdminUser, setIsAdminUser] = useState(false);
     const [showAdminTerminal, setShowAdminTerminal] = useState(false);
+    const [templatePopup, setTemplatePopup] = useState({
+        isOpen: false,
+        suggestedName: '',
+        onSave: null,
+        successMessage: '',
+        fallbackMessage: ''
+    });
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        message: '',
+        type: 'info', // 'info', 'success', 'error', 'warning'
+        title: ''
+    });
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        type: 'warning' // 'warning', 'danger', 'info'
+    });
     const [displaySettings, setDisplaySettings] = useState({
         displayCode: true,
         displayTeacher: true,
@@ -40,6 +66,79 @@ const Timetable = () => {
         Lunch: false
     });
     const [editingRowHeight, setEditingRowHeight] = useState(null);
+    
+    /**
+     * Generate a template name for auto-saving imported timetables
+     * @param {Array} slots - The time slots to extract subject names from
+     * @returns {string} A generated template name
+     */
+    const generateImportTemplateName = (slots) => {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString().replace(/\//g, '-');
+        
+        // Find a few subjects to include in the template name (skip break periods)
+        const subjectNames = [...new Set(
+            slots
+                .filter(slot => slot.subject && !['Lunch', 'Recess', 'Tutorial'].includes(slot.subject))
+                .map(slot => slot.subject)
+        )].slice(0, 2);
+        
+        // Create template name with subjects if available, otherwise just date
+        if (subjectNames.length > 0) {
+            return `Imported (${subjectNames.join(', ')}) ${dateStr}`;
+        } else {
+            return `Imported ${dateStr}`;
+        }
+    };
+    
+    /**
+     * Automatically save the current timetable as a template with custom name prompt
+     * @param {string} suggestedName - The suggested name to use for the template
+     * @param {string} successMessage - The success message to show in the alert
+     * @param {string} fallbackMessage - The fallback message if saving fails
+     * @returns {boolean} Whether the save was successful
+     */
+    const saveAutoTemplate = (suggestedName, successMessage, fallbackMessage) => {
+        // Open the template name popup with the suggested name
+        setTemplatePopup({
+            isOpen: true,
+            suggestedName: suggestedName,
+            successMessage,
+            fallbackMessage,
+            onSave: (userTemplateName) => {
+                try {
+                    // If user provides a name, use it; otherwise use the suggested name
+                    const templateName = userTemplateName ? userTemplateName.trim() : suggestedName;
+                    
+                    // If we still have no name, generate a timestamp-based one
+                    const finalTemplateName = templateName || `Imported ${new Date().toISOString().slice(0, 10)}`;
+                    
+                    // Save the timetable as a template
+                    timetableService.saveAsTemplate(finalTemplateName);
+                    
+                    // Update the templates list and current template
+                    setTemplates(timetableService.getTemplateNames());
+                    setCurrentTemplate(finalTemplateName);
+                    saveCurrentTemplate(finalTemplateName);
+                    
+                    // Close the popup without showing any alert
+                    setTemplatePopup(prev => ({ ...prev, isOpen: false }));
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error saving timetable as template:', error);
+                    
+                    // Close the popup without showing any alert
+                    setTemplatePopup(prev => ({ ...prev, isOpen: false }));
+                    
+                    return false;
+                }
+            }
+        });
+        
+        // Return true to indicate that the popup was shown
+        return true;
+    };
     const [notificationSettings, setNotificationSettings] = useState({
         enabled: false,
         permissionGranted: false,
@@ -247,7 +346,10 @@ const Timetable = () => {
         currentDay
     ]);
     
-    // Handle importing timetable data
+    /**
+     * Handle importing timetable data and automatically save as template
+     * @param {object|string} data - The timetable data to import, can be structured object or raw text
+     */
     const importTimetable = (data) => {
         console.log('Importing timetable data:', data);
         if (!data) return;
@@ -276,10 +378,23 @@ const Timetable = () => {
                 saveCurrentTimetableDay(newDay);
             }
             
-            // Show success notification
-            alert('Timetable imported successfully!');
+            // Automatically save the imported timetable as a template
+            // Generate a meaningful template name using our utility function
+            const importedTemplateName = generateImportTemplateName(convertedSlots);
+            
+            // Save the timetable as a template using our utility function
+            saveAutoTemplate(
+                importedTemplateName,
+                `Timetable imported successfully and saved as template "${importedTemplateName}"`,
+                'Timetable imported successfully!'
+            )
         } else {
-            alert('Failed to import timetable. The data format may be incorrect.');
+            setNotification({
+                isOpen: true,
+                message: 'Failed to import timetable. The data format may be incorrect.',
+                type: 'error',
+                title: 'Import Error'
+            });
         }
     };
 
@@ -336,27 +451,52 @@ const Timetable = () => {
     const deleteTemplate = (templateName) => {
         // Don't delete built-in templates
         if (templateName === 'school') {
-            alert('The default school template cannot be deleted.');
+            setNotification({
+                isOpen: true,
+                message: 'The default school template cannot be deleted.',
+                type: 'warning',
+                title: 'Cannot Delete Template'
+            });
             return;
         }
         
-        // Confirm deletion
-        if (window.confirm(`Are you sure you want to delete the template "${templateName}"?`)) {
-            const success = timetableService.deleteTemplate(templateName);
-            if (success) {
-                // Update template list
-                setTemplates(timetableService.getTemplateNames());
+        // Show confirm dialog for deletion
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Delete Template',
+            message: `Are you sure you want to delete the template "${templateName}"?`,
+            type: 'danger',
+            onConfirm: () => {
+                // Close the confirm dialog
+                setConfirmDialog(prev => ({...prev, isOpen: false}));
                 
-                // If the deleted template was the current template, switch to the school template
-                if (currentTemplate === templateName) {
-                    loadTemplate('school');
+                const success = timetableService.deleteTemplate(templateName);
+                if (success) {
+                    // Update template list
+                    setTemplates(timetableService.getTemplateNames());
+                    
+                    // If the deleted template was the current template, switch to the school template
+                    if (currentTemplate === templateName) {
+                        loadTemplate('school');
+                    }
+                    
+                    // Show success notification
+                    setNotification({
+                        isOpen: true,
+                        message: `Template "${templateName}" has been deleted.`,
+                        type: 'success',
+                        title: 'Template Deleted'
+                    });
                 }
-                
-                alert(`Template "${templateName}" has been deleted.`);
             }
-        }
+        });
     };
 
+    /**
+     * Handle data imports from structured data (JSON/object) 
+     * and automatically save as template
+     * @param {object|string} importedData - The data to import
+     */
     const handleImportData = (importedData) => {
         try {
             console.log("Received import data:", importedData);
@@ -370,7 +510,12 @@ const Timetable = () => {
                 
                 if (!slots || slots.length === 0) {
                     console.error("Failed to convert structured data to time slots");
-                    alert('Failed to process the structured data. The data format may be invalid or incomplete.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'Failed to process the structured data. The data format may be invalid or incomplete.',
+                        type: 'error',
+                        title: 'Import Error'
+                    });
                     return;
                 }
                 
@@ -382,13 +527,28 @@ const Timetable = () => {
                 // Ensure recess and lunch periods are preserved
                 timetableService.preserveBreakPeriods();
                 setTimeSlots(timetableService.getTimeSlots());
-                alert(`Timetable imported successfully! Added ${slots.length} classes.`);
+                
+                // Auto-save as template for structured AI data
+                // Generate a meaningful template name using our utility function
+                const importedTemplateName = generateImportTemplateName(slots);
+                
+                // Save the timetable as a template using our utility function
+                saveAutoTemplate(
+                    importedTemplateName,
+                    `Timetable imported successfully and saved as template "${importedTemplateName}"! Added ${slots.length} classes.`,
+                    `Timetable imported successfully! Added ${slots.length} classes.`
+                )
                 return;
             }
             // Raw text input - parse it
             else if (typeof importedData === 'string') {
                 if (!importedData.trim()) {
-                    alert('The imported text is empty. Please provide timetable data.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'The imported text is empty. Please provide timetable data.',
+                        type: 'warning',
+                        title: 'Empty Import'
+                    });
                     return;
                 }
                 
@@ -398,13 +558,23 @@ const Timetable = () => {
                 // Check if the parsed data has necessary structure
                 if (!parsedData || !parsedData.days || parsedData.days.length === 0) {
                     console.error("Failed to extract days from timetable data");
-                    alert('Could not identify days in your timetable. Please check the format.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'Could not identify days in your timetable. Please check the format.',
+                        type: 'error',
+                        title: 'Parsing Error'
+                    });
                     return;
                 }
                 
                 if (!parsedData.periods || parsedData.periods.length === 0) {
                     console.error("Failed to extract periods from timetable data");
-                    alert('Could not identify periods in your timetable. Please check the format.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'Could not identify periods in your timetable. Please check the format.',
+                        type: 'error',
+                        title: 'Parsing Error'
+                    });
                     return;
                 }
                 
@@ -420,7 +590,12 @@ const Timetable = () => {
                 
                 if (totalClasses === 0) {
                     console.error("No classes were found in the parsed data");
-                    alert('No classes were found in your timetable. Please check the format.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'No classes were found in your timetable. Please check the format.',
+                        type: 'error',
+                        title: 'Parsing Error'
+                    });
                     return;
                 }
                 
@@ -429,7 +604,12 @@ const Timetable = () => {
                 const slots = convertStructuredDataToTimeSlots(parsedData);
                 if (!slots || slots.length === 0) {
                     console.error("Failed to convert parsed data to time slots");
-                    alert('Failed to process the parsed data. The data may be in an incorrect format.');
+                    setNotification({
+                        isOpen: true,
+                        message: 'Failed to process the parsed data. The data may be in an incorrect format.',
+                        type: 'error',
+                        title: 'Import Error'
+                    });
                     return;
                 }
                 
@@ -441,7 +621,17 @@ const Timetable = () => {
                 // Ensure recess and lunch periods are preserved
                 timetableService.preserveBreakPeriods();
                 setTimeSlots(timetableService.getTimeSlots());
-                alert(`Timetable parsed and imported successfully! Added ${slots.length} classes.`);
+                
+                // Auto-save as template for raw text imports
+                // Generate a meaningful template name using our utility function
+                const importedTemplateName = generateImportTemplateName(slots);
+                
+                // Save the timetable as a template using our utility function
+                saveAutoTemplate(
+                    importedTemplateName,
+                    `Timetable parsed and imported successfully and saved as template "${importedTemplateName}"! Added ${slots.length} classes.`,
+                    `Timetable parsed and imported successfully! Added ${slots.length} classes.`
+                )
                 return;
             }
             // Legacy format with timeSlots array
@@ -453,15 +643,36 @@ const Timetable = () => {
                 // Ensure recess and lunch periods are preserved
                 timetableService.preserveBreakPeriods();
                 setTimeSlots(timetableService.getTimeSlots());
-                alert('Timetable imported successfully!');
+                
+                // Auto-save as template for legacy timeSlots format
+                // Get the imported slots and generate a template name
+                const importedSlots = timetableService.getTimeSlots();
+                const importedTemplateName = generateImportTemplateName(importedSlots);
+                
+                // Save the timetable as a template using our utility function
+                saveAutoTemplate(
+                    importedTemplateName, 
+                    `Timetable imported successfully and saved as template "${importedTemplateName}"!`,
+                    'Timetable imported successfully!'
+                )
                 return;
             }
             
             // If we get here, we couldn't process the data
-            alert('The imported file does not contain any timetable data in a recognized format.');
+            setNotification({
+                isOpen: true,
+                message: 'The imported file does not contain any timetable data in a recognized format.',
+                type: 'error',
+                title: 'Import Error'
+            });
         } catch (error) {
             console.error('Error processing imported data:', error);
-            alert('Failed to process the imported timetable data: ' + error.message);
+            setNotification({
+                isOpen: true,
+                message: 'Failed to process the imported timetable data: ' + error.message,
+                type: 'error',
+                title: 'Import Error'
+            });
         }
     };
 
@@ -661,16 +872,37 @@ const Timetable = () => {
                         const todayDay = getCurrentSchoolDay();
                         const isToday = day === todayDay;
                         
+                        // Check if it's a weekend
+                        const today = new Date();
+                        const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                        const isSaturday = dayOfWeek === 6;
+                        const isSunday = dayOfWeek === 0;
+                        
+                        // Helper function to get appropriate hover text
+                        const getHoverText = () => {
+                            if (!isToday) return null;
+                            if (isSaturday) return "2 days";
+                            if (isSunday) return "1 day";
+                            return "Today";
+                        };
+                        
+                        // Determine the title for the button
+                        let titleText = getDayName(day);
+                        if (isToday) {
+                            const hoverText = getHoverText();
+                            titleText += ` (${hoverText})`;
+                        }
+                        
                         return (
                             <button 
                                 key={day} 
                                 type="button"
                                 className={`day-button ${currentDay === day ? 'active' : ''} ${isToday ? 'current-day' : ''}`}
                                 onClick={(e) => handleDayChange(e, day)}
-                                title={`${getDayName(day)}${isToday ? ' (Today)' : ''}`}
+                                title={titleText}
                             >
                                 <span>Day {day}</span>
-                                {isToday && <span className="today-text">Today</span>}
+                                {isToday && <span className="today-text">{getHoverText()}</span>}
                             </button>
                         );
                     })}
@@ -777,6 +1009,33 @@ const Timetable = () => {
             {showAdminTerminal && (
                 <AdminTerminal onClose={() => setShowAdminTerminal(false)} />
             )}
+            
+            {/* Template Name Popup */}
+            <TemplateNamePopup
+                isOpen={templatePopup.isOpen}
+                suggestedName={templatePopup.suggestedName}
+                onSave={templatePopup.onSave}
+                onClose={() => setTemplatePopup(prev => ({ ...prev, isOpen: false }))}
+            />
+            
+            {/* Notification Popup - replaces alert() */}
+            <NotificationPopup 
+                isOpen={notification.isOpen}
+                message={notification.message}
+                type={notification.type}
+                title={notification.title}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+            />
+            
+            {/* Confirm Dialog - replaces window.confirm() */}
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                type={confirmDialog.type}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

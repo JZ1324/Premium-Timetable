@@ -1,0 +1,181 @@
+/* Template Name Popup Styles */
+.template-name-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: templateFadeIn 0.2s ease;
+}
+
+.template-name-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  margin: auto;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  animation: templateSlideIn 0.3s ease;
+  /* Center vertically in the viewport */
+  top: 50%;
+  transform: translateY(-50%);
+  /* Ensure the modal is visible in the viewport regardless of scroll position */
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.template-name-container h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.template-name-container p {
+  margin-bottom: 1.5rem;
+  color: #555;
+  font-size: 16px;
+}
+
+.template-name-input-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.template-name-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.template-name-input:focus {
+  border-color: #3f51b5;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+}
+
+.template-name-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.template-cancel-button,
+.template-save-button {
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.template-cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.template-cancel-button:hover {
+  background-color: #eaeaea;
+}
+
+.template-save-button {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+}
+
+.template-save-button:hover {
+  background-color: #303f9f;
+}
+
+@keyframes templateFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes templateSlideIn {
+  from {
+    transform: translateY(calc(-50% - 20px));
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-50%);
+    opacity: 1;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .template-name-container {
+    background-color: #2d2d2d;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .template-name-container h2,
+  .template-name-container p {
+    color: #eaeaea;
+  }
+  
+  .template-name-input {
+    background-color: #3a3a3a;
+    border-color: #444;
+    color: #eaeaea;
+  }
+  
+  .template-name-input:focus {
+    border-color: #7986cb;
+    box-shadow: 0 0 0 2px rgba(121, 134, 203, 0.2);
+  }
+  
+  .template-cancel-button {
+    background-color: #3a3a3a;
+    color: #eaeaea;
+    border-color: #555;
+  }
+  
+  .template-cancel-button:hover {
+    background-color: #444;
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 480px) {
+  .template-name-container {
+    width: 90%;
+    padding: 1.5rem;
+    /* Keep it vertically centered even on mobile */
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 auto;
+    max-height: 90vh; /* Prevent overflow on very small screens */
+  }
+  
+  .template-name-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .template-cancel-button,
+  .template-save-button {
+    width: 100%;
+  }
+}

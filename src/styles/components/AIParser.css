@@ -1,0 +1,107 @@
+/* AI Parser tab styles */
+.ai-parser-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ai-parser-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.parse-with-ai-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    align-self: flex-start;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.parse-with-ai-button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+.parse-with-ai-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.7;
+}
+
+/* API Key section styles */
+.api-key-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 15px;
+    background-color: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.api-key-section label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+
+.api-key-input {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: monospace;
+    width: 100%;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+}
+
+.api-key-help {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.api-key-help a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.api-key-help a:hover {
+    text-decoration: underline;
+}
+
+.api-key-status {
+    color: var(--success-color, #2ecc71);
+    font-weight: 500;
+}
+
+.parse-warning {
+    color: #e67e22;
+    background-color: rgba(230, 126, 34, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    border-left: 3px solid #e67e22;
+}

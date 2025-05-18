@@ -1,13 +1,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/components/ImportTimetable.css';
+import '../styles/components/AIParser.css';
+import '../styles/components/LoadingUI.css';
+// Import the advanced multi-model parser with fallback
+import { parseWithModelFallback, MODELS } from '../services/multiModelParser';
+import { getTogetherApiKey } from '../utils/apiKeyManager';
+import parseJsonTimetable from './parseJsonTimetable';
+import { enhanceTimetableData } from '../utils/classDataEnhancer';
+import LoadingUI from './LoadingUI';
 
 const ImportTimetable = ({ onImport, onCancel }) => {
     const [importText, setImportText] = useState('');
     const [parseError, setParseError] = useState(null);
+    const [parseSuccess, setParseSuccess] = useState(null);
     const [parsedData, setParsedData] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [activeTab, setActiveTab] = useState('ai');
+    const [aiParserResult, setAiParserResult] = useState(null);
+    const [isAiProcessing, setIsAiProcessing] = useState(false);
     const modalRef = useRef(null);
+    
+    // Helper function to handle timetable data import
+    const importData = (data) => {
+        if (!data) return;
+        
+        // Apply smooth animation before importing
+        if (modalRef.current) {
+            const isMobile = window.innerWidth < 768;
+            const animationDuration = isMobile ? 0.25 : 0.3;
+            const timeoutDuration = isMobile ? 240 : 280;
+            
+            // Animate modal and content
+            modalRef.current.style.animation = `importFadeOut ${animationDuration}s ease forwards`;
+            const contentDiv = modalRef.current.querySelector('.import-timetable-content');
+            if (contentDiv) {
+                contentDiv.style.animation = `importSlideDown ${animationDuration}s ease forwards`;
+            }
+            
+            // After animation completes, call the onImport callback
+            setTimeout(() => onImport(data), timeoutDuration);
+        } else {
+            onImport(data);
+        }
+    };
     
     // Function to ensure modal is optimally positioned in viewport, accounting for header
     const adjustModalPosition = (forceScroll = false) => {
@@ -123,6 +158,7 @@ const ImportTimetable = ({ onImport, onCancel }) => {
         
         setImportText(newText);
         setParseError(null);
+        setParseSuccess(null);
         setParsedData(null);
         
         // If text length changed significantly (like pasting large content), 
@@ -135,11 +171,117 @@ const ImportTimetable = ({ onImport, onCancel }) => {
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         setParseError(null);
+        setParseSuccess(null);
         setParsedData(null);
+        setAiParserResult(null);
         
         // Re-adjust scroll position after tab change with slight delay for rendering
         // Force scroll since we're changing tabs
         setTimeout(() => adjustModalPosition(true), 100);
+    };
+    
+    // Function to handle AI parsing using OpenRouter API with multi-model fallback
+    const handleAiParse = async () => {
+        try {
+            if (!importText.trim()) {
+                setParseError('Please enter timetable data to parse.');
+                return;
+            }
+            
+            setIsAiProcessing(true);
+            setParseError(null);
+            
+            // Call the advanced multi-model parser service with automatic fallback
+            const response = await parseWithModelFallback(importText.trim());
+            
+            console.log("API Response:", response);
+            
+            // Process the result
+            if (response.success && response.data) {
+                // The parser function returns the parsed JSON directly
+                const rawResult = response.data;
+                
+                if (rawResult && rawResult.days && rawResult.periods && rawResult.classes) {
+                    // Enhance the raw data to convert class strings to structured objects
+                    const enhancedResult = enhanceTimetableData(rawResult);
+                    setAiParserResult(enhancedResult);
+                    setParsedData(enhancedResult);
+                    setParseError(null);
+                    
+                    // Format the JSON nicely for display
+                    const formattedJson = JSON.stringify(enhancedResult, null, 2);
+                    setImportText(formattedJson); // Replace the textarea content with the formatted JSON
+                    
+                    // Show which model was used in a small notification
+                    const usedModel = response.usedModel || response.model || "Unknown model";
+                    const modelName = usedModel.includes('/') ? usedModel.split('/')[1] : usedModel;
+                    
+                    // Add a success message with model info using the parseSuccess state
+                    setParseError(null); // Clear any existing error
+                    setParseSuccess(`✅ Successfully parsed using ${modelName}`);
+                    
+                    // Clear the success message after a few seconds
+                    setTimeout(() => setParseSuccess(null), 3000);
+                } else {
+                    // Display the raw API response for debugging
+                    setParseError(`API returned invalid data structure. Raw response: ${JSON.stringify(response.rawResponse).substring(0, 200)}...`);
+                }
+            } else {
+                // Show the diagnostic error for debugging
+                const errorMessage = response.error || 'Unknown error occurred';
+                
+                // If we have a diagnosis, use it to provide a more helpful message
+                if (response.diagnosis) {
+                    const diagnosisType = response.diagnosis.errorType;
+                    const possibleCauses = response.diagnosis.possibleCauses || [];
+                    const recommendations = response.diagnosis.recommendations || [];
+                    
+                    let errorDisplay = `AI parsing failed: ${errorMessage}\n\n`;
+                    errorDisplay += `Diagnosis: ${diagnosisType}\n\n`;
+                    
+                    if (possibleCauses.length > 0) {
+                        errorDisplay += "Possible causes:\n";
+                        possibleCauses.forEach(cause => {
+                            errorDisplay += `• ${cause}\n`;
+                        });
+                        errorDisplay += "\n";
+                    }
+                    
+                    if (recommendations.length > 0) {
+                        errorDisplay += "Recommendations:\n";
+                        recommendations.forEach(rec => {
+                            errorDisplay += `• ${rec}\n`;
+                        });
+                    }
+                    
+                    // Add information about model attempts if available
+                    if (response.model || response.usedModel) {
+                        const modelAttempted = response.model || response.usedModel;
+                        errorDisplay += `\nModel attempted: ${modelAttempted}`;
+                    }
+                    
+                    setParseError(errorDisplay);
+                } else {
+                    // Fallback to basic error message with raw response
+                    const rawResponse = response.rawResponse ? 
+                        `\n\nRaw API Response: ${response.rawResponse.substring(0, 300)}...` : '';
+                    
+                    setParseError(`AI parsing failed: ${errorMessage}${rawResponse}`);
+                }
+                
+                console.error('Invalid AI parser response:', response);
+                setAiParserResult(null);
+                setParsedData(null);
+            }
+        } catch (error) {
+            console.error('Error parsing with OpenRouter API:', error);
+            setParseError(`AI parsing error: ${error.message || 'Unknown error'}\n\nCheck the console for full details.`);
+            setAiParserResult(null);
+            setParsedData(null);
+        } finally {
+            setIsAiProcessing(false);
+            setTimeout(() => adjustModalPosition(true), 100);
+        }
     };
 
     const parseTimetableText = (text) => {
@@ -397,83 +539,8 @@ const ImportTimetable = ({ onImport, onCancel }) => {
     };
     
     // Function to parse JSON timetable data (from AI output)
-    const parseJsonTimetable = (jsonText) => {
-        try {
-            setIsProcessing(true);
-            console.log("Attempting to parse JSON timetable:", jsonText);
-            
-            // Try to parse the JSON
-            let parsedJson;
-            
-            try {
-                // Handle the case where jsonText might include backticks, markdown code blocks, or extra text
-                // Extract just the JSON part
-                const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const jsonString = jsonMatch[0];
-                    console.log("Extracted JSON string:", jsonString);
-                    parsedJson = JSON.parse(jsonString);
-                    console.log("Successfully parsed JSON:", parsedJson);
-                } else {
-                    throw new Error("No JSON object found in the text");
-                }
-            } catch (jsonError) {
-                console.error("JSON parsing error:", jsonError);
-                setParseError("Failed to parse JSON. Make sure it's valid JSON format. Error: " + jsonError.message);
-                setIsProcessing(false);
-                return null;
-            }
-            
-            
-            // Validate the JSON structure
-            if (!parsedJson.days || !Array.isArray(parsedJson.days) || parsedJson.days.length === 0) {
-                console.error("Invalid JSON structure - missing days array:", parsedJson);
-                setParseError("Invalid JSON structure: 'days' array is missing or empty");
-                setIsProcessing(false);
-                return null;
-            }
-            
-            if (!parsedJson.periods || !Array.isArray(parsedJson.periods) || parsedJson.periods.length === 0) {
-                console.error("Invalid JSON structure - missing periods array:", parsedJson);
-                setParseError("Invalid JSON structure: 'periods' array is missing or empty");
-                setIsProcessing(false);
-                return null;
-            }
-            
-            if (!parsedJson.classes || typeof parsedJson.classes !== 'object') {
-                console.error("Invalid JSON structure - missing classes object:", parsedJson);
-                setParseError("Invalid JSON structure: 'classes' object is missing");
-                setIsProcessing(false);
-                return null;
-            }
-            
-            // Verify each day has class data
-            const dayErrors = [];
-            for (const day of parsedJson.days) {
-                if (!parsedJson.classes[day]) {
-                    dayErrors.push(day);
-                }
-            }
-            
-            if (dayErrors.length > 0) {
-                console.error(`Invalid JSON structure: No class data for days: ${dayErrors.join(', ')}`);
-                setParseError(`Invalid JSON structure: No class data for days: ${dayErrors.join(', ')}`);
-                setIsProcessing(false);
-                return null;
-            }
-            
-            console.log("JSON validation passed, returning parsed data:", parsedJson);
-            setIsProcessing(false);
-            setParsedData(parsedJson);
-            return parsedJson;
-            
-        } catch (error) {
-            console.error('Error parsing JSON timetable data:', error);
-            setParseError('Failed to parse the JSON timetable data: ' + error.message);
-            setIsProcessing(false);
-            return null;
-        }
-    };
+    // We're now using the imported parseJsonTimetable function from a separate file
+    // This helps with code organization and allows easier maintenance
 
     // Function to copy AI instructions to clipboard
     const copyToClipboard = () => {
@@ -482,16 +549,14 @@ const ImportTimetable = ({ onImport, onCancel }) => {
 I need a copy pastable text to follow this exact structure:
 
 {
-  "days": ["Day 1", "Day 2", ...],  // List all days in my timetable (e.g., "Day 1", "Day 2", etc.)
+  "days": ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"],
 
   "periods": [
     {"name": "Period 1", "startTime": "8:35am", "endTime": "9:35am"},
     {"name": "Period 2", "startTime": "9:40am", "endTime": "10:40am"},
     {"name": "Tutorial", "startTime": "10:45am", "endTime": "10:55am"},
-    {"name": "Recess", "startTime": "10:55am", "endTime": "11:25am"},
     {"name": "Period 3", "startTime": "11:25am", "endTime": "12:25pm"},
     {"name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm"},
-    {"name": "Lunch", "startTime": "1:30pm", "endTime": "2:25pm"},
     {"name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm"}
   ],
 
@@ -517,9 +582,27 @@ I need a copy pastable text to follow this exact structure:
           "endTime": "10:55am"
         }
       ],
-      // Other periods for Day 1
+      "Period 2": [],
+      "Period 3": [],
+      "Period 4": [],
+      "Period 5": []
     },
-    // Other days follow the same structure
+    "Day 2": {
+      "Period 1": [],
+      "Period 2": [],
+      "Tutorial": [],
+      "Period 3": [],
+      "Period 4": [],
+      "Period 5": []
+    },
+    "Day 3": { /* Same structure as above */ },
+    "Day 4": { /* Same structure as above */ },
+    "Day 5": { /* Same structure as above */ },
+    "Day 6": { /* Same structure as above */ },
+    "Day 7": { /* Same structure as above */ },
+    "Day 8": { /* Same structure as above */ },
+    "Day 9": { /* Same structure as above */ },
+    "Day 10": { /* Same structure as above */ }
   }
 }
 
@@ -528,13 +611,13 @@ Important notes:
 - Keep all fields, even if some are empty (use "" for empty strings)
 - Maintain the exact format of times (e.g., "8:35am", "2:25pm")
 - Each period must be present, even if it has an empty array []
-- Include Tutorial, Recess, and Lunch periods exactly as shown above
-- Recess and Lunch periods will be automatically preserved during imports
-- Return the result as a downloadable JSON file
--there are 10 days
--must include tute
--you must do all this in one go
--must give me 1-10 in one go copy pastable
+- Include Tutorial periods exactly as shown above
+- You MUST include ALL 10 DAYS (Day 1 through Day 10) in the classes object
+- Return the result as valid JSON only
+- There are 10 days total (Day 1 through Day 10)
+- Must include Tutorial periods
+- You must do all this in one go
+- Must give me Days 1-10 in one go as copy pastable JSON
 
 Here's my timetable data:
 
@@ -567,10 +650,53 @@ ${importText}`;
         
         let data;
         
-        if (activeTab === 'paste') {
-            data = parseTimetableText(importText);
-        } else if (activeTab === 'ai') {
-            data = parseJsonTimetable(importText);
+        try {
+            if (activeTab === 'paste') {
+                // Note: parseTimetableText is a local function that manually parses the timetable
+                setIsProcessing(true);
+                // We'll handle this asynchronously
+                const result = parseTimetableText(importText);
+                if (result) importData(result);
+                setIsProcessing(false);
+                return; // Return early
+            } else if (activeTab === 'ai') {
+                // Use our imported robust JSON parser
+                const result = parseJsonTimetable(importText, setIsProcessing, setParseError);
+                if (result) {
+                    data = result;
+                    setParsedData(result);
+                } else {
+                    // Error already set inside the function
+                    setTimeout(() => adjustModalPosition(true), 50);
+                    return;
+                }
+            } else if (activeTab === 'aiparser') {
+                if (aiParserResult) {
+                    // Use the AI-parsed result if available
+                    data = aiParserResult;
+                } else {
+                    // Try to parse with AI first
+                    setIsAiProcessing(true);
+                    handleAiParse()
+                        .then(() => {
+                            if (aiParserResult) {
+                                importData(aiParserResult);
+                            }
+                        })
+                        .catch(error => {
+                            setParseError(`AI parsing failed: ${error.message}. Please try again or use another import method.`);
+                        })
+                        .finally(() => {
+                            setIsAiProcessing(false);
+                        });
+                    return; // Return early since we'll call importData after async parsing
+                }
+            }
+        } catch (e) {
+            console.error("Error in import process:", e);
+            setParseError(`Import error: ${e.message || 'Unknown error'}`);
+            setTimeout(() => adjustModalPosition(true), 50);
+            return;
         }
         
         console.log("Import data prepared:", data);
@@ -669,7 +795,13 @@ ${importText}`;
                         className={`import-tab ${activeTab === 'ai' ? 'active' : ''}`}
                         onClick={() => handleTabChange('ai')}
                     >
-                        AI Import Instructions
+                        AI Instructions
+                    </button>
+                    <button 
+                        className={`import-tab ${activeTab === 'aiparser' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('aiparser')}
+                    >
+                        AI Parser
                     </button>
                 </div>
                 
@@ -713,7 +845,13 @@ ${importText}`;
                         </div>
                     )}
                     
-                    {parsedData && (
+                    {parseSuccess && (
+                        <div className="parse-success">
+                            {parseSuccess}
+                        </div>
+                    )}
+                    
+                    {parsedData && !parseSuccess && (
                         <div className="parse-success">
                             ✓ Timetable data parsed successfully. Click "Import" to apply.
                         </div>
@@ -816,6 +954,63 @@ ${importText}`}
                                 <button className="generate-button" onClick={() => setParsedData(true)}>Generate AI Instructions</button>
                             </div>
                         )}
+                    </div>
+                </div>
+
+                <div className={`import-tab-content ${activeTab === 'aiparser' ? 'active' : ''}`}>
+                    <div className="ai-parser-content">
+                        <h3>AI Timetable Parser</h3>
+                        <p>Paste your messy timetable data below and our AI will automatically format it into a properly structured timetable.</p>
+                        <div className="parse-success" style={{ marginBottom: '15px' }}>
+                            ✅ AI Parser is ready to use. Just paste your timetable data and click "Parse with AI".
+                        </div>
+                        
+                        <div style={{ position: 'relative' }}>
+                            <textarea
+                                className="import-textarea"
+                                placeholder="Paste your timetable data here..."
+                                value={importText}
+                                onChange={handleTextChange}
+                                rows={15}
+                                disabled={isAiProcessing}
+                            />
+                            
+                            {isAiProcessing && (
+                                <LoadingUI 
+                                    message="Parsing" 
+                                    words={["timetable", "classes", "subjects", "periods", "days"]} 
+                                    status="This may take a moment. We're analyzing your timetable data with AI."
+                                />
+                            )}
+                        </div>
+                        
+                        <div className="ai-parser-controls">
+                            <button 
+                                className="parse-with-ai-button" 
+                                onClick={handleAiParse}
+                                disabled={isAiProcessing || !importText.trim()}
+                            >
+                                {isAiProcessing ? 'Processing with AI...' : 'Parse with AI'}
+                            </button>
+                            
+                            {parseError && (
+                                <div className="parse-error">
+                                    {parseError}
+                                </div>
+                            )}
+                            
+                            {parseSuccess && (
+                                <div className="parse-success">
+                                    {parseSuccess}
+                                </div>
+                            )}
+                            
+                            {aiParserResult && !parseSuccess && (
+                                <div className="parse-success">
+                                    ✓ Timetable data parsed successfully with AI. Click "Import" to apply.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
                 

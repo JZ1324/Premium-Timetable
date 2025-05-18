@@ -1,0 +1,142 @@
+/* Loading UI for AI parsing */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(3px);
+  border-radius: 10px;
+}
+
+.card {
+  /* color used to softly clip top and bottom of the .words container */
+  --bg-color: #212121;
+  background-color: var(--bg-color);
+  padding: 1rem 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+}
+
+.loader {
+  color: rgb(124, 124, 124);
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 22px; /* Slightly smaller font size */
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 40px;
+  padding: 10px 15px; /* Added more horizontal padding */
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  align-items: center; /* Center items vertically */
+  border-radius: 8px;
+}
+
+.words {
+  overflow: hidden;
+  position: relative;
+  min-width: 120px; /* Ensure enough width for the longest word */
+  margin-left: 8px; /* Add some spacing between "Parsing" and the animated words */
+}
+
+.words::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    var(--bg-color) 10%,
+    transparent 30%,
+    transparent 70%,
+    var(--bg-color) 90%
+  );
+  z-index: 20;
+}
+
+.word {
+  display: block;
+  height: 100%;
+  padding-left: 8px;
+  color: #956afa;
+  animation: spin_4991 6s infinite; /* Slower animation for better readability */
+  white-space: nowrap;
+  line-height: 40px; /* Match the height for vertical centering */
+}
+
+@keyframes spin_4991 {
+  8% {
+    -webkit-transform: translateY(-102%);
+    transform: translateY(-102%);
+  }
+
+  20% {
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%);
+  }
+
+  28% {
+    -webkit-transform: translateY(-202%);
+    transform: translateY(-202%);
+  }
+
+  40% {
+    -webkit-transform: translateY(-200%);
+    transform: translateY(-200%);
+  }
+
+  48% {
+    -webkit-transform: translateY(-302%);
+    transform: translateY(-302%);
+  }
+
+  60% {
+    -webkit-transform: translateY(-300%);
+    transform: translateY(-300%);
+  }
+
+  68% {
+    -webkit-transform: translateY(-402%);
+    transform: translateY(-402%);
+  }
+
+  80% {
+    -webkit-transform: translateY(-400%);
+    transform: translateY(-400%);
+  }
+  
+  88% {
+    -webkit-transform: translateY(-502%);
+    transform: translateY(-502%);
+  }
+
+  100% {
+    -webkit-transform: translateY(-500%);
+    transform: translateY(-500%);
+  }
+}
+
+.loading-status {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #4a4a4a;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .loader-container {
+    background-color: rgba(30, 30, 30, 0.9);
+  }
+  
+  .loading-status {
+    color: #c0c0c0;
+  }
+}

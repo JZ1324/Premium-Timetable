@@ -7,7 +7,8 @@ const { diagnoseApiError, generateErrorReport } = require('../utils/apiErrorDiag
 const API_KEYS = [
   "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", // Primary key (previously third)
   "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", // Second backup key
-  "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"  // Third backup key
+  "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", // Third backup key
+  "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"  // Fourth backup key (added May 18, 2025)
 ];
 
 // Available models in priority order - ONLY USING GEMINI 2.0 MODELS

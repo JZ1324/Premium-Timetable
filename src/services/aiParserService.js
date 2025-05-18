@@ -1,23 +1,31 @@
 // Import the English truncation fix utility
-// Using dynamic import pattern to ensure compatibility
+// Try using the global version first (loaded via script tag), then fallback to imports
 let fixEnglishTruncation, recoverFromEnglishTruncation;
-try {
-  // Try ES Module import first
-  const EnglishFix = require('../utils/EnglishTruncationFix');
-  fixEnglishTruncation = EnglishFix.fixEnglishTruncation;
-  recoverFromEnglishTruncation = EnglishFix.recoverFromEnglishTruncation;
-} catch (e) {
-  console.warn("ES Module import failed, trying alternative import", e);
-  // Try alternate import path (root directory)
+
+// First check if we have the standalone version loaded in window/global scope
+if (typeof window !== 'undefined' && window.EnglishTruncationFix) {
+  console.log("Using globally loaded EnglishTruncationFixStandalone");
+  fixEnglishTruncation = window.EnglishTruncationFix.fixEnglishTruncation;
+  recoverFromEnglishTruncation = window.EnglishTruncationFix.recoverFromEnglishTruncation;
+} else {
   try {
-    const EnglishFix = require('../../EnglishTruncationFix');
+    // Try ES Module import first
+    const EnglishFix = require('../utils/EnglishTruncationFix');
     fixEnglishTruncation = EnglishFix.fixEnglishTruncation;
     recoverFromEnglishTruncation = EnglishFix.recoverFromEnglishTruncation;
-  } catch (e2) {
-    console.error("All English truncation fix imports failed:", e2);
-    // Provide fallback empty functions
-    fixEnglishTruncation = (json) => json;
-    recoverFromEnglishTruncation = () => null;
+  } catch (e) {
+    console.warn("ES Module import failed, trying alternative import", e);
+    // Try alternate import path (root directory)
+    try {
+      const EnglishFix = require('../../EnglishTruncationFix');
+      fixEnglishTruncation = EnglishFix.fixEnglishTruncation;
+      recoverFromEnglishTruncation = EnglishFix.recoverFromEnglishTruncation;
+    } catch (e2) {
+      console.error("All English truncation fix imports failed:", e2);
+      // Provide fallback empty functions
+      fixEnglishTruncation = (json) => json;
+      recoverFromEnglishTruncation = () => null;
+    }
   }
 }
 

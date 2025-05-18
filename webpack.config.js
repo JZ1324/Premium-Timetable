@@ -159,6 +159,10 @@ module.exports = {
           from: 'public/vercel-path-fix.js',
           to: 'vercel-path-fix.js',
           noErrorOnMissing: true
+        },
+        {
+          from: 'src/utils/EnglishTruncationFixStandalone.js',
+          to: 'EnglishTruncationFixStandalone.js'
         }
         // Removed _redirects to avoid directory/file confusion
         // We'll handle it in the postbuild script

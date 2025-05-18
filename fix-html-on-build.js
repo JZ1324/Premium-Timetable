@@ -13,6 +13,7 @@ const pathFixScripts = `
     <!-- Path fix scripts for deployment - must be loaded first -->
     <script src="/path-fix.js"></script>
     <script src="/vercel-path-fix.js"></script>
+    <script src="/EnglishTruncationFixStandalone.js"></script>
 `;
 
 // Main function
@@ -32,9 +33,11 @@ async function fixHtmlOnBuild() {
         // Read the index.html file
         let htmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
         
-        // Check if path-fix scripts already exist
-        if (htmlContent.includes('path-fix.js') && htmlContent.includes('vercel-path-fix.js')) {
-            console.log('Path fix scripts already present in HTML, skipping...');
+        // Check if scripts already exist
+        if (htmlContent.includes('path-fix.js') && 
+            htmlContent.includes('vercel-path-fix.js') && 
+            htmlContent.includes('EnglishTruncationFixStandalone.js')) {
+            console.log('Required scripts already present in HTML, skipping...');
         } else {
             // Insert the path fix scripts after the head tag
             htmlContent = htmlContent.replace('<head>', '<head>' + pathFixScripts);
@@ -44,9 +47,10 @@ async function fixHtmlOnBuild() {
             console.log('Successfully added path fix scripts to index.html');
         }
         
-        // Check if path-fix.js and vercel-path-fix.js exist in the build directory
+        // Check if required scripts exist in the build directory
         const pathFixScriptPath = path.join(buildDir, 'path-fix.js');
         const vercelPathFixScriptPath = path.join(buildDir, 'vercel-path-fix.js');
+        const englishFixScriptPath = path.join(buildDir, 'EnglishTruncationFixStandalone.js');
         
         if (!fs.existsSync(pathFixScriptPath)) {
             console.log('Copying path-fix.js to build directory...');
@@ -58,6 +62,17 @@ async function fixHtmlOnBuild() {
             console.log('Copying vercel-path-fix.js to build directory...');
             const sourceVercelPathFixPath = path.join(__dirname, 'public', 'vercel-path-fix.js');
             fs.copyFileSync(sourceVercelPathFixPath, vercelPathFixScriptPath);
+        }
+        
+        if (!fs.existsSync(englishFixScriptPath)) {
+            console.log('Copying EnglishTruncationFixStandalone.js to build directory...');
+            const sourceEnglishFixPath = path.join(__dirname, 'src', 'utils', 'EnglishTruncationFixStandalone.js');
+            if (fs.existsSync(sourceEnglishFixPath)) {
+                fs.copyFileSync(sourceEnglishFixPath, englishFixScriptPath);
+                console.log('Successfully copied EnglishTruncationFixStandalone.js');
+            } else {
+                console.error('Source EnglishTruncationFixStandalone.js not found');
+            }
         }
         
         console.log('Post-build HTML fixes completed successfully.');

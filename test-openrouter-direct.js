@@ -36,7 +36,7 @@ async function testOpenRouterDirect() {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${API_KEY}`,
-        "HTTP-Referer": "https://timetable-premium.vercel.app", 
+        "HTTP-Referer": "https://premium-timetable-git-main-jzs-projects-88f4a016.vercel.app", 
         "X-Title": "Premium Timetable App", 
         "Content-Type": "application/json"
       },

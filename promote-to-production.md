@@ -2,12 +2,14 @@
 
 When your preview deployment works correctly but the production URL isn't updated, you need to promote the deployment to production. Follow these steps:
 
+> **Note**: All hardcoded domain-specific references have been replaced with dynamic URL detection, so the deployment should work correctly on any Vercel domain including your production domain.
+
 ## Option 1: Through Vercel Dashboard (Recommended)
 
 1. Go to the [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project "premium-timetable"
 3. Go to the "Deployments" tab
-4. Find your latest working deployment (the one with the URL: https://premium-timetable-git-main-jzs-projects-88f4a016.vercel.app/)
+4. Find your latest working deployment (the one from your most recent commit)
 5. Click on the three dots menu (⋮) next to this deployment
 6. Select "Promote to Production"
 7. Confirm the promotion

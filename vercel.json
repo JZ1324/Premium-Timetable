@@ -12,6 +12,22 @@
   ],
   "routes": [
     {
+      "src": "/path-fix.js",
+      "dest": "/path-fix.js",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    },
+    {
+      "src": "/vercel-path-fix.js",
+      "dest": "/vercel-path-fix.js",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    },
+    {
       "src": "/bundle.js",
       "dest": "/bundle.js",
       "headers": {

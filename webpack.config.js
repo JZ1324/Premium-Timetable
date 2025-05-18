@@ -97,8 +97,12 @@ module.exports = {
           }
         };
       },
+      // Preserve the path-fix scripts in the HTML
+      scriptExtHtmlWebpackPlugin: {
+        inline: ['path-fix.js', 'vercel-path-fix.js']
+      },
       minify: {
-        removeComments: true,
+        removeComments: false, // Keep comments to preserve script tags
         collapseWhitespace: true,
         removeRedundantAttributes: true,
         useShortDoctype: true,

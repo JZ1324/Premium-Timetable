@@ -1,3 +1,6 @@
+// Import the English truncation fix utility
+import { fixEnglishTruncation, recoverFromEnglishTruncation } from '../utils/EnglishTruncationFix';
+
 // Multiple API keys for token limit management
 const API_KEYS = [
   "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", // Primary key

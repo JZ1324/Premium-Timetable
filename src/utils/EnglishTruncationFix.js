@@ -245,8 +245,3 @@ function recoverFromEnglishTruncation(jsonContent) {
 
 // Export the functions for ES modules
 export { fixEnglishTruncation, recoverFromEnglishTruncation };
-
-// Also export for CommonJS compatibility
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { fixEnglishTruncation, recoverFromEnglishTruncation };
-}

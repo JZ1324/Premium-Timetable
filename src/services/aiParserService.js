@@ -1,5 +1,25 @@
 // Import the English truncation fix utility
-import { fixEnglishTruncation, recoverFromEnglishTruncation } from '../utils/EnglishTruncationFix';
+// Using dynamic import pattern to ensure compatibility
+let fixEnglishTruncation, recoverFromEnglishTruncation;
+try {
+  // Try ES Module import first
+  const EnglishFix = require('../utils/EnglishTruncationFix');
+  fixEnglishTruncation = EnglishFix.fixEnglishTruncation;
+  recoverFromEnglishTruncation = EnglishFix.recoverFromEnglishTruncation;
+} catch (e) {
+  console.warn("ES Module import failed, trying alternative import", e);
+  // Try alternate import path (root directory)
+  try {
+    const EnglishFix = require('../../EnglishTruncationFix');
+    fixEnglishTruncation = EnglishFix.fixEnglishTruncation;
+    recoverFromEnglishTruncation = EnglishFix.recoverFromEnglishTruncation;
+  } catch (e2) {
+    console.error("All English truncation fix imports failed:", e2);
+    // Provide fallback empty functions
+    fixEnglishTruncation = (json) => json;
+    recoverFromEnglishTruncation = () => null;
+  }
+}
 
 // Multiple API keys for token limit management
 const API_KEYS = [

@@ -225,6 +225,10 @@ function recoverFromEnglishTruncation(content, errorPosition) {
   return null;
 }
 
-// Export both functions for use in the main aiParserService.js
-// Just use CommonJS export for now to keep it simple
-module.exports = { fixEnglishTruncation, recoverFromEnglishTruncation };
+// Export the functions for ES modules
+export { fixEnglishTruncation, recoverFromEnglishTruncation };
+
+// Also add CommonJS export for compatibility
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { fixEnglishTruncation, recoverFromEnglishTruncation };
+}

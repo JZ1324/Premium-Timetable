@@ -13,7 +13,10 @@ const pathFixScripts = `
     <!-- Path fix scripts for deployment - must be loaded first -->
     <script src="/path-fix.js"></script>
     <script src="/vercel-path-fix.js"></script>
+    <script src="/EnglishTruncationFixDirectGlobal.js"></script>
     <script src="/EnglishTruncationFixStandalone.js"></script>
+    <script src="/compatibility-polyfill.js"></script>
+    <script src="/webpack-config-override.js"></script>
 `;
 
 // Main function
@@ -36,7 +39,10 @@ async function fixHtmlOnBuild() {
         // Check if scripts already exist
         if (htmlContent.includes('path-fix.js') && 
             htmlContent.includes('vercel-path-fix.js') && 
-            htmlContent.includes('EnglishTruncationFixStandalone.js')) {
+            htmlContent.includes('EnglishTruncationFixStandalone.js') &&
+            htmlContent.includes('EnglishTruncationFixDirectGlobal.js') &&
+            htmlContent.includes('compatibility-polyfill.js') &&
+            htmlContent.includes('webpack-config-override.js')) {
             console.log('Required scripts already present in HTML, skipping...');
         } else {
             // Insert the path fix scripts after the head tag
@@ -72,6 +78,45 @@ async function fixHtmlOnBuild() {
                 console.log('Successfully copied EnglishTruncationFixStandalone.js');
             } else {
                 console.error('Source EnglishTruncationFixStandalone.js not found');
+            }
+        }
+        
+        // Copy direct global fix
+        const directGlobalFixPath = path.join(buildDir, 'EnglishTruncationFixDirectGlobal.js');
+        if (!fs.existsSync(directGlobalFixPath)) {
+            console.log('Copying EnglishTruncationFixDirectGlobal.js to build directory...');
+            const sourceDirectGlobalPath = path.join(__dirname, 'src', 'utils', 'EnglishTruncationFixDirectGlobal.js');
+            if (fs.existsSync(sourceDirectGlobalPath)) {
+                fs.copyFileSync(sourceDirectGlobalPath, directGlobalFixPath);
+                console.log('Successfully copied EnglishTruncationFixDirectGlobal.js');
+            } else {
+                console.error('Source EnglishTruncationFixDirectGlobal.js not found');
+            }
+        }
+        
+        // Copy compatibility polyfill
+        const compatibilityPolyfillPath = path.join(buildDir, 'compatibility-polyfill.js');
+        if (!fs.existsSync(compatibilityPolyfillPath)) {
+            console.log('Copying compatibility-polyfill.js to build directory...');
+            const sourcePolyfillPath = path.join(__dirname, 'src', 'compatibility-polyfill.js');
+            if (fs.existsSync(sourcePolyfillPath)) {
+                fs.copyFileSync(sourcePolyfillPath, compatibilityPolyfillPath);
+                console.log('Successfully copied compatibility-polyfill.js');
+            } else {
+                console.error('Source compatibility-polyfill.js not found');
+            }
+        }
+        
+        // Copy webpack config override
+        const webpackOverridePath = path.join(buildDir, 'webpack-config-override.js');
+        if (!fs.existsSync(webpackOverridePath)) {
+            console.log('Copying webpack-config-override.js to build directory...');
+            const sourceOverridePath = path.join(__dirname, 'src', 'webpack-config-override.js');
+            if (fs.existsSync(sourceOverridePath)) {
+                fs.copyFileSync(sourceOverridePath, webpackOverridePath);
+                console.log('Successfully copied webpack-config-override.js');
+            } else {
+                console.error('Source webpack-config-override.js not found');
             }
         }
         

@@ -163,6 +163,18 @@ module.exports = {
         {
           from: 'src/utils/EnglishTruncationFixStandalone.js',
           to: 'EnglishTruncationFixStandalone.js'
+        },
+        {
+          from: 'src/utils/EnglishTruncationFixDirectGlobal.js',
+          to: 'EnglishTruncationFixDirectGlobal.js'
+        },
+        {
+          from: 'src/compatibility-polyfill.js',
+          to: 'compatibility-polyfill.js'
+        },
+        {
+          from: 'src/webpack-config-override.js',
+          to: 'webpack-config-override.js'
         }
         // Removed _redirects to avoid directory/file confusion
         // We'll handle it in the postbuild script

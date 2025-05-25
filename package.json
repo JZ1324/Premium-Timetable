@@ -11,14 +11,14 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production && npm run postbuild",
-    "postbuild": "node ./fix-html-on-build.js",
-    "vercel-build": "node ./vercel-build.js",
+    "postbuild": "node ./scripts/build/fix-html-on-build.js",
+    "vercel-build": "node ./scripts/configs/vercel-build.js",
     "test": "jest",
-    "test:enhancer": "node --experimental-modules test-enhancer.js",
+    "test:enhancer": "node --experimental-modules scripts/testing/test-enhancer.js",
     "deploy": "npm run build && firebase deploy",
     "deploy:github": "npm run build && gh-pages -d build",
     "deploy:vercel": "vercel --prod",
-    "verify-build": "bash ./verify-build.sh"
+    "verify-build": "bash ./scripts/testing/verify-build.sh"
   },
   "keywords": [
     "timetable",
@@ -48,7 +48,7 @@
     "style-loader": "^2.0.0",
     "typescript": "^5.8.3",
     "webpack": "^5.38.1",
-    "webpack-cli": "^4.7.0",
+    "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^3.11.2"
   }
 }

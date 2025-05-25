@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const buildDir = path.join(__dirname, 'build');
+const buildDir = path.join(__dirname, '..', '..', 'build');
 const indexHtmlPath = path.join(buildDir, 'index.html');
 const pathFixScripts = `
     <!-- Path fix scripts for deployment - must be loaded first -->
@@ -60,19 +60,19 @@ async function fixHtmlOnBuild() {
         
         if (!fs.existsSync(pathFixScriptPath)) {
             console.log('Copying path-fix.js to build directory...');
-            const sourcePathFixPath = path.join(__dirname, 'public', 'path-fix.js');
+            const sourcePathFixPath = path.join(__dirname, '..', '..', 'public', 'path-fix.js');
             fs.copyFileSync(sourcePathFixPath, pathFixScriptPath);
         }
         
         if (!fs.existsSync(vercelPathFixScriptPath)) {
             console.log('Copying vercel-path-fix.js to build directory...');
-            const sourceVercelPathFixPath = path.join(__dirname, 'public', 'vercel-path-fix.js');
+            const sourceVercelPathFixPath = path.join(__dirname, '..', '..', 'public', 'vercel-path-fix.js');
             fs.copyFileSync(sourceVercelPathFixPath, vercelPathFixScriptPath);
         }
         
         if (!fs.existsSync(englishFixScriptPath)) {
             console.log('Copying EnglishTruncationFixStandalone.js to build directory...');
-            const sourceEnglishFixPath = path.join(__dirname, 'src', 'utils', 'EnglishTruncationFixStandalone.js');
+            const sourceEnglishFixPath = path.join(__dirname, '..', '..', 'src', 'utils', 'EnglishTruncationFixStandalone.js');
             if (fs.existsSync(sourceEnglishFixPath)) {
                 fs.copyFileSync(sourceEnglishFixPath, englishFixScriptPath);
                 console.log('Successfully copied EnglishTruncationFixStandalone.js');
@@ -85,7 +85,7 @@ async function fixHtmlOnBuild() {
         const directGlobalFixPath = path.join(buildDir, 'EnglishTruncationFixDirectGlobal.js');
         if (!fs.existsSync(directGlobalFixPath)) {
             console.log('Copying EnglishTruncationFixDirectGlobal.js to build directory...');
-            const sourceDirectGlobalPath = path.join(__dirname, 'src', 'utils', 'EnglishTruncationFixDirectGlobal.js');
+            const sourceDirectGlobalPath = path.join(__dirname, '..', '..', 'src', 'utils', 'EnglishTruncationFixDirectGlobal.js');
             if (fs.existsSync(sourceDirectGlobalPath)) {
                 fs.copyFileSync(sourceDirectGlobalPath, directGlobalFixPath);
                 console.log('Successfully copied EnglishTruncationFixDirectGlobal.js');
@@ -98,7 +98,7 @@ async function fixHtmlOnBuild() {
         const compatibilityPolyfillPath = path.join(buildDir, 'compatibility-polyfill.js');
         if (!fs.existsSync(compatibilityPolyfillPath)) {
             console.log('Copying compatibility-polyfill.js to build directory...');
-            const sourcePolyfillPath = path.join(__dirname, 'src', 'compatibility-polyfill.js');
+            const sourcePolyfillPath = path.join(__dirname, '..', '..', 'src', 'compatibility-polyfill.js');
             if (fs.existsSync(sourcePolyfillPath)) {
                 fs.copyFileSync(sourcePolyfillPath, compatibilityPolyfillPath);
                 console.log('Successfully copied compatibility-polyfill.js');
@@ -111,7 +111,7 @@ async function fixHtmlOnBuild() {
         const webpackOverridePath = path.join(buildDir, 'webpack-config-override.js');
         if (!fs.existsSync(webpackOverridePath)) {
             console.log('Copying webpack-config-override.js to build directory...');
-            const sourceOverridePath = path.join(__dirname, 'src', 'webpack-config-override.js');
+            const sourceOverridePath = path.join(__dirname, '..', '..', 'src', 'webpack-config-override.js');
             if (fs.existsSync(sourceOverridePath)) {
                 fs.copyFileSync(sourceOverridePath, webpackOverridePath);
                 console.log('Successfully copied webpack-config-override.js');

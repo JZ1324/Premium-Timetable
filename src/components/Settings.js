@@ -4,9 +4,9 @@ import { getCurrentTheme, setTheme } from '../services/themeService';
 import { isNotificationSupported, requestNotificationPermission } from '../services/notificationService';
 import '../styles/components/Settings.css';
 
-const Settings = () => {
-    // Show settings panel by default to make import/export buttons accessible
-    const [showSettings, setShowSettings] = useState(true);
+const Settings = ({ sidebarOpen }) => {
+    // Start with settings hidden on page load/refresh, automatically hide when sidebar collapses
+    const [showSettings, setShowSettings] = useState(false);
     const [settings, setSettings] = useState({
         displayCode: true,
         displayTeacher: true,
@@ -15,7 +15,7 @@ const Settings = () => {
         enableNotifications: false,
         notificationTime: 15,
         weekStartsOn: 'monday',
-        startWithWeek: 'A' // Default to Week A
+        startWithWeek: 'B' // Default to Week B
     });
 
     // Save settings to localStorage
@@ -29,6 +29,13 @@ const Settings = () => {
             }
         }
     }, []);
+
+    // Automatically hide settings when sidebar is collapsed
+    useEffect(() => {
+        if (!sidebarOpen && showSettings) {
+            setShowSettings(false);
+        }
+    }, [sidebarOpen, showSettings]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

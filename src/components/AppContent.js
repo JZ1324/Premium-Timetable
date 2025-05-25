@@ -146,7 +146,7 @@ const AppContent = () => {
                     onThemeChange={handleThemeChange} 
                     currentTheme={currentTheme} 
                   />
-                  <Settings />
+                  <Settings sidebarOpen={sidebarOpen} />
                 </div>
                 <div className="timetable-section">
                   {showTaskTracker ? (

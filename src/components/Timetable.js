@@ -187,12 +187,13 @@ const Timetable = () => {
             loadTemplate('school');
         }
 
-        // Get the last active day or use today's date
-        const lastActiveDay = getLastActiveTimetableDay();
+        // Always default to today's day on page load/refresh
         const todayDay = getCurrentSchoolDay();
-        const dayToUse = lastActiveDay !== null ? lastActiveDay : todayDay;
-        setCurrentDay(dayToUse);
-        console.log(`Using day ${dayToUse} (${lastActiveDay ? 'from saved preference' : 'today'})`);
+        setCurrentDay(todayDay);
+        console.log(`Setting current day to today: Day ${todayDay}`);
+        
+        // Save today's day as the current selection
+        saveCurrentTimetableDay(todayDay);
         
         // Set current period based on current time
         const nowPeriod = getCurrentPeriod();

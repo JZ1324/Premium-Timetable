@@ -57,7 +57,7 @@ export const getCurrentSchoolDay = () => {
     // Get user settings
     const savedSettings = localStorage.getItem('timetable-settings');
     let settings = {
-        startWithWeek: 'A' // Default to Week A
+        startWithWeek: 'B' // Default to Week B
     };
     
     if (savedSettings) {

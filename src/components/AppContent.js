@@ -3,7 +3,7 @@ import Header from './Header';
 import Timetable from './Timetable';
 import Settings from './Settings';
 import ThemeSwitcher from './ThemeSwitcher';
-import TaskTracker from './TaskTracker';
+import AcademicPlanner from './AcademicPlanner';
 import Login from './Login';
 import ThemeInitializer from './ThemeInitializer';
 import { useAuth } from './AuthProvider';
@@ -22,7 +22,7 @@ const AppContent = () => {
 
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showTaskTracker, setShowTaskTracker] = useState(false);
+  const [showAcademicPlanner, setShowAcademicPlanner] = useState(false);
   
   // Get authentication state from context
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -54,8 +54,8 @@ const AppContent = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const toggleTaskTracker = () => {
-    setShowTaskTracker(!showTaskTracker);
+  const toggleAcademicPlanner = () => {
+    setShowAcademicPlanner(!showAcademicPlanner);
   };
 
   // Double-check theme is applied after component is mounted
@@ -135,8 +135,8 @@ const AppContent = () => {
             <Header 
               toggleSidebar={toggleSidebar} 
               sidebarOpen={sidebarOpen} 
-              toggleTaskTracker={toggleTaskTracker}
-              taskTrackerActive={showTaskTracker}
+              toggleAcademicPlanner={toggleAcademicPlanner}
+              academicPlannerActive={showAcademicPlanner}
               user={user}
             />
             <main className="main-content">
@@ -149,9 +149,9 @@ const AppContent = () => {
                   <Settings sidebarOpen={sidebarOpen} />
                 </div>
                 <div className="timetable-section">
-                  {showTaskTracker ? (
+                  {showAcademicPlanner ? (
                     <div className="animated-container fade-in-up">
-                      <TaskTracker />
+                      <AcademicPlanner />
                     </div>
                   ) : (
                     <div className="animated-container fade-in-up">

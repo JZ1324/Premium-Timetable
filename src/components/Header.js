@@ -8,7 +8,7 @@ import HelpPage from './HelpPage';
 import { useAuth } from './AuthProvider';
 import '../styles/components/Header.css';
 
-const Header = ({ toggleSidebar, sidebarOpen, toggleTaskTracker, taskTrackerActive }) => {
+const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPlannerActive }) => {
     const [scrolled, setScrolled] = useState(false);
     const [expanding, setExpanding] = useState(false);
     const [headerClass, setHeaderClass] = useState('enlarged');
@@ -167,9 +167,9 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleTaskTracker, taskTrackerActi
                             <span className="logo-icon">📚</span>
                         </div>
                         <button 
-                            className={`calendar-toggle ${taskTrackerActive ? 'active' : ''}`}
-                            onClick={toggleTaskTracker}
-                            title={taskTrackerActive ? "View Timetable" : "Tasks & Assignments"}
+                            className={`calendar-toggle ${academicPlannerActive ? 'active' : ''}`}
+                            onClick={toggleAcademicPlanner}
+                            title={academicPlannerActive ? "View Timetable" : "Academic Planner"}
                         >
                             <span className="toggle-icon">📅</span>
                         </button>

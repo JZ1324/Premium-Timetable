@@ -300,17 +300,8 @@
     display: flex;
     gap: 4px;
     margin-bottom: 20px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
-    overflow-x: auto;
-    -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
-    scrollbar-width: none;  /* Hide scrollbar for Firefox */
-    padding-bottom: 5px;  /* Add some padding to prevent cut-off on scroll */
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.day-selector::-webkit-scrollbar {
-    display: none;
 }
 /* Media queries for responsive design */
 @media (max-width: 768px) {
@@ -320,6 +311,16 @@
     
     .template-controls {
         justify-content: center;
+    }
+    
+    .day-selector {
+        gap: 3px;
+    }
+    
+    .day-button {
+        padding: 3px 4px;
+        font-size: 0.7rem;
+        min-width: 28px;
     }
 }
 

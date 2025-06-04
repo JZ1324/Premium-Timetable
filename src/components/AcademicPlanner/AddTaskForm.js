@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const AddTaskForm = ({ onAddTask, onClose }) => {
+const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
     // Get current date and time for defaults
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -36,6 +36,23 @@ const AddTaskForm = ({ onAddTask, onClose }) => {
         dueTime: currentTime,
         estimatedTime: '1 hour'
     });
+
+    // Initialize form with editing data if provided
+    useEffect(() => {
+        if (initialData) {
+            const dueDate = new Date(initialData.dueDate);
+            setFormData({
+                title: initialData.title || '',
+                description: initialData.description || '',
+                subject: initialData.subject || 'Math',
+                type: initialData.type || 'Assignment',
+                priority: initialData.priority || 'Medium',
+                dueDate: dueDate.toISOString().split('T')[0],
+                dueTime: dueDate.toTimeString().slice(0, 5),
+                estimatedTime: initialData.estimatedTime || '1 hour'
+            });
+        }
+    }, [initialData]);
 
     // Save custom items to localStorage
     const saveCustomItems = (key, items, defaultItems) => {
@@ -81,19 +98,17 @@ const AddTaskForm = ({ onAddTask, onClose }) => {
         }
 
         // Create the task object with the expected structure
-        const newTask = {
+        const taskData = {
             title: formData.title,
             description: formData.description,
             subject: formData.subject,
             type: formData.type,
             priority: formData.priority,
-            dueDate: formData.dueDate,
-            dueTime: formData.dueTime,
+            dueDate: new Date(`${formData.dueDate}T${formData.dueTime}`),
             estimatedTime: formData.estimatedTime,
-            createdAt: new Date().toISOString(),
         };
 
-        onAddTask(newTask);
+        onAddTask(taskData);
         onClose();
     };
 
@@ -103,7 +118,7 @@ const AddTaskForm = ({ onAddTask, onClose }) => {
         <div className="task-form-overlay">
             <div className="task-form-modal">
                 <div className="task-form-header">
-                    <h3>Add New Task</h3>
+                    <h3>{initialData ? 'Edit Task' : 'Add New Task'}</h3>
                     <button className="close-btn" onClick={onClose}>×</button>
                 </div>
                 <form onSubmit={handleSubmit} className="task-form">
@@ -267,7 +282,7 @@ const AddTaskForm = ({ onAddTask, onClose }) => {
                             Cancel
                         </button>
                         <button type="submit" className="submit-btn">
-                            Add Task
+                            {initialData ? 'Update Task' : 'Add Task'}
                         </button>
                     </div>
                 </form>

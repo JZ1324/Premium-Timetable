@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import '../styles/components/AcademicPlanner.css'; // Main CSS
-import '../styles/components/AddTaskForm.css'; // Add Task Form CSS
-import 'remixicon/fonts/remixicon.css'; // Corrected path
-import AddTaskForm from './AcademicPlanner/AddTaskForm'; // Import AddTaskForm for Academic Planner
-import { useTaskTracker } from './TaskTracker/useTaskTracker'; // Import useTaskTracker
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import '../styles/components/AcademicPlanner.css';
+import '../styles/components/AcademicPlannerYear.css';
+import AddTaskForm from './AcademicPlanner/AddTaskForm';
 
 const AcademicPlanner = () => {
     const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
@@ -1779,6 +1777,23 @@ const AcademicPlanner = () => {
             'July', 'August', 'September', 'October', 'November', 'December'
         ];
 
+        // Define seasons for each month
+        const monthSeasons = [
+            'Winter', 'Winter', 'Spring', 'Spring', 'Spring', 'Summer',
+            'Summer', 'Summer', 'Autumn', 'Autumn', 'Autumn', 'Winter'
+        ];
+
+        // Define season colors
+        const getSeasonColor = (season) => {
+            switch(season) {
+                case 'Winter': return '#3b82f6'; // blue
+                case 'Spring': return '#10b981'; // green
+                case 'Summer': return '#f59e0b'; // amber
+                case 'Autumn': return '#ef4444'; // red
+                default: return '#6b7280'; // gray
+            }
+        };
+
         const getTasksForMonth = (monthIndex) => {
             return filteredTasks.filter(task => 
                 task.dueDate.getFullYear() === currentYear && 
@@ -1793,7 +1808,8 @@ const AcademicPlanner = () => {
                 completed: monthTasks.filter(t => t.status === 'completed').length,
                 inProgress: monthTasks.filter(t => t.status === 'in-progress').length,
                 highPriority: monthTasks.filter(t => t.priority === 'High').length,
-                exams: monthTasks.filter(t => t.type === 'Exam').length
+                exams: monthTasks.filter(t => t.type === 'Exam').length,
+                assignments: monthTasks.filter(t => t.type === 'Assignment').length
             };
         };
 
@@ -1804,6 +1820,9 @@ const AcademicPlanner = () => {
             ).length,
             totalExams: filteredTasks.filter(t => 
                 t.dueDate.getFullYear() === currentYear && t.type === 'Exam'
+            ).length,
+            totalAssignments: filteredTasks.filter(t => 
+                t.dueDate.getFullYear() === currentYear && t.type === 'Assignment'
             ).length,
             highPriorityTasks: filteredTasks.filter(t => 
                 t.dueDate.getFullYear() === currentYear && t.priority === 'High'
@@ -1822,20 +1841,48 @@ const AcademicPlanner = () => {
                     </div>
                     <div className="year-stats-summary">
                         <div className="year-stat-item">
-                            <div className="year-stat-number">{yearStats.totalTasks}</div>
-                            <div className="year-stat-label">Total Tasks</div>
+                            <div className="flex items-center justify-between w-full">
+                                <div>
+                                    <div className="year-stat-number">{yearStats.totalTasks}</div>
+                                    <div className="year-stat-label">Total Tasks</div>
+                                </div>
+                                <div className="w-10 h-10 bg-opacity-50 rounded-full flex items-center justify-center bg-blue-400">
+                                    <i className="ri-file-list-3-line text-xl"></i>
+                                </div>
+                            </div>
                         </div>
                         <div className="year-stat-item">
-                            <div className="year-stat-number">{completionRate}%</div>
-                            <div className="year-stat-label">Completion Rate</div>
+                            <div className="flex items-center justify-between w-full">
+                                <div>
+                                    <div className="year-stat-number">{yearStats.totalAssignments}</div>
+                                    <div className="year-stat-label">Assignments</div>
+                                </div>
+                                <div className="w-10 h-10 bg-opacity-50 rounded-full flex items-center justify-center bg-amber-400">
+                                    <i className="ri-article-line text-xl"></i>
+                                </div>
+                            </div>
                         </div>
                         <div className="year-stat-item">
-                            <div className="year-stat-number">{yearStats.totalExams}</div>
-                            <div className="year-stat-label">Exams</div>
+                            <div className="flex items-center justify-between w-full">
+                                <div>
+                                    <div className="year-stat-number">{yearStats.totalExams}</div>
+                                    <div className="year-stat-label">Exams</div>
+                                </div>
+                                <div className="w-10 h-10 bg-opacity-50 rounded-full flex items-center justify-center bg-red-400">
+                                    <i className="ri-file-text-line text-xl"></i>
+                                </div>
+                            </div>
                         </div>
                         <div className="year-stat-item">
-                            <div className="year-stat-number">{yearStats.highPriorityTasks}</div>
-                            <div className="year-stat-label">High Priority</div>
+                            <div className="flex items-center justify-between w-full">
+                                <div>
+                                    <div className="year-stat-number">{completionRate}%</div>
+                                    <div className="year-stat-label">Completion Rate</div>
+                                </div>
+                                <div className="w-10 h-10 bg-opacity-50 rounded-full flex items-center justify-center bg-green-400">
+                                    <i className="ri-checkbox-circle-line text-xl"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1847,15 +1894,15 @@ const AcademicPlanner = () => {
                         const monthCompletionRate = monthStats.total > 0 
                             ? Math.round((monthStats.completed / monthStats.total) * 100) 
                             : 0;
+                        const season = monthSeasons[index];
+                        const seasonColor = getSeasonColor(season);
 
                         return (
                             <div key={month} className="year-month-card">
                                 <div className="month-header-year">
                                     <h3 className="month-title">{month}</h3>
-                                    <div className="month-completion-rate">
-                                        <div className="completion-circle">
-                                            <span>{monthCompletionRate}%</span>
-                                        </div>
+                                    <div className="month-season" style={{backgroundColor: `${seasonColor}20`, color: seasonColor}}>
+                                        {season}
                                     </div>
                                 </div>
                                 
@@ -1865,7 +1912,7 @@ const AcademicPlanner = () => {
                                             <span className={`event-dot priority-${task.priority.toLowerCase()}`}></span>
                                             <span className="event-text">{task.title}</span>
                                             <span className="event-date">
-                                                {task.dueDate.getDate()}
+                                                {month.substring(0, 3)} {task.dueDate.getDate()}
                                             </span>
                                         </div>
                                     ))}
@@ -1880,74 +1927,20 @@ const AcademicPlanner = () => {
                                 </div>
                                 
                                 <div className="month-stats">
-                                    <div className="stat-row">
-                                        <span className="stat-label">Tasks:</span>
-                                        <span className="stat-value">{monthStats.total}</span>
-                                    </div>
-                                    <div className="stat-row">
-                                        <span className="stat-label">Completed:</span>
-                                        <span className="stat-value">{monthStats.completed}</span>
-                                    </div>
-                                    <div className="stat-row">
-                                        <span className="stat-label">Exams:</span>
-                                        <span className="stat-value">{monthStats.exams}</span>
-                                    </div>
-                                    <div className="stat-row">
-                                        <span className="stat-label">High Priority:</span>
-                                        <span className="stat-value">{monthStats.highPriority}</span>
+                                    <div className="grid grid-cols-2 gap-4 text-center">
+                                        <div>
+                                            <p className="text-lg font-bold text-gray-800">{monthStats.total}</p>
+                                            <p className="text-xs text-gray-500">Tasks</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-lg font-bold" style={{color: seasonColor}}>{monthStats.exams}</p>
+                                            <p className="text-xs text-gray-500">Exams</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         );
                     })}
-                </div>
-
-                <div className="year-analytics">
-                    <div className="analytics-section">
-                        <h3>Performance Analytics</h3>
-                        <div className="analytics-grid">
-                            <div className="analytics-card">
-                                <h4>Most Productive Month</h4>
-                                <div className="analytics-result">
-                                    {monthNames[
-                                        Array.from({ length: 12 }, (_, i) => i)
-                                            .reduce((maxMonth, month) => 
-                                                getMonthStats(month).completed > getMonthStats(maxMonth).completed 
-                                                    ? month : maxMonth, 0)
-                                    ]}
-                                </div>
-                            </div>
-                            <div className="analytics-card">
-                                <h4>Busiest Month</h4>
-                                <div className="analytics-result">
-                                    {monthNames[
-                                        Array.from({ length: 12 }, (_, i) => i)
-                                            .reduce((maxMonth, month) => 
-                                                getMonthStats(month).total > getMonthStats(maxMonth).total 
-                                                    ? month : maxMonth, 0)
-                                    ]}
-                                </div>
-                            </div>
-                            <div className="analytics-card">
-                                <h4>Subject Distribution</h4>
-                                <div className="subject-breakdown">
-                                    {Object.entries(
-                                        filteredTasks
-                                            .filter(t => t.dueDate.getFullYear() === currentYear)
-                                            .reduce((acc, task) => {
-                                                acc[task.subject] = (acc[task.subject] || 0) + 1;
-                                                return acc;
-                                            }, {})
-                                    ).slice(0, 3).map(([subject, count]) => (
-                                        <div key={subject} className="subject-stat">
-                                            <span className="subject-name">{subject}</span>
-                                            <span className="subject-count">{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         );

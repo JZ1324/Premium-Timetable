@@ -435,6 +435,24 @@ a {
     text-align: left;
 }
 
+/* Full-width layout for Academic Planner */
+.planner-full-width {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.planner-full-width .animated-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
 /* Responsive adjustments for layout */
 @media (max-width: 992px) {
     .main-container {

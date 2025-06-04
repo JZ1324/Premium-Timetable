@@ -140,27 +140,29 @@ const AppContent = () => {
               user={user}
             />
             <main className="main-content">
-              <div className={`main-container ${!sidebarOpen ? 'sidebar-collapsed' : ''}`}>
-                <div className={`sidebar ${!sidebarOpen ? 'collapsed' : ''}`}>
-                  <ThemeSwitcher 
-                    onThemeChange={handleThemeChange} 
-                    currentTheme={currentTheme} 
-                  />
-                  <Settings sidebarOpen={sidebarOpen} />
+              {showAcademicPlanner ? (
+                <div className="planner-full-width">
+                  <div className="animated-container fade-in-up">
+                    <AcademicPlanner />
+                  </div>
                 </div>
-                <div className="timetable-section">
-                  {showAcademicPlanner ? (
-                    <div className="animated-container fade-in-up">
-                      <AcademicPlanner />
-                    </div>
-                  ) : (
+              ) : (
+                <div className={`main-container ${!sidebarOpen ? 'sidebar-collapsed' : ''}`}>
+                  <div className={`sidebar ${!sidebarOpen ? 'collapsed' : ''}`}>
+                    <ThemeSwitcher 
+                      onThemeChange={handleThemeChange} 
+                      currentTheme={currentTheme} 
+                    />
+                    <Settings sidebarOpen={sidebarOpen} />
+                  </div>
+                  <div className="timetable-section">
                     <div className="animated-container fade-in-up">
                       <h2 className="section-title">Weekly Schedule</h2>
                       <Timetable />
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </main>
             <footer className="footer">
               <p>© {new Date().getFullYear()} School Timetable App</p>

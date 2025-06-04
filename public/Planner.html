@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academic Planner</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: "#4f46e5", secondary: "#f97316" },
+            borderRadius: {
+              none: "0px",
+              sm: "4px",
+              DEFAULT: "8px",
+              md: "12px",
+              lg: "16px",
+              xl: "20px",
+              "2xl": "24px",
+              "3xl": "32px",
+              full: "9999px",
+              button: "8px",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+    />
+    <style>
+      :where([class^="ri-"])::before { content: "\f3c2"; }
+      body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      }
+      .task-card {
+      transition: all 0.2s ease;
+      }
+      .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+      .priority-high {
+      border-left: 4px solid #ef4444;
+      }
+      .priority-medium {
+      border-left: 4px solid #f59e0b;
+      }
+      .priority-low {
+      border-left: 4px solid #3b82f6;
+      }
+      .status-circle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-block;
+      }
+      .status-not-started {
+      border: 2px solid #9ca3af;
+      }
+      .status-in-progress {
+      background: linear-gradient(90deg, #9ca3af 50%, transparent 50%);
+      border: 2px solid #9ca3af;
+      }
+      .status-completed {
+      background-color: #10b981;
+      border: 2px solid #10b981;
+      position: relative;
+      }
+      .status-completed:after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 3px;
+      border-left: 2px solid white;
+      border-bottom: 2px solid white;
+      transform: rotate(-45deg);
+      top: 4px;
+      left: 3px;
+      }
+      .month-cell {
+      min-height: 100px;
+      }
+      .month-cell.today {
+      background-color: rgba(79, 70, 229, 0.05);
+      }
+      .task-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 2px;
+      }
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+      }
+      .custom-checkbox {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+      }
+      .custom-checkbox:checked {
+      background-color: #4f46e5;
+      border-color: #4f46e5;
+      }
+      .custom-checkbox:checked:after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 10px;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
+      transform: rotate(45deg);
+      top: 1px;
+      left: 5px;
+      }
+      .custom-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      }
+      .custom-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      }
+      .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #e5e7eb;
+      transition: .4s;
+      border-radius: 20px;
+      }
+      .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+      }
+      input:checked + .switch-slider {
+      background-color: #4f46e5;
+      }
+      input:checked + .switch-slider:before {
+      transform: translateX(16px);
+      }
+      .year-cell {
+      transition: all 0.2s;
+      }
+      .year-cell:hover {
+      transform: scale(1.05);
+      z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div class="p-4 border-b border-gray-200">
+          <h1 class="text-xl font-['Pacifico'] text-primary">Planner</h1>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto">
+          <div class="mb-6">
+            <button
+              class="w-full bg-primary text-white py-2 px-4 !rounded-button flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <div class="w-5 h-5 flex items-center justify-center">
+                <i class="ri-add-line"></i>
+              </div>
+              <span>Add New Task</span>
+            </button>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-500 mb-2">FILTERS</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <label class="custom-switch">
+                  <input type="checkbox" checked />
+                  <span class="switch-slider"></span>
+                </label>
+                <span class="ml-2 text-sm text-gray-700"
+                  >Hide completed tasks</span
+                >
+              </div>
+              <div class="flex items-center mt-2">
+                <label class="custom-switch">
+                  <input type="checkbox" />
+                  <span class="switch-slider"></span>
+                </label>
+                <span class="ml-2 text-sm text-gray-700"
+                  >Show only upcoming</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-500 mb-2">SUBJECTS</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="subject-math"
+                  checked
+                />
+                <label for="subject-math" class="ml-2 text-sm text-gray-700"
+                  >Mathematics</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="subject-history"
+                  checked
+                />
+                <label for="subject-history" class="ml-2 text-sm text-gray-700"
+                  >History</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="subject-science"
+                  checked
+                />
+                <label for="subject-science" class="ml-2 text-sm text-gray-700"
+                  >Science</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="subject-literature"
+                  checked
+                />
+                <label
+                  for="subject-literature"
+                  class="ml-2 text-sm text-gray-700"
+                  >Literature</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="subject-cs"
+                  checked
+                />
+                <label for="subject-cs" class="ml-2 text-sm text-gray-700"
+                  >Computer Science</label
+                >
+              </div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-500 mb-2">TASK TYPES</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="type-assignment"
+                  checked
+                />
+                <label for="type-assignment" class="ml-2 text-sm text-gray-700"
+                  >Assignment</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="type-exam"
+                  checked
+                />
+                <label for="type-exam" class="ml-2 text-sm text-gray-700"
+                  >Exam</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="type-study"
+                  checked
+                />
+                <label for="type-study" class="ml-2 text-sm text-gray-700"
+                  >Study Block</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="type-event"
+                  checked
+                />
+                <label for="type-event" class="ml-2 text-sm text-gray-700"
+                  >Event</label
+                >
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="type-reminder"
+                  checked
+                />
+                <label for="type-reminder" class="ml-2 text-sm text-gray-700"
+                  >Reminder</label
+                >
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">PRIORITY</h3>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="priority-high"
+                  checked
+                />
+                <label
+                  for="priority-high"
+                  class="ml-2 text-sm text-gray-700 flex items-center"
+                >
+                  <span class="w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                  High
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="priority-medium"
+                  checked
+                />
+                <label
+                  for="priority-medium"
+                  class="ml-2 text-sm text-gray-700 flex items-center"
+                >
+                  <span class="w-3 h-3 rounded-full bg-amber-500 mr-1"></span>
+                  Medium
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox"
+                  id="priority-low"
+                  checked
+                />
+                <label
+                  for="priority-low"
+                  class="ml-2 text-sm text-gray-700 flex items-center"
+                >
+                  <span class="w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
+                  Low
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border-t border-gray-200">
+          <div class="bg-gray-50 p-3 rounded">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">
+              Upcoming Deadlines
+            </h3>
+            <div class="text-xs text-gray-600">
+              <div class="flex justify-between mb-1">
+                <span>History Essay Draft</span>
+                <span class="text-red-500">Today</span>
+              </div>
+              <div class="flex justify-between mb-1">
+                <span>Math Problem Set</span>
+                <span>Tomorrow</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Science Lab Report</span>
+                <span>May 25</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Navigation -->
+        <div
+          class="bg-white border-b border-gray-200 py-3 px-6 flex items-center justify-between"
+        >
+          <div class="flex items-center space-x-4">
+            <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+              <button
+                id="day-btn"
+                class="px-4 py-1.5 bg-primary text-white text-sm font-medium whitespace-nowrap"
+              >
+                Day
+              </button>
+              <button
+                id="week-btn"
+                class="px-4 py-1.5 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 whitespace-nowrap"
+              >
+                Week
+              </button>
+              <button
+                id="month-btn"
+                class="px-4 py-1.5 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 whitespace-nowrap"
+              >
+                Month
+              </button>
+              <button
+                id="year-btn"
+                class="px-4 py-1.5 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 whitespace-nowrap"
+              >
+                Year
+              </button>
+            </div>
+            <div class="flex items-center">
+              <button
+                class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 whitespace-nowrap"
+              >
+                <div class="w-8 h-8 flex items-center justify-center">
+                  <i class="ri-arrow-left-s-line ri-lg"></i>
+                </div>
+              </button>
+              <h2 class="text-lg font-semibold mx-3">May 22, 2025</h2>
+              <button
+                class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 whitespace-nowrap"
+              >
+                <div class="w-8 h-8 flex items-center justify-center">
+                  <i class="ri-arrow-right-s-line ri-lg"></i>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+              >
+                <div
+                  class="w-5 h-5 flex items-center justify-center text-gray-400"
+                >
+                  <i class="ri-search-line"></i>
+                </div>
+              </div>
+              <input
+                type="text"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-60 pl-10 p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                placeholder="Search tasks..."
+              />
+            </div>
+            <button
+              class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 whitespace-nowrap"
+            >
+              <div class="w-5 h-5 flex items-center justify-center">
+                <i class="ri-notification-line"></i>
+              </div>
+            </button>
+            <button
+              class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 whitespace-nowrap"
+            >
+              <div class="w-5 h-5 flex items-center justify-center">
+                <i class="ri-settings-4-line"></i>
+              </div>
+            </button>
+            <div
+              class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-medium"
+            >
+              JS
+            </div>
+          </div>
+        </div>
+        <!-- Day View (Active by default) -->
+        <div id="day-view" class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-800">
+                  Today's Quote
+                </h3>
+              </div>
+              <div
+                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              >
+                <p class="text-gray-600 italic">
+                  "The secret of getting ahead is getting started. The secret of
+                  getting started is breaking your complex overwhelming tasks
+                  into small manageable tasks, and then starting on the first
+                  one."
+                </p>
+                <p class="text-gray-500 text-sm mt-1">— Mark Twain</p>
+              </div>
+            </div>
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-800">Overdue</h3>
+                <span class="text-sm text-red-500 font-medium">2 tasks</span>
+              </div>
+              <div class="space-y-3">
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-high"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-red-100 text-red-800 mr-2"
+                          >2 days overdue</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800"
+                          >Literature</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Book Analysis: "1984"
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due May 20, 11:59 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-in-progress mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-yellow-100 text-yellow-800"
+                      >
+                        In progress
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 4 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-medium"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-red-100 text-red-800 mr-2"
+                          >1 day overdue</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800"
+                          >Computer Science</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Algorithm Implementation
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due May 21, 5:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 3 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-800">
+                  Today - May 22
+                </h3>
+                <span class="text-sm text-gray-500 font-medium">3 tasks</span>
+              </div>
+              <div class="space-y-3">
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-high"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-800 mr-2"
+                          >Due today</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-indigo-100 text-indigo-800"
+                          >History</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        History Essay Draft
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due 11:59 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-in-progress mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-yellow-100 text-yellow-800"
+                      >
+                        In progress
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 5 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-low"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                          >Study Block</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 ml-2"
+                          >Mathematics</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Calculus Review Session
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>4:00 PM - 6:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-book-open-line"></i>
+                        </div>
+                        <span>Study Block</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>2 hours</span>
+                      <span class="mx-2">•</span>
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-repeat-line"></i>
+                      </div>
+                      <span>Weekly on Thursday</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-medium"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-800 mr-2"
+                          >Due today</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                          >Science</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Physics Problem Set
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due 8:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span class="status-circle status-completed mr-2"></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                      >
+                        Completed
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 2 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-close-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-800">Upcoming</h3>
+                <span class="text-sm text-gray-500 font-medium">4 tasks</span>
+              </div>
+              <div class="space-y-3">
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-medium"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2"
+                          >Tomorrow</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800"
+                          >Mathematics</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Math Problem Set
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due May 23, 3:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-in-progress mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-yellow-100 text-yellow-800"
+                      >
+                        In progress
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 2 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-high"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2"
+                          >In 3 days</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                          >Science</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Science Lab Report
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due May 25, 11:59 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 4 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-high"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2"
+                          >In 5 days</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800"
+                          >Computer Science</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Programming Project
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due May 27, 11:59 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>Est. 8 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-medium"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2"
+                          >In 7 days</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-red-100 text-red-800"
+                          >Exam</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Mathematics Midterm Exam
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>May 29, 10:00 AM - 12:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Exam</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                      <div
+                        class="w-4 h-4 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>2 hours</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-edit-line"></i>
+                        </div>
+                      </button>
+                      <button
+                        class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                      >
+                        <div class="w-4 h-4 flex items-center justify-center">
+                          <i class="ri-check-line"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Week View (Hidden by default) -->
+        <div id="week-view" class="flex-1 overflow-y-auto p-6 hidden">
+          <div class="max-w-6xl mx-auto">
+            <div class="mb-6">
+              <div
+                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              >
+                <p class="text-gray-600 italic">
+                  "Success is the sum of small efforts, repeated day in and day
+                  out."
+                </p>
+                <p class="text-gray-500 text-sm mt-1">— Robert Collier</p>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+            >
+              <div class="grid grid-cols-7 border-b border-gray-200">
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-500 border-r border-gray-200"
+                >
+                  Monday<br /><span class="text-xs">May 19</span>
+                </div>
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-500 border-r border-gray-200"
+                >
+                  Tuesday<br /><span class="text-xs">May 20</span>
+                </div>
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-500 border-r border-gray-200"
+                >
+                  Wednesday<br /><span class="text-xs">May 21</span>
+                </div>
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-900 bg-gray-50 border-r border-gray-200"
+                >
+                  Thursday<br /><span class="text-xs">May 22</span>
+                </div>
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-500 border-r border-gray-200"
+                >
+                  Friday<br /><span class="text-xs">May 23</span>
+                </div>
+                <div
+                  class="py-3 text-center text-sm font-medium text-gray-500 border-r border-gray-200"
+                >
+                  Saturday<br /><span class="text-xs">May 24</span>
+                </div>
+                <div class="py-3 text-center text-sm font-medium text-gray-500">
+                  Sunday<br /><span class="text-xs">May 25</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-7 min-h-[600px]">
+                <div class="border-r border-gray-200 p-2 space-y-2">
+                  <div class="text-xs text-gray-500 mb-1 px-1">No tasks</div>
+                </div>
+                <div class="border-r border-gray-200 p-2 space-y-2">
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-high"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800"
+                        >Literature</span
+                      >
+                      <span class="status-circle status-in-progress"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Book Analysis: "1984"
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>11:59 PM</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="border-r border-gray-200 p-2 space-y-2">
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-medium"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-800"
+                        >Computer Science</span
+                      >
+                      <span class="status-circle status-not-started"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Algorithm Implementation
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>5:00 PM</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="border-r border-gray-200 p-2 space-y-2 bg-gray-50">
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-high"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800"
+                        >History</span
+                      >
+                      <span class="status-circle status-in-progress"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      History Essay Draft
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>11:59 PM</span>
+                    </div>
+                  </div>
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-low"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800"
+                        >Mathematics</span
+                      >
+                      <span class="status-circle status-not-started"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Calculus Review Session
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>4:00 PM - 6:00 PM</span>
+                    </div>
+                  </div>
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-medium"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-green-100 text-green-800"
+                        >Science</span
+                      >
+                      <span class="status-circle status-completed"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Physics Problem Set
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>8:00 PM</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="border-r border-gray-200 p-2 space-y-2">
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-medium"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800"
+                        >Mathematics</span
+                      >
+                      <span class="status-circle status-in-progress"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Math Problem Set
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>3:00 PM</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="border-r border-gray-200 p-2 space-y-2">
+                  <div class="text-xs text-gray-500 mb-1 px-1">No tasks</div>
+                </div>
+                <div class="p-2 space-y-2">
+                  <div
+                    class="task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-high"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span
+                        class="text-xs font-medium px-1.5 py-0.5 rounded bg-green-100 text-green-800"
+                        >Science</span
+                      >
+                      <span class="status-circle status-not-started"></span>
+                    </div>
+                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                      Science Lab Report
+                    </h5>
+                    <div class="flex items-center mt-1 text-xs text-gray-500">
+                      <div
+                        class="w-3 h-3 flex items-center justify-center mr-1"
+                      >
+                        <i class="ri-time-line"></i>
+                      </div>
+                      <span>11:59 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                Suggested Study Sessions
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                >
+                  <div class="flex items-center mb-2">
+                    <div
+                      class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3"
+                    >
+                      <div class="w-4 h-4 flex items-center justify-center">
+                        <i class="ri-book-open-line"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-gray-900">
+                        History Essay Preparation
+                      </h4>
+                      <p class="text-sm text-gray-500">
+                        Suggested: Today, 2:00 PM - 4:00 PM
+                      </p>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    Prepare for your History Essay due today. Focus on outlining
+                    and drafting.
+                  </p>
+                  <div class="mt-3">
+                    <button
+                      class="text-primary text-sm font-medium hover:text-primary/80 whitespace-nowrap"
+                    >
+                      Add to schedule
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                >
+                  <div class="flex items-center mb-2">
+                    <div
+                      class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3"
+                    >
+                      <div class="w-4 h-4 flex items-center justify-center">
+                        <i class="ri-book-open-line"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-gray-900">
+                        Math Problem Set Preparation
+                      </h4>
+                      <p class="text-sm text-gray-500">
+                        Suggested: Tomorrow, 10:00 AM - 12:00 PM
+                      </p>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    Work on your Math Problem Set due tomorrow. Review formulas
+                    and concepts.
+                  </p>
+                  <div class="mt-3">
+                    <button
+                      class="text-primary text-sm font-medium hover:text-primary/80 whitespace-nowrap"
+                    >
+                      Add to schedule
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Month View (Hidden by default) -->
+        <div id="month-view" class="flex-1 overflow-y-auto p-6 hidden">
+          <div class="max-w-6xl mx-auto">
+            <div
+              class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+            >
+              <div class="grid grid-cols-7 border-b border-gray-200">
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Mon
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Tue
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Wed
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Thu
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Fri
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Sat
+                </div>
+                <div class="py-2 text-center text-sm font-medium text-gray-500">
+                  Sun
+                </div>
+              </div>
+              <div class="grid grid-cols-7">
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px] bg-gray-50"
+                >
+                  <div class="text-sm text-gray-400 font-medium">29</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-gray-300"></span>
+                      <span class="task-dot bg-gray-300"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px] bg-gray-50"
+                >
+                  <div class="text-sm text-gray-400 font-medium">30</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-gray-300"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">1</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">2</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">3</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">4</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">5</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <!-- Week 2 -->
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">6</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">7</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">8</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">9</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">10</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">11</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">12</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <!-- Week 3 -->
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">13</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">14</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">15</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">16</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">17</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">18</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">19</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <!-- Week 4 -->
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">20</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-red-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">21</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-amber-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px] today"
+                >
+                  <div class="text-sm text-primary font-medium">22</div>
+                  <div class="mt-1">
+                    <div class="text-xs text-gray-600 truncate">
+                      History Essay Draft
+                    </div>
+                    <div class="text-xs text-gray-600 truncate">
+                      Calculus Review
+                    </div>
+                    <div class="text-xs text-gray-600 truncate">
+                      Physics Problem Set
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-red-500"></span>
+                      <span class="task-dot bg-blue-500"></span>
+                      <span class="task-dot bg-amber-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">23</div>
+                  <div class="mt-1">
+                    <div class="text-xs text-gray-600 truncate">
+                      Math Problem Set
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-amber-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">24</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">25</div>
+                  <div class="mt-1">
+                    <div class="text-xs text-gray-600 truncate">
+                      Science Lab Report
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-red-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">26</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <!-- Week 5 -->
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">27</div>
+                  <div class="mt-1">
+                    <div class="text-xs text-gray-600 truncate">
+                      Programming Project
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-red-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">28</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">29</div>
+                  <div class="mt-1">
+                    <div class="text-xs text-gray-600 truncate">
+                      Math Midterm Exam
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-amber-500"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">30</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px]"
+                >
+                  <div class="text-sm text-gray-700 font-medium">31</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-r border-b border-gray-200 p-2 min-h-[100px] bg-gray-50"
+                >
+                  <div class="text-sm text-gray-400 font-medium">1</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span class="task-dot bg-gray-300"></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="month-cell border-b border-gray-200 p-2 min-h-[100px] bg-gray-50"
+                >
+                  <div class="text-sm text-gray-400 font-medium">2</div>
+                  <div class="mt-1">
+                    <div class="flex flex-wrap gap-1 mt-1"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                Selected Day: May 22, 2025
+              </h3>
+              <div class="space-y-3">
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-high"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-800 mr-2"
+                          >Due today</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-indigo-100 text-indigo-800"
+                          >History</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        History Essay Draft
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due 11:59 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-in-progress mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-yellow-100 text-yellow-800"
+                      >
+                        In progress
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-low"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                          >Study Block</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800 ml-2"
+                          >Mathematics</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Calculus Review Session
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>4:00 PM - 6:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-book-open-line"></i>
+                        </div>
+                        <span>Study Block</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span
+                        class="status-circle status-not-started mr-2"
+                      ></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-800"
+                      >
+                        Not started
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-medium"
+                >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="flex items-center mb-1">
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-orange-100 text-orange-800 mr-2"
+                          >Due today</span
+                        >
+                        <span
+                          class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                          >Science</span
+                        >
+                      </div>
+                      <h4 class="font-medium text-gray-900">
+                        Physics Problem Set
+                      </h4>
+                      <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-time-line"></i>
+                        </div>
+                        <span>Due 8:00 PM</span>
+                        <span class="mx-2">•</span>
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-file-list-line"></i>
+                        </div>
+                        <span>Assignment</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center">
+                      <span class="status-circle status-completed mr-2"></span>
+                      <div
+                        class="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800"
+                      >
+                        Completed
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Year View (Hidden by default) -->
+        <div id="year-view" class="flex-1 overflow-y-auto p-6 hidden">
+          <div class="max-w-7xl mx-auto">
+            <!-- Year Header with Overview Cards -->
+            <div class="mb-8">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-lg text-white">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-blue-100 text-sm">Total Tasks</p>
+                      <p class="text-2xl font-bold">125</p>
+                    </div>
+                    <div class="w-10 h-10 bg-blue-400 bg-opacity-50 rounded-full flex items-center justify-center">
+                      <i class="ri-file-list-3-line text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 rounded-lg text-white">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-amber-100 text-sm">Assignments</p>
+                      <p class="text-2xl font-bold">78</p>
+                    </div>
+                    <div class="w-10 h-10 bg-amber-400 bg-opacity-50 rounded-full flex items-center justify-center">
+                      <i class="ri-article-line text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-r from-red-500 to-pink-500 p-4 rounded-lg text-white">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-red-100 text-sm">Exams</p>
+                      <p class="text-2xl font-bold">22</p>
+                    </div>
+                    <div class="w-10 h-10 bg-red-400 bg-opacity-50 rounded-full flex items-center justify-center">
+                      <i class="ri-file-text-line text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-emerald-500 p-4 rounded-lg text-white">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-green-100 text-sm">Completion Rate</p>
+                      <p class="text-2xl font-bold">89%</p>
+                    </div>
+                    <div class="w-10 h-10 bg-green-400 bg-opacity-50 rounded-full flex items-center justify-center">
+                      <i class="ri-checkbox-circle-line text-xl"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Monthly Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div
+                class="year-cell bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-xl font-bold text-gray-800">January</h3>
+                  <div class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
+                    Winter
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex items-start space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mt-1.5 flex-shrink-0"></div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm text-gray-700 font-medium">Winter Semester Begins</p>
+                      <p class="text-xs text-gray-500">January 10</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm text-gray-700 font-medium">Math Placement Test</p>
+                      <p class="text-xs text-gray-500">January 15</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                  <div class="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p class="text-lg font-bold text-gray-800">8</p>
+                      <p class="text-xs text-gray-500">Tasks</p>
+                    </div>
+                    <div>
+                      <p class="text-lg font-bold text-red-500">1</p>
+                      <p class="text-xs text-gray-500">Exams</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                  February
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Literature Midterm (Feb 12)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      History Research Paper (Feb 28)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>12</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>2</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">March</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Science Project Due (Mar 15)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Spring Break (Mar 20-27)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>10</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">April</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Math Final Project (Apr 10)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Winter Semester Finals (Apr 25-30)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>15</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>5</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">May</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Summer Semester Begins (May 15)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Math Midterm Exam (May 29)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>11</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>1</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">June</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      History Research Paper (Jun 15)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Computer Science Project (Jun 20)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>9</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">July</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Summer Semester Finals (Jul 25-30)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Final Project Presentations (Jul 20)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>14</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>4</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">August</h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Summer Break (Aug 1-31)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Fall Semester Prep (Aug 25-31)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>3</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                  September
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Fall Semester Begins (Sep 5)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Course Registration Deadline (Sep 10)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>8</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                  October
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Midterm Exams (Oct 15-20)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Research Paper Proposal (Oct 25)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>13</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>4</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                  November
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Group Project Deadline (Nov 15)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Thanksgiving Break (Nov 22-26)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>10</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="year-cell bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md"
+              >
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                  December
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Fall Semester Finals (Dec 10-15)
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div class="text-sm text-gray-700">
+                      Winter Break (Dec 16-31)
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                  <div class="flex justify-between">
+                    <span>Total Tasks:</span>
+                    <span>12</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Exams:</span>
+                    <span>5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-8">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                2025 Academic Year Overview
+              </h3>
+              <div
+                class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"
+              >
+                <div class="grid grid-cols-2 gap-6">
+                  <div>
+                    <h4 class="text-base font-medium text-gray-700 mb-3">
+                      Key Milestones
+                    </h4>
+                    <div class="space-y-2">
+                      <div class="flex items-start">
+                        <div
+                          class="w-3 h-3 rounded-full bg-red-500 mt-1.5 mr-2 flex-shrink-0"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-800">
+                            Winter Semester Finals
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            April 25-30, 2025
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div
+                          class="w-3 h-3 rounded-full bg-amber-500 mt-1.5 mr-2 flex-shrink-0"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-800">
+                            Summer Semester
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            May 15 - July 30, 2025
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div
+                          class="w-3 h-3 rounded-full bg-green-500 mt-1.5 mr-2 flex-shrink-0"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-800">
+                            Summer Break
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            August 1-31, 2025
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div
+                          class="w-3 h-3 rounded-full bg-amber-500 mt-1.5 mr-2 flex-shrink-0"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-800">
+                            Fall Semester
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            September 5 - December 15, 2025
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div
+                          class="w-3 h-3 rounded-full bg-red-500 mt-1.5 mr-2 flex-shrink-0"
+                        ></div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-800">
+                            Fall Semester Finals
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            December 10-15, 2025
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="text-base font-medium text-gray-700 mb-3">
+                      Annual Statistics
+                    </h4>
+                    <div class="space-y-4">
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span class="text-gray-600">Total Tasks</span>
+                          <span class="font-medium text-gray-800">125</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="bg-primary h-2 rounded-full"
+                            style="width: 100%"
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span class="text-gray-600">Assignments</span>
+                          <span class="font-medium text-gray-800">78</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="bg-blue-500 h-2 rounded-full"
+                            style="width: 62%"
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span class="text-gray-600">Exams</span>
+                          <span class="font-medium text-gray-800">22</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="bg-red-500 h-2 rounded-full"
+                            style="width: 18%"
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span class="text-gray-600">Study Blocks</span>
+                          <span class="font-medium text-gray-800">25</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="bg-green-500 h-2 rounded-full"
+                            style="width: 20%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const dayBtn = document.getElementById("day-btn");
+        const weekBtn = document.getElementById("week-btn");
+        const monthBtn = document.getElementById("month-btn");
+        const yearBtn = document.getElementById("year-btn");
+
+        // Create toast container
+        const toastContainer = document.createElement("div");
+        toastContainer.className = "fixed bottom-4 right-4 z-50";
+        document.body.appendChild(toastContainer);
+
+        // Handle task completion
+        const handleTaskComplete = (taskCard) => {
+          // Update status circle
+          const statusCircle = taskCard.querySelector(".status-circle");
+          statusCircle.className = "status-circle status-completed mr-2";
+
+          // Update status label
+          const statusLabel = taskCard.querySelector(
+            '[class*="text-xs font-medium px-2 py-0.5 rounded"]',
+          );
+          statusLabel.className =
+            "text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800";
+          statusLabel.textContent = "Completed";
+
+          // Show toast notification
+          const toast = document.createElement("div");
+          toast.className =
+            "bg-white border border-gray-200 rounded-lg shadow-lg p-4 mb-3 flex items-center justify-between transform transition-all duration-300 translate-y-full opacity-0";
+          toast.innerHTML = `
+          <div class="flex items-center">
+            <div class="w-5 h-5 flex items-center justify-center text-green-500 mr-2">
+              <i class="ri-check-line"></i>
+            </div>
+            <span class="text-gray-700">Task marked as complete</span>
+          </div>
+          <button class="text-primary text-sm font-medium hover:text-primary/80 ml-4 whitespace-nowrap">Undo</button>
+        `;
+
+          toastContainer.appendChild(toast);
+
+          // Animate toast in
+          setTimeout(() => {
+            toast.classList.remove("translate-y-full", "opacity-0");
+          }, 100);
+
+          // Store original status
+          const originalStatus = {
+            circle: statusCircle.className.replace(
+              "status-completed",
+              statusCircle.className.match(/(status-[a-z-]+)/)[1],
+            ),
+            label: statusLabel.className,
+            text: statusLabel.textContent,
+          };
+
+          // Handle undo
+          const undoBtn = toast.querySelector("button");
+          undoBtn.addEventListener("click", () => {
+            statusCircle.className = originalStatus.circle;
+            statusLabel.className = originalStatus.label;
+            statusLabel.textContent = originalStatus.text;
+            toast.remove();
+          });
+
+          // Remove toast after 5 seconds
+          setTimeout(() => {
+            toast.classList.add("translate-y-full", "opacity-0");
+            setTimeout(() => toast.remove(), 300);
+          }, 5000);
+        };
+
+        // Add click event listeners to all check buttons
+        document.addEventListener("click", (e) => {
+          const checkButton = e.target.closest(".ri-check-line");
+          if (checkButton) {
+            const taskCard = checkButton.closest(".task-card");
+            if (taskCard) {
+              handleTaskComplete(taskCard);
+            }
+          }
+        });
+        const dayView = document.getElementById("day-view");
+        const weekView = document.getElementById("week-view");
+        const monthView = document.getElementById("month-view");
+        const yearView = document.getElementById("year-view");
+        // Filter states
+        let hideCompleted = true;
+        let showOnlyUpcoming = false;
+        let activeSubjects = [
+          "Mathematics",
+          "History",
+          "Science",
+          "Literature",
+          "Computer Science",
+        ];
+        let activeTypes = ["Assignment", "Exam", "Study Block", "Event", "Reminder"];
+        let activePriorities = ["High", "Medium", "Low"];
+        // Get all task cards
+        const getAllTasks = () => document.querySelectorAll(".task-card");
+        // Filter functions
+        const filterTasks = () => {
+          getAllTasks().forEach((task) => {
+            let show = true;
+            // Hide completed tasks if the filter is active
+            if (hideCompleted) {
+              const isCompleted = task.querySelector(".status-completed");
+              if (isCompleted) {
+                show = false;
+              }
+            }
+            // Show only upcoming tasks if the filter is active
+            if (showOnlyUpcoming) {
+              const isUpcoming = task.querySelector(
+                '[class*="bg-orange-100"], [class*="bg-blue-100"]',
+              );
+              if (!isUpcoming) {
+                show = false;
+              }
+            }
+            // Filter by subject if any subjects are selected
+            if (activeSubjects.length > 0) {
+              const subjectEl = task.querySelector('[class*="bg-"][class*="-100"]');
+              if (subjectEl) {
+                const subject = subjectEl.textContent.trim();
+                if (!activeSubjects.includes(subject)) {
+                  show = false;
+                }
+              }
+            }
+            // Filter by type if any types are selected
+            if (activeTypes.length > 0) {
+              const typeEl = task.querySelector(
+                ".ri-file-list-line, .ri-book-open-line",
+              );
+              if (typeEl) {
+                const type =
+                  typeEl.parentElement.nextElementSibling.textContent.trim();
+                if (!activeTypes.includes(type)) {
+                  show = false;
+                }
+              }
+            }
+            // Filter by priority if any priorities are selected
+            if (activePriorities.length > 0) {
+              let taskPriority = "";
+              if (task.classList.contains("priority-high")) taskPriority = "High";
+              if (task.classList.contains("priority-medium")) taskPriority = "Medium";
+              if (task.classList.contains("priority-low")) taskPriority = "Low";
+              if (!activePriorities.includes(taskPriority)) {
+                show = false;
+              }
+            }
+            // Show or hide task based on all filters
+            task.style.display = show ? "" : "none";
+          });
+        };
+        // Hide completed tasks toggle
+        document
+          .querySelector('input[type="checkbox"]')
+          .addEventListener("change", function () {
+            hideCompleted = this.checked;
+            filterTasks();
+          });
+        // Show only upcoming toggle
+        document
+          .querySelectorAll('input[type="checkbox"]')[1]
+          .addEventListener("change", function () {
+            showOnlyUpcoming = this.checked;
+            filterTasks();
+          });
+        // Subject filters
+        document.querySelectorAll('[id^="subject-"]').forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const subject = this.nextElementSibling.textContent.trim();
+            if (this.checked) {
+              activeSubjects.push(subject);
+            } else {
+              activeSubjects = activeSubjects.filter((s) => s !== subject);
+            }
+            filterTasks();
+          });
+        });
+        // Task type filters
+        document
+          .getElementById("type-assignment")
+          .addEventListener("change", function () {
+            const type = this.nextElementSibling.textContent.trim();
+            if (this.checked) {
+              activeTypes.push(type);
+            } else {
+              activeTypes = activeTypes.filter((t) => t !== type);
+            }
+            // Get all task cards and filter assignments
+            const taskCards = document.querySelectorAll(".task-card");
+            taskCards.forEach((task) => {
+              const taskType = task
+                .querySelector(".ri-file-list-line")
+                ?.parentElement.nextElementSibling.textContent.trim();
+              if (taskType === "Assignment") {
+                task.style.display = this.checked ? "" : "none";
+              }
+            });
+            // Update other filters
+            filterTasks();
+          });
+        // Other task type filters
+        document
+          .querySelectorAll('[id^="type-"]:not(#type-assignment)')
+          .forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+              const type = this.nextElementSibling.textContent.trim();
+              if (this.checked) {
+                activeTypes.push(type);
+              } else {
+                activeTypes = activeTypes.filter((t) => t !== type);
+              }
+              filterTasks();
+            });
+          });
+        // Priority filters
+        document.querySelectorAll('[id^="priority-"]').forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const priority = this.nextElementSibling.textContent.trim();
+            if (this.checked) {
+              activePriorities.push(priority);
+            } else {
+              activePriorities = activePriorities.filter((p) => p !== priority);
+            }
+            filterTasks();
+          });
+        });
+        // View switching
+        dayBtn.addEventListener("click", function () {
+          dayView.classList.remove("hidden");
+          weekView.classList.add("hidden");
+          monthView.classList.add("hidden");
+          yearView.classList.add("hidden");
+          dayBtn.classList.add("bg-primary", "text-white");
+          dayBtn.classList.remove("bg-white", "text-gray-700");
+          weekBtn.classList.remove("bg-primary", "text-white");
+          weekBtn.classList.add("bg-white", "text-gray-700");
+          monthBtn.classList.remove("bg-primary", "text-white");
+          monthBtn.classList.add("bg-white", "text-gray-700");
+          yearBtn.classList.remove("bg-primary", "text-white");
+          yearBtn.classList.add("bg-white", "text-gray-700");
+        });
+        weekBtn.addEventListener("click", function () {
+          dayView.classList.add("hidden");
+          weekView.classList.remove("hidden");
+          monthView.classList.add("hidden");
+          yearView.classList.add("hidden");
+          dayBtn.classList.remove("bg-primary", "text-white");
+          dayBtn.classList.add("bg-white", "text-gray-700");
+          weekBtn.classList.add("bg-primary", "text-white");
+          weekBtn.classList.remove("bg-white", "text-gray-700");
+          monthBtn.classList.remove("bg-primary", "text-white");
+          monthBtn.classList.add("bg-white", "text-gray-700");
+          yearBtn.classList.remove("bg-primary", "text-white");
+          yearBtn.classList.add("bg-white", "text-gray-700");
+        });
+        monthBtn.addEventListener("click", function () {
+          dayView.classList.add("hidden");
+          weekView.classList.add("hidden");
+          monthView.classList.remove("hidden");
+          yearView.classList.add("hidden");
+          dayBtn.classList.remove("bg-primary", "text-white");
+          dayBtn.classList.add("bg-white", "text-gray-700");
+          weekBtn.classList.remove("bg-primary", "text-white");
+          weekBtn.classList.add("bg-white", "text-gray-700");
+          monthBtn.classList.add("bg-primary", "text-white");
+          monthBtn.classList.remove("bg-white", "text-gray-700");
+          yearBtn.classList.remove("bg-primary", "text-white");
+          yearBtn.classList.add("bg-white", "text-gray-700");
+        });
+        yearBtn.addEventListener("click", function () {
+          dayView.classList.add("hidden");
+          weekView.classList.add("hidden");
+          monthView.classList.add("hidden");
+          yearView.classList.remove("hidden");
+          dayBtn.classList.remove("bg-primary", "text-white");
+          dayBtn.classList.add("bg-white", "text-gray-700");
+          weekBtn.classList.remove("bg-primary", "text-white");
+          weekBtn.classList.add("bg-white", "text-gray-700");
+          monthBtn.classList.remove("bg-primary", "text-white");
+          monthBtn.classList.add("bg-white", "text-gray-700");
+          yearBtn.classList.add("bg-primary", "text-white");
+          yearBtn.classList.remove("bg-white", "text-gray-700");
+        });
+      });
+    </script>
+  </body>
+</html>

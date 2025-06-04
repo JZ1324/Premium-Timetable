@@ -1,25 +1,31 @@
 /* Academic Planner Component Styles */
 .academic-planner {
     display: flex;
-    height: calc(100vh - 60px); /* Adjusted header height */
+    min-height: calc(100vh - 60px); /* Use min-height instead of fixed height */
+    height: auto; /* Allow natural height */
     font-family: 'Inter', sans-serif;
     background-color: #f9fafb;
-    min-height: 600px; /* Ensure minimum height */
     max-width: 100%;
     position: relative;
     width: 100%; /* Make sure it takes full width */
+    overflow: visible; /* Allow content to flow naturally */
+    padding-bottom: 40px; /* Add bottom padding for comfortable scrolling */
 }
 
 /* Sidebar Styles */
 .academic-planner-sidebar {
-    width: 260px; /* Reduced from 280px */
-    min-width: 260px; /* Prevent shrinking */
+    width: 240px; /* Reduced width to give more space to content */
+    min-width: 240px; /* Prevent shrinking */
     background-color: white;
     border-right: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05); /* Add subtle shadow */
-    height: 100%;
+    min-height: calc(100vh - 60px); /* Ensure sidebar covers the full viewport height */
+    max-height: none; /* Remove height restriction */
+    overflow-y: auto; /* Allow scrolling in sidebar if needed */
+    position: sticky; /* Make sidebar sticky */
+    top: 60px; /* Stick below header */
 }
 
 .sidebar-header {
@@ -45,30 +51,111 @@
 
 .add-task-btn {
     width: 100%;
-    background-color: #4f46e5;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 12px 20px;
+    border-radius: 12px;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-weight: 500;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(0);
+    animation: subtlePulse 3s ease-in-out infinite;
+}
+
+.add-task-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
 }
 
 .add-task-btn:hover {
-    background-color: #4338ca;
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+    animation: none; /* Stop pulse on hover */
+}
+
+.add-task-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+/* Add a subtle glow effect for better visibility */
+.add-task-btn::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 14px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.add-task-btn:hover::after {
+    opacity: 0.7;
+}
+
+.add-task-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
 
 .add-task-btn i {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.2rem;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.add-task-btn:hover i {
+    transform: rotate(180deg) scale(1.1);
+}
+
+/* Enhanced Add Task Button Animations */
+@keyframes subtlePulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+}
+
+.add-task-btn {
+    animation: subtlePulse 3s ease-in-out infinite;
+}
+
+.add-task-btn:hover {
+    animation: none; /* Stop pulse on hover */
+}
+
+.add-task-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 /* Filter Sections */
@@ -237,21 +324,22 @@ input:checked + .switch-slider:before {
     display: flex;
     flex-direction: column;
     min-width: 0; /* Allow shrinking */
-    height: 100%;
     width: 100%; /* Ensure full width */
+    min-height: calc(100vh - 60px); /* Ensure minimum height */
+    overflow: visible; /* Allow natural content flow */
 }
 
 .top-navigation {
     background-color: white;
     border-bottom: 1px solid #e5e7eb;
-    padding: 12px 24px; /* Reduced padding */
+    padding: 10px 20px; /* Reduced padding for more content space */
     display: flex;
     flex-direction: column; /* Changed to column layout */
     align-items: stretch;
     flex-shrink: 0; /* Prevent shrinking */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 100%; /* Ensure full width */
-    gap: 12px; /* Add gap between rows */
+    gap: 10px; /* Reduced gap between rows */
 }
 
 .top-row {
@@ -275,6 +363,7 @@ input:checked + .switch-slider:before {
     border: 1px solid #d1d5db;
     border-radius: 8px;
     overflow: hidden;
+    max-width: 100%; /* Ensure it doesn't exceed container width */
 }
 
 .view-btn {
@@ -410,9 +499,11 @@ input:checked + .switch-slider:before {
 .view-content {
     max-width: none; /* Remove max-width restriction */
     margin: 0;
-    padding: 20px; /* Reduced padding */
+    padding: 20px; /* Increased padding for better content spacing */
     flex: 1; /* Take up available space */
     width: 100%; /* Ensure full width */
+    overflow: visible; /* Allow natural content overflow */
+    min-height: 0; /* Reset min-height */
 }
 
 /* Day View */
@@ -421,6 +512,10 @@ input:checked + .switch-slider:before {
     padding: 0; /* Remove extra padding since view-content handles it */
     display: flex;
     flex-direction: column;
+    width: 100%; /* Ensure full width */
+    max-width: 1400px; /* Maximum width for very large screens */
+    margin: 0 auto; /* Center on very large screens */
+    min-height: 0; /* Allow natural height */
 }
 
 .quote-section {
@@ -449,10 +544,12 @@ input:checked + .switch-slider:before {
 
 .quote-card {
     background-color: white;
-    padding: 24px; /* Increased from 16px */
-    border-radius: 12px; /* Increased from 8px */
+    padding: 20px; /* Reduced padding */
+    border-radius: 10px; /* Slightly reduced */
     border: 1px solid #e5e7eb;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+    max-width: 900px; /* Limit width on large screens */
+    margin: 0 auto;
 }
 
 .quote-text {
@@ -471,38 +568,39 @@ input:checked + .switch-slider:before {
 
 /* Task Cards */
 .tasks-section {
-    margin-bottom: 40px; /* Increased from 24px */
+    margin-bottom: 30px; /* Reduced from 40px */
 }
 
 .quote-section {
-    margin-bottom: 40px; /* Increased spacing */
+    margin-bottom: 30px; /* Reduced from 40px */
 }
 
 .ai-suggestions {
-    margin-top: 40px; /* Add top margin */
+    margin-top: 30px; /* Reduced from 40px */
+    margin-bottom: 30px; /* Reduced from 40px */
 }
 
 .tasks-list {
     display: flex;
     flex-direction: column;
-    gap: 16px; /* Increased from 12px */
+    gap: 12px; /* Reduced from 16px for more compact layout */
     width: 100%; /* Ensure full width */
 }
 
 .task-card {
     background-color: white;
-    padding: 20px; /* Slightly reduced padding */
-    border-radius: 12px;
+    padding: 16px; /* Reduced padding */
+    border-radius: 10px; /* Slightly reduced border radius */
     border: 1px solid #e5e7eb;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
     transition: all 0.2s ease;
     cursor: pointer;
-    margin-bottom: 8px; /* Add bottom margin to ensure spacing */
+    margin-bottom: 6px; /* Reduced margin for tighter layout */
     width: 100%; /* Ensure full width */
 }
 
 .task-card:last-child {
-    margin-bottom: 60px; /* Add extra space after the last card for better scrolling */
+    margin-bottom: 20px; /* Reduced from 60px - normal spacing for page scrolling */
 }
 
 .task-card:hover {
@@ -655,6 +753,14 @@ input:checked + .switch-slider:before {
     gap: 12px;
 }
 
+@media (min-width: 992px) {
+    .suggestions-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
 .suggestion-card {
     background-color: white;
     padding: 16px;
@@ -718,7 +824,10 @@ input:checked + .switch-slider:before {
 .month-view,
 .year-view {
     flex: 1;
-    padding: 24px;
+    padding: 16px; /* Reduced padding */
+    width: 100%;
+    min-height: 0; /* Allow natural height */
+    overflow: visible; /* Allow natural content flow */
 }
 
 .week-calendar,
@@ -727,7 +836,10 @@ input:checked + .switch-slider:before {
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: visible; /* Allow natural content flow */
+    min-height: 400px; /* Set minimum height instead of fixed height */
+    display: flex;
+    flex-direction: column;
 }
 
 .week-header,
@@ -739,7 +851,7 @@ input:checked + .switch-slider:before {
 
 .week-day-header,
 .month-day-header {
-    padding: 12px;
+    padding: 10px; /* Reduced padding */
     text-align: center;
     font-size: 0.875rem;
     font-weight: 500;
@@ -753,227 +865,32 @@ input:checked + .switch-slider:before {
 
 .week-content,
 .month-content {
-    padding: 48px;
+    padding: 32px; /* Reduced padding */
     text-align: center;
     color: #6b7280;
     font-size: 1.125rem;
+    flex: 1;
+    overflow-y: auto; /* Allow scrolling for content */
 }
 
-.year-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    max-width: 72rem;
-    margin: 0 auto;
+/* Add padding to the bottom of academic planner for better scrolling */
+.academic-planner {
+    /* ...existing code... */
+    padding-bottom: 40px; /* Add bottom padding for comfortable scrolling */
 }
 
-.year-month-card {
-    background-color: white;
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
+/* Ensure tasks section has proper bottom spacing */
+.tasks-section:last-child {
+    margin-bottom: 40px;
 }
 
-.year-month-card:hover {
-    transform: scale(1.05);
-    z-index: 10;
+.ai-suggestions:last-child {
+    margin-bottom: 40px;
 }
 
-.month-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
-    margin: 0 0 12px 0;
-}
-
-.month-events {
-    margin-bottom: 12px;
-}
-
-.event-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.event-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 8px;
-}
-
-.event-text {
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.month-stats {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
-}
-
-/* Toast Notifications */
-.toast-container {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    z-index: 50;
-}
-
-.toast-notification {
-    background-color: #10b981;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 8px;
-    animation: slide-in 0.3s ease;
-}
-
-.toast-notification.fade-out {
-    animation: fade-out 0.3s ease;
-}
-
-@keyframes slide-in {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes fade-out {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .academic-planner-sidebar {
-        width: 240px;
-        min-width: 240px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 40;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        height: 100%;
-        overflow-y: auto; /* Only add scroll here for mobile sidebar */
-    }
-    
-    .academic-planner-sidebar.open {
-        transform: translateX(0);
-    }
-    
-    .main-content {
-        width: 100%;
-    }
-    
-    .nav-left {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .current-date {
-        font-size: 1rem;
-    }
-    
-    .bottom-row {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .search-box {
-        width: 100%;
-        max-width: 100%;
-    }
-    
-    .nav-actions {
-        width: 100%;
-        justify-content: flex-end;
-    }
-    
-    .year-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-    
-    .view-content {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .year-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .task-card-content {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .task-actions {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    }
-    
-    .view-buttons {
-        flex-wrap: wrap;
-        gap: 2px;
-    }
-    
-    .view-btn {
-        padding: 6px 12px;
-        font-size: 0.75rem;
-    }
-    
-    .search-box input {
-        width: 100%; /* Full width on small screens */
-    }
-    
-    .nav-icon-btn {
-        padding: 6px;
-    }
-    
-    .current-date {
-        font-size: 0.875rem;
-    }
-    
-    .top-navigation {
-        padding: 8px 16px; /* Reduce padding further on small screens */
-    }
-    
-    .top-row {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .date-navigation {
-        width: 100%;
-    }
-    
-    .bottom-row {
-        flex-wrap: wrap;
-    }
+/* Ensure proper bottom spacing for last elements */
+.tasks-section:last-child,
+.ai-suggestions:last-child,
+.day-view > *:last-child {
+    margin-bottom: 40px;
 }

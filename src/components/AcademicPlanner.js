@@ -1,80 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/components/AcademicPlanner.css';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import '../styles/components/AcademicPlanner.css'; // Main CSS
+import '../styles/components/AddTaskForm.css'; // Add Task Form CSS
+import 'remixicon/fonts/remixicon.css'; // Corrected path
+import AddTaskForm from './AcademicPlanner/AddTaskForm'; // Import AddTaskForm for Academic Planner
+import { useTaskTracker } from './TaskTracker/useTaskTracker'; // Import useTaskTracker
 
 const AcademicPlanner = () => {
-    const [currentView, setCurrentView] = useState('day');
+    const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState([
+        {
+            id: 1,
+            title: 'History Essay Draft',
+            subject: 'History',
+            type: 'Assignment',
+            priority: 'High',
+            status: 'in-progress',
+            dueDate: new Date(),
+            estimatedTime: '4 hours',
+            description: 'Write a comprehensive essay on World War II'
+        },
+        {
+            id: 2,
+            title: 'Math Problem Set',
+            subject: 'Mathematics',
+            type: 'Assignment',
+            priority: 'Medium',
+            status: 'not-started',
+            dueDate: new Date(Date.now() + 86400000), // Tomorrow
+            estimatedTime: '3 hours',
+            description: 'Complete calculus problem set chapter 12'
+        },
+        {
+            id: 3,
+            title: 'Science Lab Report',
+            subject: 'Science',
+            type: 'Assignment',
+            priority: 'Low',
+            status: 'not-started',
+            dueDate: new Date(Date.now() + 259200000), // 3 days
+            estimatedTime: '2 hours',
+            description: 'Lab report on chemical reactions'
+        },
+        {
+            id: 4,
+            title: 'Programming Project',
+            subject: 'Computer Science',
+            type: 'Assignment',
+            priority: 'High',
+            status: 'not-started',
+            dueDate: new Date(Date.now() + 432000000), // 5 days
+            estimatedTime: '8 hours',
+            description: 'Build a web application using React'
+        },
+        {
+            id: 5,
+            title: 'Calculus Review Session',
+            subject: 'Mathematics',
+            type: 'Study Block',
+            priority: 'Low',
+            status: 'in-progress',
+            dueDate: new Date(),
+            estimatedTime: '2 hours',
+            description: 'Review calculus concepts for upcoming exam'
+        }
+    ]);
     const [filters, setFilters] = useState({
-        hideCompleted: true,
-        showOnlyUpcoming: false,
+        hideCompleted: false,
+        showUpcoming: true,
         subjects: ['Mathematics', 'History', 'Science', 'Literature', 'Computer Science'],
         types: ['Assignment', 'Exam', 'Study Block', 'Event', 'Reminder'],
-        priorities: ['High', 'Medium', 'Low']
+        priorities: ['High', 'Medium', 'Low'],
     });
     const [searchQuery, setSearchQuery] = useState('');
+    const [toastMessage, setToastMessage] = useState(null);
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false); // State for modal visibility
+    
+    // Create ref for the add task modal to enable smooth scrolling
+    const addTaskModalRef = useRef(null);
 
-    // Sample tasks data
-    useEffect(() => {
-        const sampleTasks = [
-            {
-                id: 1,
-                title: 'History Essay Draft',
-                subject: 'History',
-                type: 'Assignment',
-                priority: 'High',
-                status: 'in-progress',
-                dueDate: new Date(),
-                estimatedTime: '4 hours',
-                description: 'Write a comprehensive essay on World War II'
-            },
-            {
-                id: 2,
-                title: 'Math Problem Set',
-                subject: 'Mathematics',
-                type: 'Assignment',
-                priority: 'Medium',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 86400000), // Tomorrow
-                estimatedTime: '3 hours',
-                description: 'Complete calculus problem set chapter 12'
-            },
-            {
-                id: 3,
-                title: 'Science Lab Report',
-                subject: 'Science',
-                type: 'Assignment',
-                priority: 'Low',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 259200000), // 3 days
-                estimatedTime: '2 hours',
-                description: 'Lab report on chemical reactions'
-            },
-            {
-                id: 4,
-                title: 'Programming Project',
-                subject: 'Computer Science',
-                type: 'Assignment',
-                priority: 'High',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 432000000), // 5 days
-                estimatedTime: '8 hours',
-                description: 'Build a web application using React'
-            },
-            {
-                id: 5,
-                title: 'Calculus Review Session',
-                subject: 'Mathematics',
-                type: 'Study Block',
-                priority: 'Low',
-                status: 'in-progress',
-                dueDate: new Date(),
-                estimatedTime: '2 hours',
-                description: 'Review calculus concepts for upcoming exam'
+    // const { addTask: addTaskFromHook, formatDate: formatDateFromHook, formatTime: formatTimeFromHook } = useTaskTracker(); // Get functions from hook, aliasing formatDate
+
+    // Function to show toast
+    const showToast = (message) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    // Function to handle opening add task modal with smooth scroll
+    const handleOpenAddTaskModal = () => {
+        setShowAddTaskModal(true);
+        
+        // Use setTimeout to ensure the modal is rendered before scrolling
+        setTimeout(() => {
+            if (addTaskModalRef.current) {
+                // Calculate the position to center the modal
+                const modalElement = addTaskModalRef.current;
+                const modalRect = modalElement.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const scrollTop = window.pageYOffset;
+                
+                // Calculate the position to center the modal in viewport
+                const modalCenter = modalRect.top + scrollTop + (modalRect.height / 2);
+                const targetScrollTop = modalCenter - (viewportHeight / 2);
+                
+                // Smooth scroll to center the modal
+                window.scrollTo({
+                    top: Math.max(0, targetScrollTop),
+                    behavior: 'smooth'
+                });
             }
-        ];
-        setTasks(sampleTasks);
-    }, []);
+        }, 100); // Small delay to ensure modal is fully rendered
+    };
 
     const handleViewChange = (view) => {
         setCurrentView(view);
@@ -95,38 +132,26 @@ const AcademicPlanner = () => {
     };
 
     const handleTaskComplete = (taskId) => {
-        setTasks(prevTasks => 
-            prevTasks.map(task => 
-                task.id === taskId 
-                    ? { ...task, status: 'completed' }
-                    : task
+        setTasks(prevTasks =>
+            prevTasks.map(task =>
+                task.id === taskId ? { ...task, completed: !task.completed, status: task.completed ? 'Not Started' : 'Completed' } : task
             )
         );
-        
-        // Show toast notification
-        showToast('Task completed successfully!');
+        showToast(tasks.find(t => t.id === taskId)?.completed ? 'Task marked as incomplete.' : 'Task marked as complete!');
     };
 
-    const showToast = (message) => {
-        // Create toast notification
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.textContent = message;
-        
-        const toastContainer = document.querySelector('.toast-container') || 
-            (() => {
-                const container = document.createElement('div');
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-                return container;
-            })();
-        
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    const handleAddTask = (newTaskData) => {
+        const newTask = {
+            id: Date.now(), // Simple ID generation
+            ...newTaskData,
+            subject: newTaskData.subject || 'General', // Default subject if not provided
+            type: newTaskData.type || 'Task', // Default type
+            status: 'Not Started',
+            completed: false,
+        };
+        setTasks(prevTasks => [newTask, ...prevTasks]);
+        setShowAddTaskModal(false);
+        showToast('New task added successfully!');
     };
 
     const handleFilterChange = (filterType, value) => {
@@ -195,14 +220,13 @@ const AcademicPlanner = () => {
     const renderSidebar = () => (
         <div className="academic-planner-sidebar">
             <div className="sidebar-header">
-                <h1 className="sidebar-title">Planner</h1>
+                <h2 className="sidebar-title">Academic Planner</h2>
             </div>
-            
             <div className="sidebar-content">
                 <div className="add-task-section">
-                    <button className="add-task-btn">
+                    <button className="add-task-btn" onClick={handleOpenAddTaskModal}>
                         <i className="ri-add-line"></i>
-                        <span>Add New Task</span>
+                        Add New Task
                     </button>
                 </div>
 
@@ -546,8 +570,29 @@ const AcademicPlanner = () => {
             {renderSidebar()}
             <div className="main-content">
                 {renderTopNavigation()}
-                {renderCurrentView()}
+                <div className="view-content">
+                    {currentView === 'day' && renderDayView()}
+                    {currentView === 'week' && renderWeekView()}
+                    {currentView === 'month' && renderMonthView()}
+                    {currentView === 'year' && renderYearView()}
+                </div>
             </div>
+            {toastMessage && (
+                <div className="toast-container">
+                    <div className={`toast-notification ${toastMessage ? '' : 'fade-out'}`}>
+                        {toastMessage}
+                    </div>
+                </div>
+            )}
+            {showAddTaskModal && (
+                <div ref={addTaskModalRef}>
+                    <AddTaskForm
+                        onAddTask={handleAddTask}
+                        onClose={() => setShowAddTaskModal(false)}
+                        // Pass any other necessary props like subjects, task types if AddTaskForm needs them for dropdowns
+                    />
+                </div>
+            )}
         </div>
     );
 };

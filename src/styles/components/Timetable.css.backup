@@ -298,19 +298,10 @@
 /* Day Selector Buttons */
 .day-selector {
     display: flex;
-    gap: 4px;
+    gap: 5px;
     margin-bottom: 20px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
-    overflow-x: auto;
-    -ms-overflow-style: none;  /* Hide scrollbar for IE and Edge */
-    scrollbar-width: none;  /* Hide scrollbar for Firefox */
-    padding-bottom: 5px;  /* Add some padding to prevent cut-off on scroll */
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.day-selector::-webkit-scrollbar {
-    display: none;
 }
 /* Media queries for responsive design */
 @media (max-width: 768px) {
@@ -324,19 +315,19 @@
 }
 
 .day-button {
-    padding: 4px 6px; /* Smaller padding */
+    padding: 5px 7px;
     border-radius: 6px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    font-size: 0.78rem; /* Smaller font */
+    font-size: 0.8rem;
     font-weight: 500;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    min-width: 30px; /* Smaller width to fit all buttons */
+    min-width: 35px; /* Smaller width to fit all buttons */
     text-align: center;
 }
 .day-button::before {
@@ -764,7 +755,6 @@
 
 .form-actions {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     margin-top: 20px;
     gap: 10px;
@@ -772,19 +762,17 @@
 
 .form-actions button {
     flex: 1;
-    padding: 10px 12px;
+    padding: 10px 15px;
     border-radius: 6px;
     cursor: pointer !important;
     transition: all 0.3s ease;
     font-weight: 500;
     border: none;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     user-select: none;
     -webkit-appearance: button;
     appearance: button;
     text-align: center;
-    white-space: nowrap;
-    min-width: auto;
     pointer-events: auto; /* Explicitly enable pointer events */
     position: relative; /* Ensure proper stacking context */
     z-index: 25; /* Higher than parent elements */
@@ -1005,10 +993,10 @@
         justify-content: center;
     }
     
-    .day-button {
-        padding: 3px 4px;
-        font-size: 0.7rem;
-        min-width: 28px;
+    .day-selector button {
+        padding: 4px 6px;
+        font-size: 0.75rem;
+        min-width: 32px;
     }
     
     .template-controls {
@@ -1044,9 +1032,9 @@
         border-bottom: 1px solid var(--border-color);
     }
 }
-        scrollbar-width none /* Firefox */
-        -ms-overflow-style none /* IE and Edge */
-    
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
     
     .periods-column::-webkit-scrollbar {
         display: none;
@@ -1076,18 +1064,14 @@
         padding: 12px 10px; /* Larger touch targets */
     }
     
-    /* Form actions for mobile */
     .form-actions {
-        display: flex;
-        flex-direction: row;
-        gap: 6px;  /* Reduced gap */
-        margin-top: 15px;  /* Reduced margin */
+        flex-direction: column;
+        gap: 10px;
     }
     
     .form-actions button {
-        flex: 1;
-        min-width: auto;
-        padding: 8px 6px;  /* Reduced padding */
-        font-size: 13px;  /* Smaller font */
-        white-space: nowrap;
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
     }
+}

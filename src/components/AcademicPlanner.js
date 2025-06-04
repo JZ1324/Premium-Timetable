@@ -1330,43 +1330,40 @@ const AcademicPlanner = () => {
                         }).length > 0 && <span className="notification-badge"></span>}
                     </button>
                     
-                    <div className="dropdown-container" ref={settingsDropdownRef}>
-                        <button 
-                            className="nav-icon-btn" 
-                            title="Settings"
-                            onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
-                        >
-                            <i className="ri-settings-4-line"></i>
+                    <div className="dropdown-container">
+                        <button className="nav-icon-btn" title="More Options">
+                            <i className="ri-more-line"></i>
                         </button>
-                        
-                        {showSettingsDropdown && (
-                            <div className="dropdown-menu settings-dropdown">
-                                <button onClick={exportTasks} className="dropdown-item settings-item">
-                                    <i className="ri-download-line"></i>
-                                    <span className="settings-item-text">Export Tasks</span>
-                                </button>
-                                <label className="dropdown-item settings-item file-input-label">
-                                    <i className="ri-upload-line"></i>
-                                    <span className="settings-item-text">Import Tasks</span>
-                                    <input 
-                                        type="file" 
-                                        accept=".json"
-                                        onChange={importTasks}
-                                        style={{ display: 'none' }}
-                                    />
-                                </label>
-                                <div className="dropdown-divider"></div>
-                                <button onClick={markAllCompleted} className="dropdown-item settings-item">
-                                    <i className="ri-checkbox-multiple-line"></i>
-                                    <span className="settings-item-text bold">Mark All Complete</span>
-                                </button>
-                                <button onClick={deleteAllCompleted} className="dropdown-item danger settings-item">
-                                    <i className="ri-delete-bin-line"></i>
-                                    <span className="settings-item-text">Clear Completed</span>
-                                </button>
-                            </div>
-                        )}
+                        <div className="dropdown-menu">
+                            <button onClick={exportTasks} className="dropdown-item year-view-action">
+                                <i className="ri-download-line"></i>
+                                Export Tasks
+                            </button>
+                            <label className="dropdown-item year-view-action file-input-label">
+                                <i className="ri-upload-line"></i>
+                                Import Tasks
+                                <input 
+                                    type="file" 
+                                    accept=".json"
+                                    onChange={importTasks}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
+                            <div className="dropdown-divider"></div>
+                            <button onClick={markAllCompleted} className="dropdown-item year-view-action">
+                                <i className="ri-checkbox-multiple-line"></i>
+                                Mark All Complete
+                            </button>
+                            <button onClick={deleteAllCompleted} className="dropdown-item danger year-view-action">
+                                <i className="ri-delete-bin-line"></i>
+                                Clear Completed
+                            </button>
+                        </div>
                     </div>
+                    
+                    <button className="nav-icon-btn" title="Settings">
+                        <i className="ri-settings-4-line"></i>
+                    </button>
                 </div>
             </div>
         </div>

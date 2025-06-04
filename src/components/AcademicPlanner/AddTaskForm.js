@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../../styles/components/AddTaskForm.css';
 
 const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
     // Get current date and time for defaults
@@ -36,6 +37,30 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
         dueTime: currentTime,
         estimatedTime: '1 hour'
     });
+
+    // Add autofocus after modal opens
+    useEffect(() => {
+        if (!initialData) {
+            const titleInput = document.getElementById('title');
+            if (titleInput) {
+                setTimeout(() => {
+                    titleInput.focus();
+                }, 100);
+            }
+        }
+    }, [initialData]);
+
+    // Handle escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [onClose]);
 
     // Initialize form with editing data if provided
     useEffect(() => {
@@ -119,9 +144,11 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
             <div className="task-form-modal">
                 <div className="task-form-header">
                     <h3>{initialData ? 'Edit Task' : 'Add New Task'}</h3>
-                    <button className="close-btn" onClick={onClose}>×</button>
+                    <button className="task-form-close-btn" onClick={onClose}>
+                        <i className="ri-close-line"></i>
+                    </button>
                 </div>
-                <form onSubmit={handleSubmit} className="task-form">
+                <form onSubmit={handleSubmit} className="task-form-content">
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="title">Task Title *</label>
@@ -129,6 +156,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 type="text"
                                 id="title"
                                 name="title"
+                                className="form-control"
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 placeholder="Enter task title"
@@ -144,6 +172,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                             <textarea
                                 id="description"
                                 name="description"
+                                className="form-control"
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 placeholder="Task description (optional)"
@@ -159,6 +188,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 <select
                                     id="subject"
                                     name="subject"
+                                    className="form-control"
                                     value={formData.subject}
                                     onChange={handleInputChange}
                                 >
@@ -168,24 +198,24 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 </select>
                                 <button 
                                     type="button" 
-                                    className="add-btn"
+                                    className="add-link-btn"
                                     onClick={() => setShowAddSubject(!showAddSubject)}
                                     title="Add new subject"
                                 >
-                                    +
+                                    <i className="ri-add-line"></i> Add New
                                 </button>
                             </div>
                             {showAddSubject && (
-                                <div className="add-custom-input">
+                                <div className="custom-input-container">
                                     <input
                                         type="text"
+                                        className="form-control"
                                         value={newSubject}
                                         onChange={(e) => setNewSubject(e.target.value)}
                                         placeholder="Enter new subject"
                                         onKeyPress={(e) => e.key === 'Enter' && addCustomSubject()}
                                     />
-                                    <button type="button" onClick={addCustomSubject}>Add</button>
-                                    <button type="button" onClick={() => setShowAddSubject(false)}>Cancel</button>
+                                    <button type="button" className="add-custom-btn" onClick={addCustomSubject}>Add</button>
                                 </div>
                             )}
                         </div>
@@ -195,6 +225,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 <select
                                     id="type"
                                     name="type"
+                                    className="form-control"
                                     value={formData.type}
                                     onChange={handleInputChange}
                                 >
@@ -204,24 +235,24 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 </select>
                                 <button 
                                     type="button" 
-                                    className="add-btn"
+                                    className="add-link-btn"
                                     onClick={() => setShowAddType(!showAddType)}
                                     title="Add new type"
                                 >
-                                    +
+                                    <i className="ri-add-line"></i> Add New
                                 </button>
                             </div>
                             {showAddType && (
-                                <div className="add-custom-input">
+                                <div className="custom-input-container">
                                     <input
                                         type="text"
+                                        className="form-control"
                                         value={newType}
                                         onChange={(e) => setNewType(e.target.value)}
                                         placeholder="Enter new type"
                                         onKeyPress={(e) => e.key === 'Enter' && addCustomType()}
                                     />
-                                    <button type="button" onClick={addCustomType}>Add</button>
-                                    <button type="button" onClick={() => setShowAddType(false)}>Cancel</button>
+                                    <button type="button" className="add-custom-btn" onClick={addCustomType}>Add</button>
                                 </div>
                             )}
                         </div>
@@ -230,16 +261,23 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="priority">Priority</label>
-                            <select
-                                id="priority"
-                                name="priority"
-                                value={formData.priority}
-                                onChange={handleInputChange}
-                            >
+                            <div className="priority-options">
                                 {priorities.map(priority => (
-                                    <option key={priority} value={priority}>{priority}</option>
+                                    <label 
+                                        key={priority} 
+                                        className={`priority-option ${priority.toLowerCase()} ${formData.priority === priority ? 'selected' : ''}`}
+                                    >
+                                        {priority}
+                                        <input
+                                            type="radio"
+                                            name="priority"
+                                            value={priority}
+                                            checked={formData.priority === priority}
+                                            onChange={handleInputChange}
+                                        />
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
                         <div className="form-group">
                             <label htmlFor="estimatedTime">Estimated Time</label>
@@ -247,6 +285,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 type="text"
                                 id="estimatedTime"
                                 name="estimatedTime"
+                                className="form-control"
                                 value={formData.estimatedTime}
                                 onChange={handleInputChange}
                                 placeholder="e.g., 2 hours"
@@ -261,6 +300,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 type="date"
                                 id="dueDate"
                                 name="dueDate"
+                                className="form-control"
                                 value={formData.dueDate}
                                 onChange={handleInputChange}
                             />
@@ -271,6 +311,7 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                                 type="time"
                                 id="dueTime"
                                 name="dueTime"
+                                className="form-control"
                                 value={formData.dueTime}
                                 onChange={handleInputChange}
                             />
@@ -278,10 +319,11 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
                     </div>
 
                     <div className="form-actions">
-                        <button type="button" className="cancel-btn" onClick={onClose}>
+                        <button type="button" className="btn-cancel" onClick={onClose}>
                             Cancel
                         </button>
-                        <button type="submit" className="submit-btn">
+                        <button type="submit" className="btn-submit">
+                            <i className="ri-save-line"></i>
                             {initialData ? 'Update Task' : 'Add Task'}
                         </button>
                     </div>

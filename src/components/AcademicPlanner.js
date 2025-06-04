@@ -8,63 +8,106 @@ import { useTaskTracker } from './TaskTracker/useTaskTracker'; // Import useTask
 const AcademicPlanner = () => {
     const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [tasks, setTasks] = useState([
-        {
-            id: 1,
-            title: 'History Essay Draft',
-            subject: 'History',
-            type: 'Assignment',
-            priority: 'High',
-            status: 'in-progress',
-            dueDate: new Date(),
-            estimatedTime: '4 hours',
-            description: 'Write a comprehensive essay on World War II'
-        },
-        {
-            id: 2,
-            title: 'Math Problem Set',
-            subject: 'Mathematics',
-            type: 'Assignment',
-            priority: 'Medium',
-            status: 'not-started',
-            dueDate: new Date(Date.now() + 86400000), // Tomorrow
-            estimatedTime: '3 hours',
-            description: 'Complete calculus problem set chapter 12'
-        },
-        {
-            id: 3,
-            title: 'Science Lab Report',
-            subject: 'Science',
-            type: 'Assignment',
-            priority: 'Low',
-            status: 'not-started',
-            dueDate: new Date(Date.now() + 259200000), // 3 days
-            estimatedTime: '2 hours',
-            description: 'Lab report on chemical reactions'
-        },
-        {
-            id: 4,
-            title: 'Programming Project',
-            subject: 'Computer Science',
-            type: 'Assignment',
-            priority: 'High',
-            status: 'not-started',
-            dueDate: new Date(Date.now() + 432000000), // 5 days
-            estimatedTime: '8 hours',
-            description: 'Build a web application using React'
-        },
-        {
-            id: 5,
-            title: 'Calculus Review Session',
-            subject: 'Mathematics',
-            type: 'Study Block',
-            priority: 'Low',
-            status: 'in-progress',
-            dueDate: new Date(),
-            estimatedTime: '2 hours',
-            description: 'Review calculus concepts for upcoming exam'
+    
+    // Load tasks from localStorage on component mount
+    const loadTasksFromStorage = () => {
+        try {
+            const savedTasks = localStorage.getItem('academicPlannerTasks');
+            if (savedTasks) {
+                return JSON.parse(savedTasks).map(task => ({
+                    ...task,
+                    dueDate: new Date(task.dueDate),
+                    createdAt: new Date(task.createdAt)
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading tasks from storage:', error);
         }
-    ]);
+        return [
+            {
+                id: 1,
+                title: 'History Essay Draft',
+                subject: 'History',
+                type: 'Assignment',
+                priority: 'High',
+                status: 'in-progress',
+                dueDate: new Date(),
+                estimatedTime: '4 hours',
+                description: 'Write a comprehensive essay on World War II',
+                createdAt: new Date(),
+                progress: 0.3,
+                timeSpent: '1.5 hours'
+            },
+            {
+                id: 2,
+                title: 'Math Problem Set',
+                subject: 'Mathematics',
+                type: 'Assignment',
+                priority: 'Medium',
+                status: 'not-started',
+                dueDate: new Date(Date.now() + 86400000), // Tomorrow
+                estimatedTime: '3 hours',
+                description: 'Complete calculus problem set chapter 12',
+                createdAt: new Date(),
+                progress: 0,
+                timeSpent: '0 hours'
+            },
+            {
+                id: 3,
+                title: 'Science Lab Report',
+                subject: 'Science',
+                type: 'Assignment',
+                priority: 'Low',
+                status: 'not-started',
+                dueDate: new Date(Date.now() + 259200000), // 3 days
+                estimatedTime: '2 hours',
+                description: 'Lab report on chemical reactions',
+                createdAt: new Date(),
+                progress: 0,
+                timeSpent: '0 hours'
+            },
+            {
+                id: 4,
+                title: 'Programming Project',
+                subject: 'Computer Science',
+                type: 'Assignment',
+                priority: 'High',
+                status: 'not-started',
+                dueDate: new Date(Date.now() + 432000000), // 5 days
+                estimatedTime: '8 hours',
+                description: 'Build a web application using React',
+                createdAt: new Date(),
+                progress: 0,
+                timeSpent: '0 hours'
+            },
+            {
+                id: 5,
+                title: 'Calculus Review Session',
+                subject: 'Mathematics',
+                type: 'Study Block',
+                priority: 'Low',
+                status: 'in-progress',
+                dueDate: new Date(),
+                estimatedTime: '2 hours',
+                description: 'Review calculus concepts for upcoming exam',
+                createdAt: new Date(),
+                progress: 0.6,
+                timeSpent: '1.2 hours'
+            }
+        ];
+    };
+
+    const [tasks, setTasks] = useState(loadTasksFromStorage);
+    
+    // Save tasks to localStorage whenever tasks change
+    useEffect(() => {
+        try {
+            localStorage.setItem('academicPlannerTasks', JSON.stringify(tasks));
+        } catch (error) {
+            console.error('Error saving tasks to storage:', error);
+        }
+    }, [tasks]);
+
     const [filters, setFilters] = useState({
         hideCompleted: false,
         showUpcoming: true,
@@ -74,22 +117,224 @@ const AcademicPlanner = () => {
     });
     const [searchQuery, setSearchQuery] = useState('');
     const [toastMessage, setToastMessage] = useState(null);
-    const [showAddTaskModal, setShowAddTaskModal] = useState(false); // State for modal visibility
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [studyTimer, setStudyTimer] = useState({ taskId: null, startTime: null, isRunning: false });
+    
+    // New features state
+    const [draggedTask, setDraggedTask] = useState(null);
+    const [showTemplates, setShowTemplates] = useState(false);
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [showDataVisualization, setShowDataVisualization] = useState(false);
+    const [searchFilters, setSearchFilters] = useState({
+        title: '',
+        subject: '',
+        priority: '',
+        status: '',
+        dateRange: { start: '', end: '' },
+        tags: []
+    });
+    const [taskTemplates, setTaskTemplates] = useState([
+        {
+            id: 'template1',
+            name: 'Essay Assignment',
+            template: {
+                type: 'Assignment',
+                priority: 'High',
+                estimatedTime: '4 hours',
+                description: 'Research, outline, and write essay'
+            }
+        },
+        {
+            id: 'template2',
+            name: 'Math Problem Set',
+            template: {
+                type: 'Assignment',
+                priority: 'Medium',
+                estimatedTime: '2 hours',
+                description: 'Complete assigned problem set'
+            }
+        },
+        {
+            id: 'template3',
+            name: 'Study Session',
+            template: {
+                type: 'Study Block',
+                priority: 'Medium',
+                estimatedTime: '1.5 hours',
+                description: 'Review material and practice problems'
+            }
+        },
+        {
+            id: 'template4',
+            name: 'Exam Preparation',
+            template: {
+                type: 'Study Block',
+                priority: 'High',
+                estimatedTime: '3 hours',
+                description: 'Intensive review for upcoming exam'
+            }
+        }
+    ]);
     
     // Create ref for the add task modal to enable smooth scrolling
     const addTaskModalRef = useRef(null);
 
-    // const { addTask: addTaskFromHook, formatDate: formatDateFromHook, formatTime: formatTimeFromHook } = useTaskTracker(); // Get functions from hook, aliasing formatDate
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            // Don't trigger shortcuts when typing in inputs
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            // Ctrl/Cmd + N: New task
+            if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+                event.preventDefault();
+                setShowAddTaskModal(true);
+            }
+            // Ctrl/Cmd + F: Search
+            else if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+                event.preventDefault();
+                setShowAdvancedSearch(true);
+            }
+            // Ctrl/Cmd + T: Templates
+            else if ((event.ctrlKey || event.metaKey) && event.key === 't') {
+                event.preventDefault();
+                setShowTemplates(true);
+            }
+            // Ctrl/Cmd + D: Data visualization
+            else if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+                event.preventDefault();
+                setShowDataVisualization(true);
+            }
+            // Escape: Close modals
+            else if (event.key === 'Escape') {
+                setShowAddTaskModal(false);
+                setShowAdvancedSearch(false);
+                setShowTemplates(false);
+                setShowDataVisualization(false);
+                setEditingTask(null);
+            }
+            // 1-4: Switch views
+            else if (['1', '2', '3', '4'].includes(event.key)) {
+                const views = ['day', 'week', 'month', 'year'];
+                setCurrentView(views[parseInt(event.key) - 1]);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    // Drag and drop functionality
+    const handleDragStart = (e, task) => {
+        setDraggedTask(task);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e, targetIndex) => {
+        e.preventDefault();
+        if (!draggedTask) return;
+
+        const draggedIndex = tasks.findIndex(task => task.id === draggedTask.id);
+        if (draggedIndex === -1 || draggedIndex === targetIndex) return;
+
+        const newTasks = [...tasks];
+        const [draggedItem] = newTasks.splice(draggedIndex, 1);
+        newTasks.splice(targetIndex, 0, draggedItem);
+
+        setTasks(newTasks);
+        setDraggedTask(null);
+        showToast('Task order updated', 'success');
+    };
+
+    // Load user preferences from localStorage
+    useEffect(() => {
+        try {
+            const savedFilters = localStorage.getItem('academicPlannerFilters');
+            if (savedFilters) {
+                setFilters(JSON.parse(savedFilters));
+            }
+        } catch (error) {
+            console.error('Error loading filters from storage:', error);
+        }
+    }, []);
+
+    // Save filters to localStorage
+    useEffect(() => {
+        try {
+            localStorage.setItem('academicPlannerFilters', JSON.stringify(filters));
+        } catch (error) {
+            console.error('Error saving filters to storage:', error);
+        }
+    }, [filters]);
+
+    // Check for upcoming deadlines and notifications
+    useEffect(() => {
+        const checkDeadlines = () => {
+            const now = new Date();
+            const upcomingTasks = tasks.filter(task => {
+                const timeDiff = task.dueDate.getTime() - now.getTime();
+                const hoursDiff = timeDiff / (1000 * 3600);
+                return hoursDiff <= 24 && hoursDiff > 0 && task.status !== 'completed';
+            });
+
+            if (upcomingTasks.length > 0) {
+                // Show browser notifications if permission granted
+                if (Notification.permission === 'granted') {
+                    upcomingTasks.forEach(task => {
+                        const timeDiff = task.dueDate.getTime() - now.getTime();
+                        const hoursDiff = Math.round(timeDiff / (1000 * 3600));
+                        
+                        new Notification(`Academic Planner - Deadline Alert`, {
+                            body: `${task.title} is due in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`,
+                            icon: '/favicon.ico',
+                            tag: `task-${task.id}` // Prevent duplicate notifications
+                        });
+                    });
+                }
+                console.log('Upcoming deadlines:', upcomingTasks);
+            }
+        };
+
+        // Request notification permission on component mount
+        const requestNotificationPermission = async () => {
+            if ('Notification' in window && Notification.permission === 'default') {
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        showToast('Notifications enabled! You\'ll receive deadline alerts.', 'success');
+                    }
+                } catch (error) {
+                    console.log('Notification permission error:', error);
+                }
+            }
+        };
+
+        requestNotificationPermission();
+        const interval = setInterval(checkDeadlines, 60000); // Check every minute
+        checkDeadlines(); // Initial check
+
+        return () => clearInterval(interval);
+    }, [tasks]);
 
     // Function to show toast
-    const showToast = (message) => {
-        setToastMessage(message);
+    const showToast = (message, type = 'success') => {
+        setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
     };
 
     // Function to handle opening add task modal with smooth scroll
     const handleOpenAddTaskModal = () => {
         setShowAddTaskModal(true);
+        setEditingTask(null);
         
         // Use setTimeout to ensure the modal is rendered before scrolling
         setTimeout(() => {
@@ -113,8 +358,23 @@ const AcademicPlanner = () => {
         }, 100); // Small delay to ensure modal is fully rendered
     };
 
+    // Function to handle editing a task
+    const handleEditTask = (task) => {
+        setEditingTask(task);
+        setShowAddTaskModal(true);
+    };
+
+    // Function to handle deleting a task
+    const handleDeleteTask = (taskId) => {
+        if (window.confirm('Are you sure you want to delete this task?')) {
+            setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+            showToast('Task deleted successfully', 'info');
+        }
+    };
+
     const handleViewChange = (view) => {
         setCurrentView(view);
+        showToast(`Switched to ${view} view`, 'info');
     };
 
     const handleDateNavigation = (direction) => {
@@ -131,27 +391,377 @@ const AcademicPlanner = () => {
         setCurrentDate(newDate);
     };
 
-    const handleTaskComplete = (taskId) => {
+    const handleTaskStatusChange = (taskId, newStatus) => {
         setTasks(prevTasks =>
             prevTasks.map(task =>
-                task.id === taskId ? { ...task, completed: !task.completed, status: task.completed ? 'Not Started' : 'Completed' } : task
+                task.id === taskId 
+                    ? { 
+                        ...task, 
+                        status: newStatus,
+                        progress: newStatus === 'completed' ? 1 : newStatus === 'in-progress' ? task.progress || 0.5 : 0,
+                        completedAt: newStatus === 'completed' ? new Date() : undefined
+                    } 
+                    : task
             )
         );
-        showToast(tasks.find(t => t.id === taskId)?.completed ? 'Task marked as incomplete.' : 'Task marked as complete!');
+        
+        const statusMessages = {
+            'completed': 'Task marked as complete! 🎉',
+            'in-progress': 'Task marked as in progress',
+            'not-started': 'Task marked as not started'
+        };
+        
+        showToast(statusMessages[newStatus] || 'Task status updated');
+    };
+
+    // Export/Import functionality
+    const exportTasks = () => {
+        const dataToExport = {
+            tasks: tasks,
+            filters: filters,
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `academic-planner-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('Tasks exported successfully! 📁', 'success');
+    };
+
+    const importTasks = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                if (importedData.tasks && Array.isArray(importedData.tasks)) {
+                    const processedTasks = importedData.tasks.map(task => ({
+                        ...task,
+                        id: task.id || Date.now() + Math.random(), // Ensure unique IDs
+                        dueDate: new Date(task.dueDate),
+                        createdAt: new Date(task.createdAt || Date.now())
+                    }));
+                    
+                    setTasks(prevTasks => {
+                        const combinedTasks = [...prevTasks, ...processedTasks];
+                        // Remove duplicates based on title and dueDate
+                        const uniqueTasks = combinedTasks.filter((task, index, self) =>
+                            index === self.findIndex(t => 
+                                t.title === task.title && 
+                                t.dueDate.getTime() === task.dueDate.getTime()
+                            )
+                        );
+                        return uniqueTasks;
+                    });
+                    
+                    if (importedData.filters) {
+                        setFilters(importedData.filters);
+                    }
+                    
+                    showToast(`Imported ${processedTasks.length} tasks successfully! 📥`, 'success');
+                } else {
+                    showToast('Invalid file format. Please select a valid export file.', 'error');
+                }
+            } catch (error) {
+                console.error('Import error:', error);
+                showToast('Error importing file. Please check the file format.', 'error');
+            }
+        };
+        
+        reader.readAsText(file);
+        event.target.value = ''; // Reset file input
+    };
+
+    // Bulk operations
+    const markAllCompleted = () => {
+        if (window.confirm('Mark all visible tasks as completed?')) {
+            const filteredTasks = getFilteredTasks();
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    filteredTasks.find(ft => ft.id === task.id)
+                        ? { ...task, status: 'completed', progress: 1, completedAt: new Date() }
+                        : task
+                    )
+            );
+            showToast(`Marked ${filteredTasks.length} tasks as completed! 🎉`, 'success');
+        }
+    };
+
+    const deleteAllCompleted = () => {
+        const completedTasks = tasks.filter(task => task.status === 'completed');
+        if (completedTasks.length === 0) {
+            showToast('No completed tasks to delete.', 'info');
+            return;
+        }
+
+        if (window.confirm(`Delete ${completedTasks.length} completed tasks? This cannot be undone.`)) {
+            setTasks(prevTasks => prevTasks.filter(task => task.status !== 'completed'));
+            showToast(`Deleted ${completedTasks.length} completed tasks.`, 'info');
+        }
+    };
+
+    const handleTaskComplete = (taskId) => {
+        const task = tasks.find(t => t.id === taskId);
+        const newStatus = task?.status === 'completed' ? 'not-started' : 'completed';
+        handleTaskStatusChange(taskId, newStatus);
+    };
+
+    // Enhanced task progress tracking
+    const handleProgressUpdate = (taskId, progress) => {
+        setTasks(prevTasks =>
+            prevTasks.map(task =>
+                task.id === taskId 
+                    ? { 
+                        ...task, 
+                        progress: Math.min(Math.max(progress, 0), 1),
+                        status: progress >= 1 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
+                    } 
+                    : task
+            )
+        );
+    };
+
+    // Study timer functionality
+    const startStudyTimer = (taskId) => {
+        setStudyTimer({
+            taskId,
+            startTime: new Date(),
+            isRunning: true
+        });
+        showToast('Study timer started! 📚');
+    };
+
+    const stopStudyTimer = () => {
+        if (studyTimer.isRunning && studyTimer.taskId) {
+            const timeSpent = (new Date() - studyTimer.startTime) / 1000 / 60; // minutes
+            const timeSpentFormatted = timeSpent < 60 
+                ? `${Math.round(timeSpent)} minutes`
+                : `${Math.floor(timeSpent / 60)}h ${Math.round(timeSpent % 60)}m`;
+            
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === studyTimer.taskId
+                        ? { 
+                            ...task, 
+                            timeSpent: addTimeSpent(task.timeSpent || '0 hours', timeSpentFormatted)
+                        }
+                        : task
+                )
+            );
+            
+            showToast(`Study session completed! Time: ${timeSpentFormatted}`);
+        }
+        
+        setStudyTimer({ taskId: null, startTime: null, isRunning: false });
+    };
+
+    // Helper function to add time spent
+    const addTimeSpent = (existingTime, newTime) => {
+        // Simple implementation - you could make this more sophisticated
+        return `${existingTime} + ${newTime}`;
+    };
+
+    // Get timer display for running timer
+    const getTimerDisplay = () => {
+        if (!studyTimer.isRunning || !studyTimer.startTime) return '00:00';
+        
+        const elapsed = Math.floor((new Date() - studyTimer.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    // Update timer display every second when running
+    useEffect(() => {
+        let interval;
+        if (studyTimer.isRunning) {
+            interval = setInterval(() => {
+                // Force re-render to update timer display
+                setStudyTimer(prev => ({ ...prev }));
+            }, 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [studyTimer.isRunning]);
+
+    // AI Suggestions based on task analysis
+    const generateAISuggestions = useMemo(() => {
+        const suggestions = [];
+        const now = new Date();
+        const todayTasks = tasks.filter(task => 
+            task.dueDate.toDateString() === now.toDateString()
+        );
+        const upcomingTasks = tasks.filter(task => {
+            const timeDiff = task.dueDate.getTime() - now.getTime();
+            const daysDiff = timeDiff / (1000 * 3600 * 24);
+            return daysDiff > 0 && daysDiff <= 7 && task.status !== 'completed';
+        });
+        const highPriorityTasks = tasks.filter(task => 
+            task.priority === 'High' && task.status !== 'completed'
+        );
+        const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
+
+        // Suggestion for overdue tasks
+        const overdueTasks = tasks.filter(task => 
+            task.dueDate < now && task.status !== 'completed'
+        );
+        if (overdueTasks.length > 0) {
+            suggestions.push({
+                id: 'overdue',
+                title: 'Address Overdue Tasks',
+                description: `You have ${overdueTasks.length} overdue task(s). Consider prioritizing these immediately.`,
+                type: 'urgent',
+                action: 'Review overdue tasks',
+                icon: 'ri-alarm-warning-line'
+            });
+        }
+
+        // Suggestion for high priority tasks
+        if (highPriorityTasks.length > 0) {
+            suggestions.push({
+                id: 'high-priority',
+                title: 'Focus on High Priority Tasks',
+                description: `You have ${highPriorityTasks.length} high priority task(s) that need attention.`,
+                type: 'important',
+                action: 'Start high priority task',
+                icon: 'ri-star-line'
+            });
+        }
+
+        // Study session suggestions
+        if (inProgressTasks.length > 0) {
+            const task = inProgressTasks[0];
+            suggestions.push({
+                id: 'continue-work',
+                title: `Continue working on ${task.title}`,
+                description: `You're ${Math.round(task.progress * 100)}% complete. A focused session could help you make significant progress.`,
+                type: 'productive',
+                action: 'Start study session',
+                icon: 'ri-focus-3-line',
+                taskId: task.id
+            });
+        }
+
+        // Break suggestion based on time spent
+        const longStudySessions = tasks.filter(task => {
+            const timeSpent = task.timeSpent || '0 hours';
+            return timeSpent.includes('hours') && parseInt(timeSpent) > 2;
+        });
+        if (longStudySessions.length > 0) {
+            suggestions.push({
+                id: 'take-break',
+                title: 'Time for a Break',
+                description: 'You\'ve been studying for a while. Consider taking a 15-minute break to recharge.',
+                type: 'wellness',
+                action: 'Schedule break',
+                icon: 'ri-cup-line'
+            });
+        }
+
+        // Subject variety suggestion
+        const recentSubjects = todayTasks.map(task => task.subject);
+        const uniqueSubjects = [...new Set(recentSubjects)];
+        if (uniqueSubjects.length < 2 && todayTasks.length > 2) {
+            suggestions.push({
+                id: 'subject-variety',
+                title: 'Mix Up Your Subjects',
+                description: 'Consider switching between different subjects to maintain engagement and improve retention.',
+                type: 'strategy',
+                action: 'Plan subject rotation',
+                icon: 'ri-shuffle-line'
+            });
+        }
+
+        // Upcoming deadline preparation
+        if (upcomingTasks.length > 0) {
+            const nextTask = upcomingTasks.sort((a, b) => a.dueDate - b.dueDate)[0];
+            const daysUntilDue = Math.ceil((nextTask.dueDate - now) / (1000 * 3600 * 24));
+            suggestions.push({
+                id: 'prepare-deadline',
+                title: `Prepare for ${nextTask.title}`,
+                description: `Due in ${daysUntilDue} day(s). Start preparing early to avoid last-minute stress.`,
+                type: 'planning',
+                action: 'Start preparation',
+                icon: 'ri-calendar-check-line',
+                taskId: nextTask.id
+            });
+        }
+
+        return suggestions.slice(0, 3); // Return top 3 suggestions
+    }, [tasks]);
+
+    const handleSuggestionAction = (suggestion) => {
+        switch (suggestion.id) {
+            case 'overdue':
+                setFilters(prev => ({ ...prev, showOnlyOverdue: true }));
+                showToast('Showing overdue tasks', 'info');
+                break;
+            case 'high-priority':
+                setFilters(prev => ({ ...prev, priorities: ['High'] }));
+                showToast('Filtering high priority tasks', 'info');
+                break;
+            case 'continue-work':
+            case 'prepare-deadline':
+                if (suggestion.taskId) {
+                    startStudyTimer(suggestion.taskId);
+                }
+                break;
+            case 'take-break':
+                showToast('Great idea! Take a well-deserved break 😊', 'success');
+                break;
+            case 'subject-variety':
+                showToast('Consider mixing subjects in your next study session', 'info');
+                break;
+            default:
+                showToast('Suggestion noted!', 'info');
+        }
     };
 
     const handleAddTask = (newTaskData) => {
-        const newTask = {
-            id: Date.now(), // Simple ID generation
-            ...newTaskData,
-            subject: newTaskData.subject || 'General', // Default subject if not provided
-            type: newTaskData.type || 'Task', // Default type
-            status: 'Not Started',
-            completed: false,
-        };
-        setTasks(prevTasks => [newTask, ...prevTasks]);
+        if (editingTask) {
+            // Update existing task
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === editingTask.id
+                        ? { 
+                            ...task, 
+                            ...newTaskData,
+                            updatedAt: new Date()
+                        }
+                        : task
+                )
+            );
+            showToast('Task updated successfully! ✏️');
+        } else {
+            // Add new task
+            const newTask = {
+                id: Date.now(), // Simple ID generation
+                ...newTaskData,
+                subject: newTaskData.subject || 'General',
+                type: newTaskData.type || 'Task',
+                status: 'not-started',
+                progress: 0,
+                timeSpent: '0 hours',
+                createdAt: new Date()
+            };
+            setTasks(prevTasks => [newTask, ...prevTasks]);
+            showToast('New task added successfully! ✅');
+        }
+        
         setShowAddTaskModal(false);
-        showToast('New task added successfully!');
+        setEditingTask(null);
     };
 
     const handleFilterChange = (filterType, value) => {
@@ -168,53 +778,300 @@ const AcademicPlanner = () => {
         });
     };
 
+    // Task template functionality
+    const createTaskFromTemplate = (template, customTitle, customSubject) => {
+        const newTask = {
+            id: Date.now() + Math.random(),
+            title: customTitle || `${template.name} - ${customSubject}`,
+            subject: customSubject || 'General',
+            ...template.template,
+            dueDate: new Date(Date.now() + 86400000 * 7), // Default to 1 week from now
+            status: 'not-started',
+            progress: 0,
+            timeSpent: '0 hours',
+            createdAt: new Date()
+        };
+        
+        setTasks(prevTasks => [...prevTasks, newTask]);
+        setShowTemplates(false);
+        showToast(`Task created from template: ${template.name}`, 'success');
+    };
+
+    const addCustomTemplate = (name, template) => {
+        const newTemplate = {
+            id: `template_${Date.now()}`,
+            name,
+            template
+        };
+        setTaskTemplates(prev => [...prev, newTemplate]);
+        showToast('Custom template saved!', 'success');
+    };
+
+    // Advanced search functionality  
     const getFilteredTasks = () => {
-        return tasks.filter(task => {
-            if (filters.hideCompleted && task.status === 'completed') return false;
-            if (filters.showOnlyUpcoming) {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                if (task.dueDate < tomorrow) return false;
-            }
-            if (!filters.subjects.includes(task.subject)) return false;
-            if (!filters.types.includes(task.type)) return false;
-            if (!filters.priorities.includes(task.priority)) return false;
-            if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-            return true;
+        let filtered = tasks;
+
+        // Apply basic search
+        if (searchQuery) {
+            filtered = filtered.filter(task =>
+                task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                task.subject.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Apply advanced search filters
+        if (searchFilters.title) {
+            filtered = filtered.filter(task =>
+                task.title.toLowerCase().includes(searchFilters.title.toLowerCase())
+            );
+        }
+
+        if (searchFilters.subject) {
+            filtered = filtered.filter(task =>
+                task.subject.toLowerCase().includes(searchFilters.subject.toLowerCase())
+            );
+        }
+
+        if (searchFilters.priority) {
+            filtered = filtered.filter(task => task.priority === searchFilters.priority);
+        }
+
+        if (searchFilters.status) {
+            filtered = filtered.filter(task => task.status === searchFilters.status);
+        }
+
+        if (searchFilters.dateRange.start) {
+            const startDate = new Date(searchFilters.dateRange.start);
+            filtered = filtered.filter(task => task.dueDate >= startDate);
+        }
+
+        if (searchFilters.dateRange.end) {
+            const endDate = new Date(searchFilters.dateRange.end);
+            filtered = filtered.filter(task => task.dueDate <= endDate);
+        }
+
+        // Apply existing filters
+        if (filters.hideCompleted) {
+            filtered = filtered.filter(task => task.status !== 'completed');
+        }
+
+        return filtered;
+    };
+
+    // Data visualization functions
+    const getTaskAnalytics = () => {
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(task => task.status === 'completed').length;
+        const inProgressTasks = tasks.filter(task => task.status === 'in-progress').length;
+        const notStartedTasks = tasks.filter(task => task.status === 'not-started').length;
+        const overdueTasks = tasks.filter(task => 
+            task.dueDate < new Date() && task.status !== 'completed'
+        ).length;
+
+        // Subject distribution
+        const subjectStats = {};
+        tasks.forEach(task => {
+            subjectStats[task.subject] = (subjectStats[task.subject] || 0) + 1;
         });
+
+        // Priority distribution
+        const priorityStats = {};
+        tasks.forEach(task => {
+            priorityStats[task.priority] = (priorityStats[task.priority] || 0) + 1;
+        });
+
+        // Weekly completion rates
+        const weeklyStats = {};
+        tasks.filter(task => task.completedAt).forEach(task => {
+            const weekKey = getWeekKey(task.completedAt);
+            weeklyStats[weekKey] = (weeklyStats[weekKey] || 0) + 1;
+        });
+
+        // Average time tracking
+        const tasksWithTime = tasks.filter(task => task.timeSpent && task.timeSpent !== '0 hours');
+        const averageTimeSpent = tasksWithTime.length > 0 
+            ? tasksWithTime.reduce((sum, task) => sum + parseTimeToMinutes(task.timeSpent), 0) / tasksWithTime.length
+            : 0;
+
+        return {
+            totalTasks,
+            completedTasks,
+            inProgressTasks,
+            notStartedTasks,
+            overdueTasks,
+            completionRate: totalTasks > 0 ? (completedTasks / totalTasks * 100).toFixed(1) : 0,
+            subjectStats,
+            priorityStats,
+            weeklyStats,
+            averageTimeSpent: Math.round(averageTimeSpent)
+        };
     };
 
-    const formatDate = (date) => {
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        return date.toLocaleDateString('en-US', options);
+    const getWeekKey = (date) => {
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - date.getDay());
+        return startOfWeek.toISOString().split('T')[0];
     };
 
-    const getStatusBadge = (status) => {
-        const statusConfig = {
-            'not-started': { class: 'bg-gray-100 text-gray-800', text: 'Not started' },
-            'in-progress': { class: 'bg-yellow-100 text-yellow-800', text: 'In progress' },
-            'completed': { class: 'bg-green-100 text-green-800', text: 'Completed' }
+    const parseTimeToMinutes = (timeString) => {
+        if (!timeString || timeString === '0 hours') return 0;
+        const hoursMatch = timeString.match(/(\d+(?:\.\d+)?)\s*h/);
+        const minutesMatch = timeString.match(/(\d+)\s*m/);
+        
+        let totalMinutes = 0;
+        if (hoursMatch) totalMinutes += parseFloat(hoursMatch[1]) * 60;
+        if (minutesMatch) totalMinutes += parseInt(minutesMatch[1]);
+        
+        return totalMinutes;
+    };
+
+    // Recurring task functionality
+    const createRecurringTask = (task, frequency) => {
+        const frequencies = {
+            daily: 1,
+            weekly: 7,
+            biweekly: 14,
+            monthly: 30
         };
-        const config = statusConfig[status] || statusConfig['not-started'];
-        return (
-            <span className={`text-xs font-medium px-2 py-0.5 rounded ${config.class}`}>
-                {config.text}
-            </span>
+        
+        const daysToAdd = frequencies[frequency];
+        if (!daysToAdd) return;
+
+        const nextTask = {
+            ...task,
+            id: Date.now() + Math.random(),
+            dueDate: new Date(task.dueDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000),
+            status: 'not-started',
+            progress: 0,
+            timeSpent: '0 hours',
+            createdAt: new Date(),
+            isRecurring: true,
+            recurringFrequency: frequency,
+            originalTaskId: task.id
+        };
+
+        setTasks(prev => [...prev, nextTask]);
+        showToast(`Recurring task created (${frequency})`, 'success');
+    };
+
+    // Task collaboration features
+    const shareTask = (task) => {
+        const shareText = `Task: ${task.title}\nSubject: ${task.subject}\nDue: ${task.dueDate.toLocaleString()}\nPriority: ${task.priority}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `Academic Task: ${task.title}`,
+                text: shareText,
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(shareText);
+            showToast('Task details copied to clipboard!', 'success');
+        }
+    };
+
+    // Task notes and comments system
+    const addTaskNote = (taskId, note) => {
+        setTasks(prevTasks =>
+            prevTasks.map(task =>
+                task.id === taskId
+                    ? {
+                        ...task,
+                        notes: [...(task.notes || []), {
+                            id: Date.now(),
+                            text: note,
+                            timestamp: new Date()
+                        }]
+                    }
+                    : task
+            )
         );
+        showToast('Note added to task', 'success');
     };
 
-    const getPriorityColor = (priority) => {
-        const colors = {
-            'High': 'bg-red-500',
-            'Medium': 'bg-amber-500',
-            'Low': 'bg-blue-500'
-        };
-        return colors[priority] || colors['Low'];
+    // Task priority scoring system
+    const calculateTaskPriorityScore = (task) => {
+        let score = 0;
+        
+        // Priority weight
+        const priorityWeights = { 'High': 3, 'Medium': 2, 'Low': 1 };
+        score += priorityWeights[task.priority] || 1;
+        
+        // Due date urgency
+        const now = new Date();
+        const daysUntilDue = (task.dueDate - now) / (1000 * 60 * 60 * 24);
+        if (daysUntilDue < 1) score += 5; // Due today or overdue
+        else if (daysUntilDue < 3) score += 3; // Due within 3 days
+        else if (daysUntilDue < 7) score += 2; // Due within a week
+        
+        // Progress factor (less progress = higher priority)
+        score += (1 - task.progress) * 2;
+        
+        return score;
+    };
+
+    // Smart task suggestions based on context
+    const getSmartTaskSuggestions = (currentTask) => {
+        if (!currentTask) return [];
+        
+        const suggestions = [];
+        
+        // Related tasks by subject
+        const relatedTasks = tasks.filter(task => 
+            task.id !== currentTask.id && 
+            task.subject === currentTask.subject && 
+            task.status !== 'completed'
+        );
+        
+        if (relatedTasks.length > 0) {
+            suggestions.push({
+                type: 'related',
+                title: `Continue with ${currentTask.subject}`,
+                tasks: relatedTasks.slice(0, 3)
+            });
+        }
+        
+        // Similar priority tasks
+        const similarPriorityTasks = tasks.filter(task =>
+            task.id !== currentTask.id &&
+            task.priority === currentTask.priority &&
+            task.status !== 'completed'
+        );
+        
+        if (similarPriorityTasks.length > 0) {
+            suggestions.push({
+                type: 'priority',
+                title: `Other ${currentTask.priority.toLowerCase()} priority tasks`,
+                tasks: similarPriorityTasks.slice(0, 3)
+            });
+        }
+        
+        return suggestions;
+    };
+
+    // Focus mode functionality
+    const [focusMode, setFocusMode] = useState(false);
+    const [focusTask, setFocusTask] = useState(null);
+    
+    const enterFocusMode = (task) => {
+        setFocusMode(true);
+        setFocusTask(task);
+        startStudyTimer(task.id);
+        showToast(`Focus mode activated for: ${task.title}`, 'success');
+        
+        // Hide other tasks and show minimal UI
+        document.body.classList.add('focus-mode');
+    };
+
+    const exitFocusMode = () => {
+        setFocusMode(false);
+        setFocusTask(null);
+        if (studyTimer.isRunning) {
+            stopStudyTimer();
+        }
+        document.body.classList.remove('focus-mode');
+        showToast('Focus mode deactivated', 'info');
     };
 
     const renderSidebar = () => (
@@ -320,18 +1177,53 @@ const AcademicPlanner = () => {
                 <div className="upcoming-deadlines">
                     <h3 className="section-title">Upcoming Deadlines</h3>
                     <div className="deadlines-list">
-                        <div className="deadline-item">
-                            <span>History Essay Draft</span>
-                            <span className="deadline-date today">Today</span>
-                        </div>
-                        <div className="deadline-item">
-                            <span>Math Problem Set</span>
-                            <span className="deadline-date">Tomorrow</span>
-                        </div>
-                        <div className="deadline-item">
-                            <span>Science Lab Report</span>
-                            <span className="deadline-date">May 25</span>
-                        </div>
+                        {tasks
+                            .filter(task => {
+                                const now = new Date();
+                                const daysDiff = (task.dueDate - now) / (1000 * 3600 * 24);
+                                return daysDiff >= 0 && daysDiff <= 7 && task.status !== 'completed';
+                            })
+                            .sort((a, b) => a.dueDate - b.dueDate)
+                            .slice(0, 5)
+                            .map(task => {
+                                const now = new Date();
+                                const daysDiff = Math.ceil((task.dueDate - now) / (1000 * 3600 * 24));
+                                let dateLabel;
+                                
+                                if (daysDiff === 0) {
+                                    dateLabel = "Today";
+                                } else if (daysDiff === 1) {
+                                    dateLabel = "Tomorrow";
+                                } else {
+                                    dateLabel = task.dueDate.toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                    });
+                                }
+
+                                return (
+                                    <div key={task.id} className="deadline-item">
+                                        <div className="deadline-task-info">
+                                            <span className="deadline-title">{task.title}</span>
+                                            <span className="deadline-subject">{task.subject}</span>
+                                        </div>
+                                        <span className={`deadline-date ${daysDiff === 0 ? 'today' : daysDiff === 1 ? 'tomorrow' : ''}`}>
+                                            {dateLabel}
+                                        </span>
+                                    </div>
+                                );
+                            })
+                        }
+                        {tasks.filter(task => {
+                            const now = new Date();
+                            const daysDiff = (task.dueDate - now) / (1000 * 3600 * 24);
+                            return daysDiff >= 0 && daysDiff <= 7 && task.status !== 'completed';
+                        }).length === 0 && (
+                            <div className="no-deadlines">
+                                <i className="ri-calendar-check-line"></i>
+                                <span>No upcoming deadlines</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -340,7 +1232,8 @@ const AcademicPlanner = () => {
 
     const renderTopNavigation = () => (
         <div className="top-navigation">
-            <div className="top-row">
+            {/* Top Row: View Buttons Centered */}
+            <div className="view-buttons-row">
                 <div className="view-buttons">
                     {['day', 'week', 'month', 'year'].map(view => (
                         <button 
@@ -352,10 +1245,15 @@ const AcademicPlanner = () => {
                         </button>
                     ))}
                 </div>
+            </div>
+            
+            {/* Middle Row: Date Navigation Centered */}
+            <div className="date-navigation-row">
                 <div className="date-navigation">
                     <button 
                         className="nav-arrow"
                         onClick={() => handleDateNavigation(-1)}
+                        title="Previous"
                     >
                         <i className="ri-arrow-left-s-line"></i>
                     </button>
@@ -363,29 +1261,97 @@ const AcademicPlanner = () => {
                     <button 
                         className="nav-arrow"
                         onClick={() => handleDateNavigation(1)}
+                        title="Next"
                     >
                         <i className="ri-arrow-right-s-line"></i>
                     </button>
                 </div>
             </div>
-            <div className="bottom-row">
+            
+            {/* Bottom Row: Search and Action Buttons */}
+            <div className="actions-row">
                 <div className="search-box">
                     <i className="ri-search-line search-icon"></i>
                     <input 
                         type="text" 
+                        className="search-input"
                         placeholder="Search tasks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <div className="nav-actions">
-                    <button className="nav-icon-btn">
-                        <i className="ri-notification-line"></i>
+                    <button 
+                        className="nav-icon-btn"
+                        onClick={() => setShowTemplates(true)}
+                        title="Task Templates (Ctrl+T)"
+                    >
+                        <i className="ri-file-copy-line"></i>
                     </button>
-                    <button className="nav-icon-btn">
+                    
+                    <button 
+                        className="nav-icon-btn"
+                        onClick={() => setShowAdvancedSearch(true)}
+                        title="Advanced Search (Ctrl+F)"
+                    >
+                        <i className="ri-search-2-line"></i>
+                    </button>
+                    
+                    <button 
+                        className="nav-icon-btn"
+                        onClick={() => setShowDataVisualization(true)}
+                        title="Analytics Dashboard (Ctrl+D)"
+                    >
+                        <i className="ri-bar-chart-line"></i>
+                    </button>
+
+                    <button 
+                        className="nav-icon-btn"
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        title="Notifications"
+                    >
+                        <i className="ri-notification-line"></i>
+                        {tasks.filter(task => {
+                            const timeDiff = task.dueDate.getTime() - new Date().getTime();
+                            const hoursDiff = timeDiff / (1000 * 3600);
+                            return hoursDiff <= 24 && hoursDiff > 0 && task.status !== 'completed';
+                        }).length > 0 && <span className="notification-badge"></span>}
+                    </button>
+                    
+                    <div className="dropdown-container">
+                        <button className="nav-icon-btn" title="More Options">
+                            <i className="ri-more-line"></i>
+                        </button>
+                        <div className="dropdown-menu">
+                            <button onClick={exportTasks} className="dropdown-item">
+                                <i className="ri-download-line"></i>
+                                Export Tasks
+                            </button>
+                            <label className="dropdown-item file-input-label">
+                                <i className="ri-upload-line"></i>
+                                Import Tasks
+                                <input 
+                                    type="file" 
+                                    accept=".json"
+                                    onChange={importTasks}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
+                            <div className="dropdown-divider"></div>
+                            <button onClick={markAllCompleted} className="dropdown-item">
+                                <i className="ri-checkbox-multiple-line"></i>
+                                Mark All Complete
+                            </button>
+                            <button onClick={deleteAllCompleted} className="dropdown-item danger">
+                                <i className="ri-delete-bin-line"></i>
+                                Clear Completed
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button className="nav-icon-btn" title="Settings">
                         <i className="ri-settings-4-line"></i>
                     </button>
-                    <div className="user-avatar">JS</div>
                 </div>
             </div>
         </div>
@@ -402,32 +1368,111 @@ const AcademicPlanner = () => {
                         <span className={`subject-badge bg-purple-100 text-purple-800`}>
                             {task.subject}
                         </span>
+                        <span className={`priority-badge ${getPriorityColor(task.priority)} text-white`}>
+                            {task.priority}
+                        </span>
                     </div>
                     <h4 className="task-title">{task.title}</h4>
                     <p className="task-description">{task.description}</p>
+                    
+                    {/* Progress Bar */}
+                    <div className="progress-section">
+                        <div className="progress-header">
+                            <span className="progress-label">Progress</span>
+                            <span className="progress-percentage">{Math.round(task.progress * 100)}%</span>
+                        </div>
+                        <div className="progress-bar-container">
+                            <div 
+                                className="progress-bar"
+                                style={{ width: `${task.progress * 100}%` }}
+                            ></div>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={task.progress * 100}
+                            onChange={(e) => handleProgressUpdate(task.id, e.target.value / 100)}
+                            className="progress-slider"
+                        />
+                    </div>
+
                     <div className="task-meta">
                         <span className={`status-circle status-${task.status}`}></span>
                         {getStatusBadge(task.status)}
+                        <div className="time-spent">
+                            <i className="ri-time-line"></i>
+                            <span>Spent: {task.timeSpent}</span>
+                        </div>
                     </div>
                 </div>
                 <div className="task-actions">
                     <div className="task-details">
-                        <i className="ri-time-line"></i>
-                        <span>{task.estimatedTime}</span>
+                        <div className="due-date">
+                            <i className="ri-calendar-line"></i>
+                            <span>{task.dueDate.toLocaleDateString()}</span>
+                        </div>
+                        <div className="estimated-time">
+                            <i className="ri-time-line"></i>
+                            <span>{task.estimatedTime}</span>
+                        </div>
                     </div>
                     <div className="action-buttons">
-                        <button className="action-btn">
+                        <button 
+                            className="action-btn edit-btn"
+                            onClick={() => handleEditTask(task)}
+                            title="Edit Task"
+                        >
                             <i className="ri-edit-line"></i>
                         </button>
                         <button 
-                            className="action-btn"
-                            onClick={() => handleTaskComplete(task.id)}
+                            className="action-btn focus-btn"
+                            onClick={() => enterFocusMode(task)}
+                            title="Enter Focus Mode"
                         >
-                            <i className="ri-check-line"></i>
+                            <i className="ri-focus-3-line"></i>
+                        </button>
+                        <button 
+                            className="action-btn share-btn"
+                            onClick={() => shareTask(task)}
+                            title="Share Task"
+                        >
+                            <i className="ri-share-line"></i>
+                        </button>
+                        <button 
+                            className="action-btn timer-btn"
+                            onClick={() => studyTimer.taskId === task.id && studyTimer.isRunning 
+                                ? stopStudyTimer() 
+                                : startStudyTimer(task.id)}
+                            title={studyTimer.taskId === task.id && studyTimer.isRunning ? "Stop Timer" : "Start Timer"}
+                        >
+                            <i className={studyTimer.taskId === task.id && studyTimer.isRunning 
+                                ? "ri-pause-line" 
+                                : "ri-play-line"}></i>
+                        </button>
+                        <button 
+                            className="action-btn complete-btn"
+                            onClick={() => handleTaskComplete(task.id)}
+                            title="Toggle Complete"
+                        >
+                            <i className={task.status === 'completed' ? "ri-checkbox-circle-fill" : "ri-checkbox-circle-line"}></i>
+                        </button>
+                        <button 
+                            className="action-btn delete-btn"
+                            onClick={() => handleDeleteTask(task.id)}
+                            title="Delete Task"
+                        >
+                            <i className="ri-delete-bin-line"></i>
                         </button>
                     </div>
                 </div>
             </div>
+            {studyTimer.taskId === task.id && studyTimer.isRunning && (
+                <div className="timer-display">
+                    <i className="ri-timer-line"></i>
+                    <span>Timer running... {getTimerDisplay()}</span>
+                </div>
+            )}
         </div>
     );
 
@@ -466,17 +1511,439 @@ const AcademicPlanner = () => {
                     <div className="ai-suggestions">
                         <h3 className="section-header">AI Study Suggestions</h3>
                         <div className="suggestions-list">
-                            <div className="suggestion-card">
-                                <div className="suggestion-icon">
-                                    <i className="ri-lightbulb-line"></i>
+                            {generateAISuggestions.map(suggestion => (
+                                <div key={suggestion.id} className={`suggestion-card ${suggestion.type}`}>
+                                    <div className="suggestion-icon">
+                                        <i className={suggestion.icon}></i>
+                                    </div>
+                                    <div className="suggestion-content">
+                                        <h4>{suggestion.title}</h4>
+                                        <p className="suggestion-desc">{suggestion.description}</p>
+                                        <button 
+                                            className="suggestion-btn"
+                                            onClick={() => handleSuggestionAction(suggestion)}
+                                        >
+                                            {suggestion.action}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="suggestion-content">
-                                    <h4>History Essay Preparation</h4>
-                                    <p>Suggested: Today, 2:00 PM - 4:00 PM</p>
-                                    <p className="suggestion-desc">
-                                        Start with an outline and gather your research materials for the essay.
-                                    </p>
-                                    <button className="suggestion-btn">Add to schedule</button>
+                            ))}
+                            {generateAISuggestions.length === 0 && (
+                                <div className="no-suggestions">
+                                    <i className="ri-lightbulb-line"></i>
+                                    <p>Great job! No urgent suggestions at the moment. Keep up the good work!</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderWeekView = () => {
+        const filteredTasks = getFilteredTasks();
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Start from Monday
+        
+        const weekDays = Array.from({ length: 7 }, (_, i) => {
+            const day = new Date(weekStart);
+            day.setDate(weekStart.getDate() + i);
+            return day;
+        });
+
+        const getTasksForDay = (date) => {
+            return filteredTasks.filter(task => 
+                task.dueDate.toDateString() === date.toDateString()
+            );
+        };
+
+        return (
+            <div className="week-view">
+                <div className="week-calendar">
+                    <div className="week-header">
+                        {weekDays.map((day, index) => (
+                            <div key={index} className="week-day-header">
+                                <div className="day-name">
+                                    {day.toLocaleDateString('en-US', { weekday: 'long' })}
+                                </div>
+                                <div className="day-date">
+                                    {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </div>
+                                <div className="task-count-badge">
+                                    {getTasksForDay(day).length}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="week-grid">
+                        {weekDays.map((day, dayIndex) => (
+                            <div key={dayIndex} className="week-day-column">
+                                <div className="day-tasks">
+                                    {getTasksForDay(day).map(task => (
+                                        <div key={task.id} className={`week-task-item priority-${task.priority.toLowerCase()}`}>
+                                            <div className="task-time">
+                                                {task.dueDate.toLocaleTimeString('en-US', { 
+                                                    hour: 'numeric', 
+                                                    minute: '2-digit' 
+                                                })}
+                                            </div>
+                                            <div className="task-title-short">{task.title}</div>
+                                            <div className="task-subject-small">{task.subject}</div>
+                                            <div className={`task-status-dot status-${task.status}`}></div>
+                                        </div>
+                                    ))}
+                                    {getTasksForDay(day).length === 0 && (
+                                        <div className="no-tasks-message">No tasks scheduled</div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                
+                <div className="week-summary">
+                    <h3>Week Summary</h3>
+                    <div className="summary-stats">
+                        <div className="stat-item">
+                            <span className="stat-number">{filteredTasks.length}</span>
+                            <span className="stat-label">Total Tasks</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-number">
+                                {filteredTasks.filter(t => t.status === 'completed').length}
+                            </span>
+                            <span className="stat-label">Completed</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-number">
+                                {filteredTasks.filter(t => t.priority === 'High').length}
+                            </span>
+                            <span className="stat-label">High Priority</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderMonthView = () => {
+        const filteredTasks = getFilteredTasks();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay() === 0 ? 7 : firstDay.getDay(); // Make Monday = 1
+        
+        // Create array of all days to display (including previous/next month)
+        const calendarDays = [];
+        
+        // Add days from previous month
+        for (let i = startingDayOfWeek - 1; i > 0; i--) {
+            const prevDay = new Date(year, month, 1 - i);
+            calendarDays.push({ date: prevDay, isCurrentMonth: false });
+        }
+        
+        // Add days from current month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDay = new Date(year, month, day);
+            calendarDays.push({ date: currentDay, isCurrentMonth: true });
+        }
+        
+        // Add days from next month to complete the grid
+        const remainingSlots = 42 - calendarDays.length; // 6 rows × 7 days
+        for (let day = 1; day <= remainingSlots; day++) {
+            const nextDay = new Date(year, month + 1, day);
+            calendarDays.push({ date: nextDay, isCurrentMonth: false });
+        }
+
+        const getTasksForDate = (date) => {
+            return filteredTasks.filter(task => 
+                task.dueDate.toDateString() === date.toDateString()
+            );
+        };
+
+        const isToday = (date) => {
+            const today = new Date();
+            return date.toDateString() === today.toDateString();
+        };
+
+        return (
+            <div className="month-view">
+                <div className="month-calendar">
+                    <div className="month-header">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                            <div key={day} className="month-day-header">{day}</div>
+                        ))}
+                    </div>
+                    <div className="month-grid">
+                        {calendarDays.map((dayObj, index) => {
+                            const dayTasks = getTasksForDate(dayObj.date);
+                            return (
+                                <div 
+                                    key={index} 
+                                    className={`month-day-cell ${
+                                        dayObj.isCurrentMonth ? 'current-month' : 'other-month'
+                                    } ${isToday(dayObj.date) ? 'today' : ''}`}
+                                >
+                                    <div className="day-number">
+                                        {dayObj.date.getDate()}
+                                    </div>
+                                    <div className="day-tasks-preview">
+                                        {dayTasks.slice(0, 2).map(task => (
+                                            <div 
+                                                key={task.id} 
+                                                className={`task-dot priority-${task.priority.toLowerCase()}`}
+                                                title={task.title}
+                                            >
+                                                <span className="task-dot-text">{task.title.substring(0, 15)}...</span>
+                                            </div>
+                                        ))}
+                                        {dayTasks.length > 2 && (
+                                            <div className="more-tasks">+{dayTasks.length - 2} more</div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+                
+                <div className="month-sidebar">
+                    <div className="month-stats">
+                        <h3>Month Overview</h3>
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-number">{filteredTasks.length}</div>
+                                <div className="stat-label">Total Tasks</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-number">
+                                    {filteredTasks.filter(t => t.status === 'completed').length}
+                                </div>
+                                <div className="stat-label">Completed</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-number">
+                                    {filteredTasks.filter(t => t.status === 'in-progress').length}
+                                </div>
+                                <div className="stat-label">In Progress</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-number">
+                                    {filteredTasks.filter(t => t.priority === 'High').length}
+                                </div>
+                                <div className="stat-label">High Priority</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="upcoming-this-month">
+                        <h4>Upcoming This Month</h4>
+                        <div className="upcoming-list">
+                            {filteredTasks
+                                .filter(task => task.dueDate.getMonth() === month && task.status !== 'completed')
+                                .sort((a, b) => a.dueDate - b.dueDate)
+                                .slice(0, 5)
+                                .map(task => (
+                                    <div key={task.id} className="upcoming-item">
+                                        <div className="upcoming-date">
+                                            {task.dueDate.getDate()}
+                                        </div>
+                                        <div className="upcoming-details">
+                                            <div className="upcoming-title">{task.title}</div>
+                                            <div className="upcoming-subject">{task.subject}</div>
+                                        </div>
+                                        <div className={`upcoming-priority priority-${task.priority.toLowerCase()}`}>
+                                            {task.priority}
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderYearView = () => {
+        const filteredTasks = getFilteredTasks();
+        const currentYear = currentDate.getFullYear();
+        
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        const getTasksForMonth = (monthIndex) => {
+            return filteredTasks.filter(task => 
+                task.dueDate.getFullYear() === currentYear && 
+                task.dueDate.getMonth() === monthIndex
+            );
+        };
+
+        const getMonthStats = (monthIndex) => {
+            const monthTasks = getTasksForMonth(monthIndex);
+            return {
+                total: monthTasks.length,
+                completed: monthTasks.filter(t => t.status === 'completed').length,
+                inProgress: monthTasks.filter(t => t.status === 'in-progress').length,
+                highPriority: monthTasks.filter(t => t.priority === 'High').length,
+                exams: monthTasks.filter(t => t.type === 'Exam').length
+            };
+        };
+
+        const yearStats = {
+            totalTasks: filteredTasks.filter(t => t.dueDate.getFullYear() === currentYear).length,
+            completedTasks: filteredTasks.filter(t => 
+                t.dueDate.getFullYear() === currentYear && t.status === 'completed'
+            ).length,
+            totalExams: filteredTasks.filter(t => 
+                t.dueDate.getFullYear() === currentYear && t.type === 'Exam'
+            ).length,
+            highPriorityTasks: filteredTasks.filter(t => 
+                t.dueDate.getFullYear() === currentYear && t.priority === 'High'
+            ).length
+        };
+
+        const completionRate = yearStats.totalTasks > 0 
+            ? Math.round((yearStats.completedTasks / yearStats.totalTasks) * 100) 
+            : 0;
+
+        return (
+            <div className="year-view">
+                <div className="year-header">
+                    <div className="year-title">
+                        <h2>{currentYear} Academic Year Overview</h2>
+                    </div>
+                    <div className="year-stats-summary">
+                        <div className="year-stat-item">
+                            <div className="year-stat-number">{yearStats.totalTasks}</div>
+                            <div className="year-stat-label">Total Tasks</div>
+                        </div>
+                        <div className="year-stat-item">
+                            <div className="year-stat-number">{completionRate}%</div>
+                            <div className="year-stat-label">Completion Rate</div>
+                        </div>
+                        <div className="year-stat-item">
+                            <div className="year-stat-number">{yearStats.totalExams}</div>
+                            <div className="year-stat-label">Exams</div>
+                        </div>
+                        <div className="year-stat-item">
+                            <div className="year-stat-number">{yearStats.highPriorityTasks}</div>
+                            <div className="year-stat-label">High Priority</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="year-grid">
+                    {monthNames.map((month, index) => {
+                        const monthStats = getMonthStats(index);
+                        const monthTasks = getTasksForMonth(index);
+                        const monthCompletionRate = monthStats.total > 0 
+                            ? Math.round((monthStats.completed / monthStats.total) * 100) 
+                            : 0;
+
+                        return (
+                            <div key={month} className="year-month-card">
+                                <div className="month-header-year">
+                                    <h3 className="month-title">{month}</h3>
+                                    <div className="month-completion-rate">
+                                        <div className="completion-circle">
+                                            <span>{monthCompletionRate}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="month-events">
+                                    {monthTasks.slice(0, 3).map(task => (
+                                        <div key={task.id} className="event-item">
+                                            <span className={`event-dot priority-${task.priority.toLowerCase()}`}></span>
+                                            <span className="event-text">{task.title}</span>
+                                            <span className="event-date">
+                                                {task.dueDate.getDate()}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {monthTasks.length > 3 && (
+                                        <div className="more-events">
+                                            +{monthTasks.length - 3} more tasks
+                                        </div>
+                                    )}
+                                    {monthTasks.length === 0 && (
+                                        <div className="no-events">No tasks scheduled</div>
+                                    )}
+                                </div>
+                                
+                                <div className="month-stats">
+                                    <div className="stat-row">
+                                        <span className="stat-label">Tasks:</span>
+                                        <span className="stat-value">{monthStats.total}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <span className="stat-label">Completed:</span>
+                                        <span className="stat-value">{monthStats.completed}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <span className="stat-label">Exams:</span>
+                                        <span className="stat-value">{monthStats.exams}</span>
+                                    </div>
+                                    <div className="stat-row">
+                                        <span className="stat-label">High Priority:</span>
+                                        <span className="stat-value">{monthStats.highPriority}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="year-analytics">
+                    <div className="analytics-section">
+                        <h3>Performance Analytics</h3>
+                        <div className="analytics-grid">
+                            <div className="analytics-card">
+                                <h4>Most Productive Month</h4>
+                                <div className="analytics-result">
+                                    {monthNames[
+                                        Array.from({ length: 12 }, (_, i) => i)
+                                            .reduce((maxMonth, month) => 
+                                                getMonthStats(month).completed > getMonthStats(maxMonth).completed 
+                                                    ? month : maxMonth, 0)
+                                    ]}
+                                </div>
+                            </div>
+                            <div className="analytics-card">
+                                <h4>Busiest Month</h4>
+                                <div className="analytics-result">
+                                    {monthNames[
+                                        Array.from({ length: 12 }, (_, i) => i)
+                                            .reduce((maxMonth, month) => 
+                                                getMonthStats(month).total > getMonthStats(maxMonth).total 
+                                                    ? month : maxMonth, 0)
+                                    ]}
+                                </div>
+                            </div>
+                            <div className="analytics-card">
+                                <h4>Subject Distribution</h4>
+                                <div className="subject-breakdown">
+                                    {Object.entries(
+                                        filteredTasks
+                                            .filter(t => t.dueDate.getFullYear() === currentYear)
+                                            .reduce((acc, task) => {
+                                                acc[task.subject] = (acc[task.subject] || 0) + 1;
+                                                return acc;
+                                            }, {})
+                                    ).slice(0, 3).map(([subject, count]) => (
+                                        <div key={subject} className="subject-stat">
+                                            <span className="subject-name">{subject}</span>
+                                            <span className="subject-count">{count}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -485,70 +1952,6 @@ const AcademicPlanner = () => {
             </div>
         );
     };
-
-    const renderWeekView = () => (
-        <div className="week-view">
-            <div className="week-calendar">
-                <div className="week-header">
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => (
-                        <div key={day} className="week-day-header">
-                            {day}<br />
-                            <span className="week-date">May {19 + index}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className="week-grid">
-                    {/* Week grid content would go here */}
-                    <div className="week-content">Week view content coming soon...</div>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderMonthView = () => (
-        <div className="month-view">
-            <div className="month-calendar">
-                <div className="month-header">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                        <div key={day} className="month-day-header">{day}</div>
-                    ))}
-                </div>
-                <div className="month-grid">
-                    {/* Month grid content would go here */}
-                    <div className="month-content">Month view content coming soon...</div>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderYearView = () => (
-        <div className="year-view">
-            <div className="year-grid">
-                {['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
-                    <div key={month} className="year-month-card">
-                        <h3 className="month-title">{month}</h3>
-                        <div className="month-events">
-                            <div className="event-item">
-                                <span className="event-dot bg-red-500"></span>
-                                <span className="event-text">Sample Event</span>
-                            </div>
-                        </div>
-                        <div className="month-stats">
-                            <div className="stat-row">
-                                <span>Total Tasks:</span>
-                                <span>10</span>
-                            </div>
-                            <div className="stat-row">
-                                <span>Exams:</span>
-                                <span>2</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
 
     const renderCurrentView = () => {
         switch (currentView) {
@@ -565,6 +1968,95 @@ const AcademicPlanner = () => {
         }
     };
 
+    // Utility functions
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'High':
+                return 'priority-high';
+            case 'Medium':
+                return 'priority-medium';
+            case 'Low':
+                return 'priority-low';
+            default:
+                return 'priority-medium';
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'completed':
+                return 'status-completed';
+            case 'in-progress':
+                return 'status-in-progress';
+            case 'not-started':
+                return 'status-not-started';
+            default:
+                return 'status-not-started';
+        }
+    };
+
+    const formatDate = (date) => {
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    };
+
+    const formatDueDate = (date) => {
+        const now = new Date();
+        const diffTime = date.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+            return `${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue`;
+        } else if (diffDays === 0) {
+            return 'Due today';
+        } else if (diffDays === 1) {
+            return 'Due tomorrow';
+        } else {
+            return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+            'completed': {
+                label: 'Completed',
+                icon: 'ri-check-line',
+                className: 'status-completed'
+            },
+            'in-progress': {
+                label: 'In Progress',
+                icon: 'ri-play-line',
+                className: 'status-in-progress'
+            },
+            'not-started': {
+                label: 'Not Started',
+                icon: 'ri-pause-line',
+                className: 'status-not-started'
+            }
+        };
+
+        const config = statusConfig[status] || statusConfig['not-started'];
+        
+        return (
+            <span className={`status-badge ${config.className}`}>
+                <i className={config.icon}></i>
+                {config.label}
+            </span>
+        );
+    };
+
+    const formatTimerDisplay = (startTime) => {
+        if (!startTime) return '00:00';
+        const elapsed = Math.floor((new Date() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="academic-planner">
             {renderSidebar()}
@@ -579,17 +2071,387 @@ const AcademicPlanner = () => {
             </div>
             {toastMessage && (
                 <div className="toast-container">
-                    <div className={`toast-notification ${toastMessage ? '' : 'fade-out'}`}>
-                        {toastMessage}
+                    <div className={`toast-notification toast-${toastMessage.type} ${toastMessage ? 'show' : 'fade-out'}`}>
+                        <div className="toast-content">
+                            <div className="toast-icon">
+                                {toastMessage.type === 'success' && <i className="ri-check-line"></i>}
+                                {toastMessage.type === 'error' && <i className="ri-error-warning-line"></i>}
+                                {toastMessage.type === 'info' && <i className="ri-information-line"></i>}
+                                {toastMessage.type === 'warning' && <i className="ri-alert-line"></i>}
+                            </div>
+                            <span className="toast-message">{toastMessage.message}</span>
+                        </div>
+                        <button 
+                            className="toast-close"
+                            onClick={() => setToastMessage(null)}
+                        >
+                            <i className="ri-close-line"></i>
+                        </button>
                     </div>
                 </div>
             )}
+
+            {/* Task Templates Modal */}
+            {showTemplates && (
+                <div className="modal-overlay">
+                    <div className="modal-content templates-modal">
+                        <div className="modal-header">
+                            <h3><i className="ri-file-copy-line"></i> Task Templates</h3>
+                            <button onClick={() => setShowTemplates(false)} className="close-btn">
+                                <i className="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div className="templates-grid">
+                            {taskTemplates.map(template => (
+                                <div key={template.id} className="template-card">
+                                    <div className="template-header">
+                                        <h4>{template.name}</h4>
+                                        <span className="template-type">{template.template.type}</span>
+                                    </div>
+                                    <p>{template.template.description}</p>
+                                    <div className="template-details">
+                                        <span className="priority-badge priority-{template.template.priority.toLowerCase()}">
+                                            {template.template.priority}
+                                        </span>
+                                        <span className="estimated-time">{template.template.estimatedTime}</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            const title = prompt('Task title:', `${template.name} - ${new Date().toLocaleDateString()}`);
+                                            const subject = prompt('Subject:', 'General');
+                                            if (title && subject) {
+                                                createTaskFromTemplate(template, title, subject);
+                                            }
+                                        }}
+                                        className="use-template-btn"
+                                    >
+                                        <i className="ri-add-line"></i> Use Template
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowTemplates(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Advanced Search Modal */}
+            {showAdvancedSearch && (
+                <div className="modal-overlay">
+                    <div className="modal-content search-modal">
+                        <div className="modal-header">
+                            <h3><i className="ri-search-2-line"></i> Advanced Search</h3>
+                            <button onClick={() => setShowAdvancedSearch(false)} className="close-btn">
+                                <i className="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div className="search-form">
+                            <div className="search-row">
+                                <div className="search-field">
+                                    <label>Title</label>
+                                    <input
+                                        type="text"
+                                        value={searchFilters.title}
+                                        onChange={(e) => setSearchFilters(prev => ({...prev, title: e.target.value}))}
+                                        placeholder="Search by title..."
+                                    />
+                                </div>
+                                <div className="search-field">
+                                    <label>Subject</label>
+                                    <input
+                                        type="text"
+                                        value={searchFilters.subject}
+                                        onChange={(e) => setSearchFilters(prev => ({...prev, subject: e.target.value}))}
+                                        placeholder="Search by subject..."
+                                    />
+                                </div>
+                            </div>
+                            <div className="search-row">
+                                <div className="search-field">
+                                    <label>Priority</label>
+                                    <select
+                                        value={searchFilters.priority}
+                                        onChange={(e) => setSearchFilters(prev => ({...prev, priority: e.target.value}))}
+                                    >
+                                        <option value="">Any Priority</option>
+                                        <option value="High">High</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Low">Low</option>
+                                    </select>
+                                </div>
+                                <div className="search-field">
+                                    <label>Status</label>
+                                    <select
+                                        value={searchFilters.status}
+                                        onChange={(e) => setSearchFilters(prev => ({...prev, status: e.target.value}))}
+                                    >
+                                        <option value="">Any Status</option>
+                                        <option value="not-started">Not Started</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="search-row">
+                                <div className="search-field">
+                                    <label>Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={searchFilters.dateRange.start}
+                                        onChange={(e) => setSearchFilters(prev => ({
+                                            ...prev, 
+                                            dateRange: {...prev.dateRange, start: e.target.value}
+                                        }))}
+                                    />
+                                </div>
+                                <div className="search-field">
+                                    <label>End Date</label>
+                                    <input
+                                        type="date"
+                                        value={searchFilters.dateRange.end}
+                                        onChange={(e) => setSearchFilters(prev => ({
+                                            ...prev, 
+                                            dateRange: {...prev.dateRange, end: e.target.value}
+                                        }))}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="search-results">
+                            <h4>Search Results ({getFilteredTasks().length} tasks)</h4>
+                            <div className="search-results-list">
+                                {getFilteredTasks().slice(0, 10).map(task => (
+                                    <div key={task.id} className="search-result-item">
+                                        <div className="result-info">
+                                            <h5>{task.title}</h5>
+                                            <span className="result-subject">{task.subject}</span>
+                                            <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                                {task.priority}
+                                            </span>
+                                        </div>
+                                        <div className="result-actions">
+                                            <button onClick={() => {
+                                                setEditingTask(task);
+                                                setShowAddTaskModal(true);
+                                                setShowAdvancedSearch(false);
+                                            }}>
+                                                Edit
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={() => {
+                                    setSearchFilters({
+                                        title: '',
+                                        subject: '',
+                                        priority: '',
+                                        status: '',
+                                        dateRange: { start: '', end: '' },
+                                        tags: []
+                                    });
+                                }}
+                            >
+                                Clear Filters
+                            </button>
+                            <button className="btn btn-primary" onClick={() => setShowAdvancedSearch(false)}>
+                                Apply & Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Data Visualization Modal */}
+            {showDataVisualization && (
+                <div className="modal-overlay">
+                    <div className="modal-content analytics-modal">
+                        <div className="modal-header">
+                            <h3><i className="ri-bar-chart-line"></i> Task Analytics</h3>
+                            <button onClick={() => setShowDataVisualization(false)} className="close-btn">
+                                <i className="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div className="analytics-content">
+                            {(() => {
+                                const analytics = getTaskAnalytics();
+                                return (
+                                    <>
+                                        <div className="stats-overview">
+                                            <div className="stat-card">
+                                                <div className="stat-number">{analytics.totalTasks}</div>
+                                                <div className="stat-label">Total Tasks</div>
+                                            </div>
+                                            <div className="stat-card">
+                                                <div className="stat-number">{analytics.completedTasks}</div>
+                                                <div className="stat-label">Completed</div>
+                                            </div>
+                                            <div className="stat-card">
+                                                <div className="stat-number">{analytics.completionRate}%</div>
+                                                <div className="stat-label">Completion Rate</div>
+                                            </div>
+                                            <div className="stat-card">
+                                                <div className="stat-number">{analytics.overdueTasks}</div>
+                                                <div className="stat-label">Overdue</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="charts-grid">
+                                            <div className="chart-container">
+                                                <h4>Status Distribution</h4>
+                                                <div className="progress-chart">
+                                                    <div className="progress-bar">
+                                                        <div 
+                                                            className="progress-segment completed" 
+                                                            style={{width: `${(analytics.completedTasks / analytics.totalTasks) * 100}%`}}
+                                                        ></div>
+                                                        <div 
+                                                            className="progress-segment in-progress" 
+                                                            style={{width: `${(analytics.inProgressTasks / analytics.totalTasks) * 100}%`}}
+                                                        ></div>
+                                                        <div 
+                                                            className="progress-segment not-started" 
+                                                            style={{width: `${(analytics.notStartedTasks / analytics.totalTasks) * 100}%`}}
+                                                        ></div>
+                                                    </div>
+                                                    <div className="chart-legend">
+                                                        <span><span className="legend-color completed"></span>Completed ({analytics.completedTasks})</span>
+                                                        <span><span className="legend-color in-progress"></span>In Progress ({analytics.inProgressTasks})</span>
+                                                        <span><span className="legend-color not-started"></span>Not Started ({analytics.notStartedTasks})</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="chart-container">
+                                                <h4>Subject Distribution</h4>
+                                                <div className="subject-stats">
+                                                    {Object.entries(analytics.subjectStats).map(([subject, count]) => (
+                                                        <div key={subject} className="subject-stat">
+                                                            <span className="subject-name">{subject}</span>
+                                                            <div className="subject-bar">
+                                                                <div 
+                                                                    className="subject-fill" 
+                                                                    style={{width: `${(count / analytics.totalTasks) * 100}%`}}
+                                                                ></div>
+                                                            </div>
+                                                            <span className="subject-count">{count}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="chart-container">
+                                                <h4>Priority Breakdown</h4>
+                                                <div className="priority-stats">
+                                                    {Object.entries(analytics.priorityStats).map(([priority, count]) => (
+                                                        <div key={priority} className="priority-stat">
+                                                            <span className={`priority-badge priority-${priority.toLowerCase()}`}>
+                                                                {priority}
+                                                            </span>
+                                                            <span className="priority-count">{count} tasks</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="chart-container">
+                                                <h4>Performance Insights</h4>
+                                                <div className="insights-list">
+                                                    <div className="insight-item">
+                                                        <i className="ri-time-line"></i>
+                                                        <span>Average time per task: {analytics.averageTimeSpent} minutes</span>
+                                                    </div>
+                                                    <div className="insight-item">
+                                                        <i className="ri-calendar-check-line"></i>
+                                                        <span>Most productive subject: {Object.entries(analytics.subjectStats).sort((a,b) => b[1] - a[1])[0]?.[0] || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="insight-item">
+                                                        <i className="ri-trophy-line"></i>
+                                                        <span>Completion streak: {analytics.completionRate}% overall</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowDataVisualization(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Focus Mode Overlay */}
+            {focusMode && focusTask && (
+                <div className="focus-mode-overlay">
+                    <div className="focus-mode-content">
+                        <div className="focus-header">
+                            <h2><i className="ri-focus-3-line"></i> Focus Mode</h2>
+                            <button onClick={exitFocusMode} className="exit-focus-btn">
+                                <i className="ri-close-line"></i> Exit Focus
+                            </button>
+                        </div>
+                        <div className="focus-task">
+                            <h3>{focusTask.title}</h3>
+                            <p>{focusTask.description}</p>
+                            <div className="focus-details">
+                                <span className="focus-subject">{focusTask.subject}</span>
+                                <span className={`priority-badge priority-${focusTask.priority.toLowerCase()}`}>
+                                    {focusTask.priority}
+                                </span>
+                            </div>
+                            <div className="focus-progress">
+                                <div className="progress-bar">
+                                    <div 
+                                        className="progress-fill" 
+                                        style={{width: `${focusTask.progress * 100}%`}}
+                                    ></div>
+                                </div>
+                                <span>{Math.round(focusTask.progress * 100)}% Complete</span>
+                            </div>
+                            <div className="focus-timer">
+                                <div className="timer-display">
+                                    {studyTimer.isRunning && studyTimer.taskId === focusTask.id
+                                        ? formatTimerDisplay(studyTimer.startTime)
+                                        : '00:00'
+                                    }
+                                </div>
+                                <div className="timer-controls">
+                                    {studyTimer.isRunning && studyTimer.taskId === focusTask.id ? (
+                                        <button onClick={stopStudyTimer} className="btn btn-danger">
+                                            <i className="ri-pause-line"></i> Pause
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => startStudyTimer(focusTask.id)} className="btn btn-success">
+                                            <i className="ri-play-line"></i> Start
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showAddTaskModal && (
                 <div ref={addTaskModalRef}>
                     <AddTaskForm
                         onAddTask={handleAddTask}
                         onClose={() => setShowAddTaskModal(false)}
                         // Pass any other necessary props like subjects, task types if AddTaskForm needs them for dropdowns
+                        initialData={editingTask} // Pass editingTask data to the form for editing
                     />
                 </div>
             )}

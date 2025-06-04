@@ -125,6 +125,7 @@ const AcademicPlanner = () => {
     const [showTemplates, setShowTemplates] = useState(false);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [showDataVisualization, setShowDataVisualization] = useState(false);
+    const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     const [searchFilters, setSearchFilters] = useState({
         title: '',
         subject: '',
@@ -178,6 +179,19 @@ const AcademicPlanner = () => {
     
     // Create ref for the add task modal to enable smooth scrolling
     const addTaskModalRef = useRef(null);
+    const settingsDropdownRef = useRef(null);
+
+    // Handle click outside to close settings dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
+                setShowSettingsDropdown(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [settingsDropdownRef]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -1316,40 +1330,43 @@ const AcademicPlanner = () => {
                         }).length > 0 && <span className="notification-badge"></span>}
                     </button>
                     
-                    <div className="dropdown-container">
-                        <button className="nav-icon-btn" title="More Options">
-                            <i className="ri-more-line"></i>
+                    <div className="dropdown-container" ref={settingsDropdownRef}>
+                        <button 
+                            className="nav-icon-btn" 
+                            title="Settings"
+                            onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+                        >
+                            <i className="ri-settings-4-line"></i>
                         </button>
-                        <div className="dropdown-menu">
-                            <button onClick={exportTasks} className="dropdown-item">
-                                <i className="ri-download-line"></i>
-                                Export Tasks
-                            </button>
-                            <label className="dropdown-item file-input-label">
-                                <i className="ri-upload-line"></i>
-                                Import Tasks
-                                <input 
-                                    type="file" 
-                                    accept=".json"
-                                    onChange={importTasks}
-                                    style={{ display: 'none' }}
-                                />
-                            </label>
-                            <div className="dropdown-divider"></div>
-                            <button onClick={markAllCompleted} className="dropdown-item">
-                                <i className="ri-checkbox-multiple-line"></i>
-                                Mark All Complete
-                            </button>
-                            <button onClick={deleteAllCompleted} className="dropdown-item danger">
-                                <i className="ri-delete-bin-line"></i>
-                                Clear Completed
-                            </button>
-                        </div>
+                        
+                        {showSettingsDropdown && (
+                            <div className="dropdown-menu settings-dropdown">
+                                <button onClick={exportTasks} className="dropdown-item settings-item">
+                                    <i className="ri-download-line"></i>
+                                    <span className="settings-item-text">Export Tasks</span>
+                                </button>
+                                <label className="dropdown-item settings-item file-input-label">
+                                    <i className="ri-upload-line"></i>
+                                    <span className="settings-item-text">Import Tasks</span>
+                                    <input 
+                                        type="file" 
+                                        accept=".json"
+                                        onChange={importTasks}
+                                        style={{ display: 'none' }}
+                                    />
+                                </label>
+                                <div className="dropdown-divider"></div>
+                                <button onClick={markAllCompleted} className="dropdown-item settings-item">
+                                    <i className="ri-checkbox-multiple-line"></i>
+                                    <span className="settings-item-text bold">Mark All Complete</span>
+                                </button>
+                                <button onClick={deleteAllCompleted} className="dropdown-item danger settings-item">
+                                    <i className="ri-delete-bin-line"></i>
+                                    <span className="settings-item-text">Clear Completed</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    
-                    <button className="nav-icon-btn" title="Settings">
-                        <i className="ri-settings-4-line"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -1839,6 +1856,29 @@ const AcademicPlanner = () => {
                     <div className="year-title">
                         <h2>{currentYear} Academic Year Overview</h2>
                     </div>
+                    
+                    {/* Centered action buttons for year view */}
+                    <div className="year-view-actions">
+                        <button className="year-action-btn" onClick={exportTasks}>
+                            <i className="ri-download-line"></i> Export Tasks
+                        </button>
+                        <label className="year-action-btn file-input-label">
+                            <i className="ri-upload-line"></i> Import Tasks
+                            <input 
+                                type="file" 
+                                accept=".json"
+                                onChange={importTasks}
+                                style={{ display: 'none' }}
+                            />
+                        </label>
+                        <button className="year-action-btn" onClick={markAllCompleted}>
+                            <i className="ri-checkbox-multiple-line"></i> Mark All Complete
+                        </button>
+                        <button className="year-action-btn" onClick={deleteAllCompleted}>
+                            <i className="ri-delete-bin-line"></i> Clear Completed
+                        </button>
+                    </div>
+                    
                     <div className="year-stats-summary">
                         <div className="year-stat-item">
                             <div className="flex items-center justify-between w-full">
@@ -2053,7 +2093,7 @@ const AcademicPlanner = () => {
     return (
         <div className="academic-planner">
             {renderSidebar()}
-            <div className="main-content">
+            <div className={`main-content ${currentView === 'year' ? 'year-view-active' : ''}`}>
                 {renderTopNavigation()}
                 <div className="view-content">
                     {currentView === 'day' && renderDayView()}

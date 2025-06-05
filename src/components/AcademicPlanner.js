@@ -180,10 +180,17 @@ const AcademicPlanner = () => {
     // Create ref for the add task modal to enable smooth scrolling
     const addTaskModalRef = useRef(null);
     const settingsDropdownRef = useRef(null);
+    const settingsBtnRef = useRef(null);
 
     // Handle click outside to close settings dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
+            // Don't close if clicking on the settings button itself
+            if (settingsBtnRef.current && settingsBtnRef.current.contains(event.target)) {
+                return;
+            }
+            
+            // Close if clicking outside the dropdown
             if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
                 setShowSettingsDropdown(false);
             }
@@ -191,7 +198,7 @@ const AcademicPlanner = () => {
         
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [settingsDropdownRef]);
+    }, [settingsDropdownRef, settingsBtnRef]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -1361,9 +1368,43 @@ const AcademicPlanner = () => {
                         </div>
                     </div>
                     
-                    <button className="nav-icon-btn" title="Settings">
-                        <i className="ri-settings-4-line"></i>
-                    </button>
+                    <div className="dropdown">
+                        <button 
+                            className="nav-icon-btn" 
+                            title="Settings" 
+                            ref={settingsBtnRef}
+                            onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+                        >
+                            <i className="ri-settings-4-line"></i>
+                        </button>
+                        
+                        <div className={`dropdown-menu ${showSettingsDropdown ? 'show' : ''}`} ref={settingsDropdownRef}>
+                            <h6 className="dropdown-header">Settings</h6>
+                            <button onClick={exportTasks} className="dropdown-item">
+                                <i className="ri-download-line"></i>
+                                Export Tasks
+                            </button>
+                            <label className="dropdown-item" style={{cursor: 'pointer'}}>
+                                <i className="ri-upload-line"></i>
+                                Import Tasks
+                                <input 
+                                    type="file" 
+                                    accept=".json" 
+                                    style={{display: 'none'}} 
+                                    onChange={importTasks}
+                                />
+                            </label>
+                            <div className="dropdown-divider"></div>
+                            <button onClick={markAllCompleted} className="dropdown-item">
+                                <i className="ri-checkbox-multiple-line"></i>
+                                Mark All Complete
+                            </button>
+                            <button onClick={deleteAllCompleted} className="dropdown-item danger">
+                                <i className="ri-delete-bin-line"></i>
+                                Clear Completed
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

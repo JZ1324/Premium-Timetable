@@ -1,0 +1,181 @@
+/* Week View Styles */
+.week-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.task-card {
+    transition: all 0.2s ease;
+}
+  
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.week-calendar {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.week-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.week-day-header {
+    padding: 1rem;
+    text-align: center;
+    border-right: 1px solid #e5e7eb;
+}
+
+.week-day-header:last-child {
+    border-right: none;
+}
+
+.day-name {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.day-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.task-count-badge {
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+}
+
+.week-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.week-day {
+    min-height: 120px;
+    padding: 1rem;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.week-day:nth-child(7n) {
+    border-right: none;
+}
+
+.week-day:nth-last-child(-n+7) {
+    border-bottom: none;
+}
+
+.week-task {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #111827;
+}
+
+.priority-high {
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+}
+  
+.priority-medium {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+  
+.priority-low {
+    background-color: #e0f2fe;
+    border-left: 4px solid #3b82f6;
+}
+
+.today-cell {
+    background-color: #ede9fe;
+}
+
+.week-day.past-day {
+    background-color: #f9fafb;
+}
+
+.week-task-time {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.status-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+}
+  
+.status-not-started {
+    border: 2px solid #9ca3af;
+}
+  
+.status-in-progress {
+    background: linear-gradient(90deg, #9ca3af 50%, transparent 50%);
+    border: 2px solid #9ca3af;
+}
+  
+.status-completed {
+    background-color: #10b981;
+    border: 2px solid #10b981;
+    position: relative;
+}
+
+.status-completed:after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 3px;
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(-45deg);
+    top: 4px;
+    left: 3px;
+}
+
+.task-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 2px;
+}
+
+/* Month cell specific styles */
+.month-cell.today {
+    background-color: rgba(79, 70, 229, 0.05);
+}
+
+/* Year view transitions */
+.year-cell {
+    transition: all 0.2s;
+}
+  
+.year-cell:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}

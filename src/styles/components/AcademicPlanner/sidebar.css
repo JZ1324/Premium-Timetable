@@ -1,0 +1,251 @@
+/* Sidebar Styles */
+.academic-planner-sidebar {
+    width: 256px;
+    background-color: white;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sidebar-header h1, .sidebar-title {
+    font-size: 1.25rem;
+    font-family: 'Pacifico', cursive;
+    color: #4f46e5;
+    margin: 0;
+}
+
+.sidebar-content {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.add-task-btn {
+    width: 100%;
+    background-color: #4f46e5;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+.add-task-btn:hover {
+    background-color: #4338ca;
+}
+
+.filter-section, .filters-section, .subjects-section, .task-types-section, .priority-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-section h3, .section-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.filter-item, .filter-group, .checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.filter-item label, .filter-label, .checkbox-label {
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+}
+
+/* Custom Switch */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+.custom-switch input:checked + .switch-slider {
+    background-color: #4f46e5;
+}
+
+.custom-switch input:checked + .switch-slider:before {
+    transform: translateX(16px);
+}
+
+/* Custom Checkbox */
+.custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.custom-checkbox:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+.custom-checkbox:checked::after {
+    content: '✓';
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 4px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+}
+
+.priority-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.priority-dot.priority-high {
+    background-color: #ef4444;
+}
+
+.priority-dot.priority-medium {
+    background-color: #f59e0b;
+}
+
+.priority-dot.priority-low {
+    background-color: #10b981;
+}
+
+/* Upcoming Deadlines Section */
+.upcoming-deadlines {
+    margin-top: 1.5rem;
+}
+
+.deadlines-list {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.deadline-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.deadline-item:last-child {
+    border-bottom: none;
+}
+
+.deadline-task-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.deadline-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.deadline-subject {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.deadline-date {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.deadline-date.today {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.deadline-date.tomorrow {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.no-deadlines {
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.no-deadlines i {
+    font-size: 1.5rem;
+    color: #9ca3af;
+}

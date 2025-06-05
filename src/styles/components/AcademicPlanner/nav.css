@@ -1,0 +1,188 @@
+/* Navigation styles for Academic Planner */
+.top-navigation {
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.view-buttons-row, .date-navigation-row, .actions-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.actions-row {
+    justify-content: space-between;
+    margin-bottom: 0;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-buttons {
+    display: flex;
+    gap: 0.25rem;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: #6b7280;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.view-btn.active {
+    background-color: white;
+    color: #4f46e5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: #4b5563;
+}
+
+.date-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.nav-arrow:hover {
+    background-color: #e5e7eb;
+}
+
+.current-date {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #111827;
+    min-width: 150px;
+    text-align: center;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.nav-icon-btn:hover {
+    background-color: #e5e7eb;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-btn.active {
+    background-color: #ede9fe;
+    color: #4f46e5;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    padding: 0 12px;
+    flex-grow: 1;
+    max-width: 300px;
+}
+
+.search-input {
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    width: 100%;
+    color: #111827;
+    outline: none;
+}
+
+.settings-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 200px;
+    z-index: 10;
+    display: none;
+    overflow: hidden;
+}
+
+.settings-dropdown.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f3f4f6;
+}

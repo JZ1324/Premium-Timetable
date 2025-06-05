@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../../styles/components/AddTaskForm.css';
+import '../../styles/components/AcademicPlanner/AddTaskForm.css';
 
 const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
     // Get current date and time for defaults

@@ -301,23 +301,7 @@ input:checked + .switch-slider:before {
     gap: 1rem;
 }
 
-.search-bar, .search-box {
-    position: relative;
-}
-
-.search-input {
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    width: 300px;
-    font-size: 0.875rem;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 1px #4f46e5;
-}
+/* Search styling moved to nav.css */
 
 .search-icon {
     position: absolute;

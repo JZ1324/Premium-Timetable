@@ -63,17 +63,17 @@ export const getStatusBadgeConfig = (status) => {
         'completed': {
             label: 'Completed',
             icon: 'ri-check-line',
-            className: 'status-completed'
+            class: 'bg-green-100 text-green-800'
         },
         'in-progress': {
-            label: 'In Progress',
+            label: 'In progress',
             icon: 'ri-play-line',
-            className: 'status-in-progress'
+            class: 'bg-yellow-100 text-yellow-800'
         },
         'not-started': {
-            label: 'Not Started',
+            label: 'Not started',
             icon: 'ri-pause-line',
-            className: 'status-not-started'
+            class: 'bg-gray-100 text-gray-800'
         }
     };
 

@@ -15,118 +15,107 @@ const TaskCard = ({
     handleProgressUpdate,
     getTimerDisplay
 }) => {
+    // Helper function to get due date status
+    const getDueDateStatus = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(task.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+            return { 
+                text: `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} overdue`, 
+                class: 'bg-red-100 text-red-800' 
+            };
+        } else if (diffDays === 0) {
+            return { text: 'Due today', class: 'bg-orange-100 text-orange-800' };
+        } else if (diffDays <= 3) {
+            return { text: `In ${diffDays} day${diffDays === 1 ? '' : 's'}`, class: 'bg-blue-100 text-blue-800' };
+        }
+        return null;
+    };
+
+    const dueDateStatus = getDueDateStatus();
+
     return (
-        <div key={task.id} className={`task-card priority-${task.priority.toLowerCase()}`}>
-            <div className="task-card-content">
-                <div className="task-info">
-                    <div className="task-badges">
-                        <span className={`type-badge bg-blue-100 text-blue-800`}>
-                            {task.type}
-                        </span>
-                        <span className={`subject-badge bg-purple-100 text-purple-800`}>
+        <div className={`task-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-${task.priority.toLowerCase()}`}>
+            {/* Top Section */}
+            <div className="flex justify-between items-start">
+                <div>
+                    <div className="flex items-center mb-1">
+                        {dueDateStatus && (
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded mr-2 ${dueDateStatus.class}`}>
+                                {dueDateStatus.text}
+                            </span>
+                        )}
+                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-blue-100 text-blue-800">
                             {task.subject}
                         </span>
-                        <span className={`priority-badge ${getPriorityColor(task.priority)} text-white`}>
-                            {task.priority}
-                        </span>
                     </div>
-                    <h4 className="task-title">{task.title}</h4>
-                    <p className="task-description">{task.description}</p>
-                    
-                    {/* Progress Bar */}
-                    <div className="progress-section">
-                        <div className="progress-header">
-                            <span className="progress-label">Progress</span>
-                            <span className="progress-percentage">{Math.round(task.progress * 100)}%</span>
-                        </div>
-                        <div className="progress-bar-container">
-                            <div 
-                                className="progress-bar"
-                                style={{ width: `${task.progress * 100}%` }}
-                            ></div>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={task.progress * 100}
-                            onChange={(e) => handleProgressUpdate(task.id, e.target.value / 100)}
-                            className="progress-slider"
-                        />
-                    </div>
-
-                    <div className="task-meta">
-                        <span className={`status-circle status-${task.status}`}></span>
-                        {getStatusBadgeConfig(task.status).label}
-                        <div className="time-spent">
+                    <h4 className="font-medium text-gray-900">
+                        {task.title}
+                    </h4>
+                    <div className="flex items-center mt-1 text-sm text-gray-500">
+                        <div className="w-4 h-4 flex items-center justify-center mr-1">
                             <i className="ri-time-line"></i>
-                            <span>Spent: {task.timeSpent}</span>
                         </div>
+                        <span>Due {task.dueDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: 'numeric', 
+                            minute: '2-digit', 
+                            hour12: true 
+                        })}</span>
+                        <span className="mx-2">•</span>
+                        <div className="w-4 h-4 flex items-center justify-center mr-1">
+                            <i className="ri-file-list-line"></i>
+                        </div>
+                        <span>{task.type}</span>
                     </div>
                 </div>
-                <div className="task-actions">
-                    <div className="task-details">
-                        <div className="due-date">
-                            <i className="ri-calendar-line"></i>
-                            <span>{task.dueDate.toLocaleDateString()}</span>
-                        </div>
-                        <div className="estimated-time">
-                            <i className="ri-time-line"></i>
-                            <span>{task.estimatedTime}</span>
-                        </div>
-                    </div>
-                    <div className="action-buttons">
-                        <button 
-                            className="action-btn edit-btn"
-                            onClick={() => handleEditTask(task)}
-                            title="Edit Task"
-                        >
-                            <i className="ri-edit-line"></i>
-                        </button>
-                        <button 
-                            className="action-btn focus-btn"
-                            onClick={() => enterFocusMode(task)}
-                            title="Enter Focus Mode"
-                        >
-                            <i className="ri-focus-3-line"></i>
-                        </button>
-                        <button 
-                            className="action-btn share-btn"
-                            onClick={() => shareTask(task)}
-                            title="Share Task"
-                        >
-                            <i className="ri-share-line"></i>
-                        </button>
-                        <button 
-                            className="action-btn timer-btn"
-                            onClick={() => studyTimer.taskId === task.id && studyTimer.isRunning 
-                                ? stopStudyTimer() 
-                                : startStudyTimer(task.id)}
-                            title={studyTimer.taskId === task.id && studyTimer.isRunning ? "Stop Timer" : "Start Timer"}
-                        >
-                            <i className={studyTimer.taskId === task.id && studyTimer.isRunning 
-                                ? "ri-pause-line" 
-                                : "ri-play-line"}></i>
-                        </button>
-                        <button 
-                            className="action-btn complete-btn"
-                            onClick={() => handleTaskComplete(task.id)}
-                            title="Toggle Complete"
-                        >
-                            <i className={task.status === 'completed' ? "ri-checkbox-circle-fill" : "ri-checkbox-circle-line"}></i>
-                        </button>
-                        <button 
-                            className="action-btn delete-btn"
-                            onClick={() => handleDeleteTask(task.id)}
-                            title="Delete Task"
-                        >
-                            <i className="ri-delete-bin-line"></i>
-                        </button>
+                <div className="flex items-center">
+                    <span className={`status-circle status-${task.status} mr-2`}></span>
+                    <div className={`text-xs font-medium px-2 py-0.5 rounded ${getStatusBadgeConfig(task.status).class}`}>
+                        {getStatusBadgeConfig(task.status).label}
                     </div>
                 </div>
             </div>
+            
+            {/* Bottom Section */}
+            <div className="flex justify-between mt-3">
+                <div className="flex items-center text-sm text-gray-500">
+                    <div className="w-4 h-4 flex items-center justify-center mr-1">
+                        <i className="ri-time-line"></i>
+                    </div>
+                    <span>Est. {task.estimatedTime}</span>
+                </div>
+                <div className="flex space-x-2">
+                    <button 
+                        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                        onClick={() => handleEditTask(task)}
+                        title="Edit Task"
+                    >
+                        <div className="w-4 h-4 flex items-center justify-center">
+                            <i className="ri-edit-line"></i>
+                        </div>
+                    </button>
+                    <button 
+                        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded whitespace-nowrap"
+                        onClick={() => handleTaskComplete(task.id)}
+                        title="Toggle Complete"
+                    >
+                        <div className="w-4 h-4 flex items-center justify-center">
+                            <i className={task.status === 'completed' ? "ri-checkbox-circle-fill" : "ri-check-line"}></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
             {studyTimer.taskId === task.id && studyTimer.isRunning && (
-                <div className="timer-display">
+                <div className="timer-display mt-3 p-2 bg-blue-50 rounded-md">
                     <i className="ri-timer-line"></i>
                     <span>Timer running... {getTimerDisplay()}</span>
                 </div>

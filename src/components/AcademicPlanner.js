@@ -241,19 +241,25 @@ const AcademicPlanner = () => {
             else if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
                 event.preventDefault();
                 setShowAdvancedSearch(true);
-                centerModalWithSmoothScroll(advancedSearchModalRef);
+                setTimeout(() => {
+                    centerModalWithSmoothScroll(advancedSearchModalRef);
+                }, 150);
             }
             // Ctrl/Cmd + T: Templates
             else if ((event.ctrlKey || event.metaKey) && event.key === 't') {
                 event.preventDefault();
                 setShowTemplates(true);
-                centerModalWithSmoothScroll(templatesModalRef);
+                setTimeout(() => {
+                    centerModalWithSmoothScroll(templatesModalRef);
+                }, 150);
             }
             // Ctrl/Cmd + D: Data visualization
             else if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
                 event.preventDefault();
                 setShowDataVisualization(true);
-                centerModalWithSmoothScroll(analyticsDashboardRef);
+                setTimeout(() => {
+                    centerModalWithSmoothScroll(analyticsDashboardRef);
+                }, 150);
             }
             // Escape: Close modals
             else if (event.key === 'Escape') {
@@ -382,40 +388,79 @@ const AcademicPlanner = () => {
         setShowAddTaskModal(true);
         setEditingTask(null);
         
-        // Use the generic function to center the modal
-        centerModalWithSmoothScroll(addTaskModalRef);
+        // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
+        setTimeout(() => {
+            centerModalWithSmoothScroll(addTaskModalRef);
+        }, 150);
     };
 
     // Functions to handle opening modals with smooth scrolling
     const handleOpenTemplatesModal = () => {
         setShowTemplates(true);
-        centerModalWithSmoothScroll(templatesModalRef);
+        // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
+        setTimeout(() => {
+            centerModalWithSmoothScroll(templatesModalRef);
+        }, 150);
     };
     
     const handleOpenAdvancedSearchModal = () => {
         setShowAdvancedSearch(true);
-        centerModalWithSmoothScroll(advancedSearchModalRef);
+        // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
+        setTimeout(() => {
+            centerModalWithSmoothScroll(advancedSearchModalRef);
+        }, 150);
     };
     
     const handleOpenAnalyticsDashboard = () => {
         setShowDataVisualization(true);
-        centerModalWithSmoothScroll(analyticsDashboardRef);
+        // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
+        setTimeout(() => {
+            centerModalWithSmoothScroll(analyticsDashboardRef);
+        }, 150);
     };
 
     // Generic function to smoothly scroll modal to center of screen
     const centerModalWithSmoothScroll = (modalRef) => {
-        if (!modalRef.current) return;
+        if (!modalRef?.current) return;
         
-        // Use setTimeout to ensure the modal is rendered before scrolling
-        setTimeout(() => {
-            // Calculate the position to center the modal
-            const modalElement = modalRef.current;
-            const modalRect = modalElement.getBoundingClientRect();
+        // Wait for modal to be fully rendered and visible
+        const attemptScroll = (retryCount = 0) => {
+            const modalWrapper = modalRef.current;
+            if (!modalWrapper) return;
+            
+            // Find the actual modal content within the wrapper
+            // Look for specific modal selectors for each modal type
+            const modalContent = modalWrapper.querySelector('.templates-modal') || 
+                               modalWrapper.querySelector('.advanced-search-modal') || 
+                               modalWrapper.querySelector('.analytics-modal') ||
+                               modalWrapper.querySelector('.add-task-modal') ||
+                               modalWrapper.querySelector('.modal-content') ||
+                               modalWrapper.querySelector('[class*="modal"]') ||
+                               modalWrapper.firstElementChild;
+            
+            if (!modalContent) {
+                if (retryCount < 10) {
+                    setTimeout(() => attemptScroll(retryCount + 1), 50);
+                }
+                return;
+            }
+            
+            // Check if modal content is actually visible
+            const modalRect = modalContent.getBoundingClientRect();
+            if (modalRect.height === 0 || modalRect.width === 0) {
+                if (retryCount < 10) {
+                    // Modal not yet rendered, try again
+                    setTimeout(() => attemptScroll(retryCount + 1), 50);
+                }
+                return;
+            }
+            
             const viewportHeight = window.innerHeight;
             const scrollTop = window.pageYOffset;
             
             // Calculate the position to center the modal in viewport
-            const modalCenter = modalRect.top + scrollTop + (modalRect.height / 2);
+            const modalTop = modalRect.top + scrollTop;
+            const modalCenter = modalTop + (modalRect.height / 2);
             const targetScrollTop = modalCenter - (viewportHeight / 2);
             
             // Smooth scroll to center the modal
@@ -423,7 +468,10 @@ const AcademicPlanner = () => {
                 top: Math.max(0, targetScrollTop),
                 behavior: 'smooth'
             });
-        }, 100); // Small delay to ensure modal is fully rendered
+        };
+        
+        // Start attempting to scroll
+        attemptScroll();
     };
 
     // Function to handle editing a task

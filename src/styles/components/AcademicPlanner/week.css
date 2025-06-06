@@ -3,6 +3,8 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
+    height: 100%;
 }
 
 .task-card {
@@ -18,6 +20,7 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 .week-header {
@@ -178,4 +181,93 @@
 .year-cell:hover {
     transform: scale(1.05);
     z-index: 10;
+}
+
+/* Stretched Week View Enhancements */
+.week-container {
+    width: 100%;
+    max-width: none;
+}
+
+.week-day-column {
+    min-width: 0; /* Allows flex items to shrink below their content size */
+    flex: 1;
+}
+
+.week-task-card {
+    transition: all 0.2s ease-in-out;
+    border-left: 3px solid transparent;
+}
+
+.week-task-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.week-task-card.priority-high {
+    border-left-color: #ef4444;
+}
+
+.week-task-card.priority-medium {
+    border-left-color: #f59e0b;
+}
+
+.week-task-card.priority-low {
+    border-left-color: #3b82f6;
+}
+
+/* Line clamp utility for task titles */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+    line-clamp: 2; /* Standard property for compatibility */
+}
+
+/* Ensure week grid takes full width */
+.week-grid {
+    width: 100%;
+    table-layout: fixed; /* Ensures even column distribution */
+}
+
+/* Enhanced Week View for Full Width */
+.week-view .flex-1 {
+    width: 100%;
+    max-width: none;
+}
+
+.week-view .bg-white.rounded-lg {
+    width: 100%;
+    max-width: none;
+}
+
+/* Enhanced week day columns for better spacing */
+.week-day-column {
+    min-width: 0; /* Allows flex items to shrink below their content size */
+    flex: 1;
+    padding: 1rem;
+}
+
+/* Better spacing for task cards in week view */
+.week-view .task-card {
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+}
+
+/* Better spacing for week day headers */
+.week-header-day {
+    padding: 1rem 0.5rem;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1024px) {
+    .week-day-column {
+        padding: 0.75rem;
+    }
+    
+    .week-task-card {
+        padding: 0.5rem;
+    }
 }

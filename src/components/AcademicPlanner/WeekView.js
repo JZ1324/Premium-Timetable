@@ -29,7 +29,7 @@ const WeekView = ({
 
     return (
         <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-6xl mx-auto">
+            <div className="w-full">
                 <div className="mb-6">
                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                         <p className="text-gray-600 italic">
@@ -43,7 +43,7 @@ const WeekView = ({
                         {weekDays.map((day, index) => (
                             <div 
                                 key={index} 
-                                className={`py-3 text-center text-sm font-medium ${
+                                className={`py-4 px-2 text-center text-sm font-medium ${
                                     day.toDateString() === new Date().toDateString() 
                                         ? 'text-gray-900 bg-gray-50' 
                                         : 'text-gray-500'
@@ -60,29 +60,29 @@ const WeekView = ({
                     </div>
                     <div className="grid grid-cols-7 min-h-[600px]">
                         {weekDays.map((day, dayIndex) => (
-                            <div key={dayIndex} className="p-2 border-r border-gray-200 overflow-y-auto">
+                            <div key={dayIndex} className="p-3 border-r border-gray-200 overflow-y-auto">
                                 <div className="space-y-2">
                                     {getTasksForDay(day).map(task => (
                                         <div 
                                             key={task.id} 
-                                            className={`task-card bg-white p-2 rounded border border-gray-200 shadow-sm priority-${task.priority.toLowerCase()} cursor-pointer`}
+                                            className={`task-card bg-white p-3 rounded border border-gray-200 shadow-sm priority-${task.priority.toLowerCase()} cursor-pointer hover:shadow-md transition-shadow`}
                                             onClick={() => handleEditTask(task)}
                                         >
-                                            <div className="text-xs font-medium">{task.title}</div>
-                                            <div className="text-xs text-gray-500 mt-1">
+                                            <div className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">{task.title}</div>
+                                            <div className="text-xs text-gray-500 mb-2">
                                                 {task.dueDate.toLocaleTimeString('en-US', { 
                                                     hour: 'numeric', 
                                                     minute: '2-digit' 
                                                 })}
                                             </div>
-                                            <div className="flex justify-between items-center mt-1">
-                                                <span className="text-xs text-gray-500">{task.subject}</span>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">{task.subject}</span>
                                                 <span className={`status-circle status-${task.status}`}></span>
                                             </div>
                                         </div>
                                     ))}
                                     {getTasksForDay(day).length === 0 && (
-                                        <div className="text-xs text-gray-400 text-center py-2">No tasks</div>
+                                        <div className="text-xs text-gray-400 text-center py-4">No tasks</div>
                                     )}
                                 </div>
                             </div>

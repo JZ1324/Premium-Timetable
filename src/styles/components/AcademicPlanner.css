@@ -462,7 +462,13 @@ input:checked + .switch-slider:before {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center content */
+    align-items: stretch; /* Changed from center to stretch for full width */
+}
+
+/* Week View specific container - no max-width constraint */
+.view-content:has(.week-view) {
+    align-items: stretch;
+    max-width: none;
 }
 
 /* Day View */
@@ -542,12 +548,23 @@ input:checked + .switch-slider:before {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
+    max-width: none;
+    margin: 0; /* Remove auto margins for full stretch */
+}
+
+/* Week view container takes full width */
+.week-view > div {
+    width: 100%;
+    max-width: none;
 }
 
 .week-calendar {
     background: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: none;
 }
 
 .week-header {
@@ -597,12 +614,15 @@ input:checked + .switch-slider:before {
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
     background: #e5e7eb;
+    width: 100%;
 }
 
 .week-day-column {
     background: white;
     padding: 1rem;
     min-height: 200px;
+    width: 100%;
+    min-width: 0; /* Allow flex items to shrink */
 }
 
 .day-tasks {

@@ -8,6 +8,9 @@ import '../styles/components/AcademicPlanner/week.css';
 import '../styles/components/AcademicPlanner/month.css';
 import '../styles/components/AcademicPlanner/year.css';
 import '../styles/components/AcademicPlanner/tailwind-utils.css';
+import '../styles/components/AcademicPlanner/AdvancedSearch.css';
+import '../styles/components/AcademicPlanner/TaskTemplates.css';
+import '../styles/components/AcademicPlanner/AnalyticsDashboard.css';
 import AddTaskForm from './AcademicPlanner/AddTaskForm';
 import TopNavigation from './AcademicPlanner/TopNavigation';
 import Sidebar from './AcademicPlanner/Sidebar';
@@ -16,6 +19,9 @@ import WeekView from './AcademicPlanner/WeekView';
 import MonthView from './AcademicPlanner/MonthView';
 import YearView from './AcademicPlanner/YearView';
 import TaskCard from './AcademicPlanner/TaskCard';
+import AdvancedSearch from './AcademicPlanner/AdvancedSearch';
+import TaskTemplates from './AcademicPlanner/TaskTemplates';
+import AnalyticsDashboard from './AcademicPlanner/AnalyticsDashboard';
 import { formatDate } from './AcademicPlanner/utils';
 
 const AcademicPlanner = () => {
@@ -196,6 +202,9 @@ const AcademicPlanner = () => {
     const addTaskModalRef = useRef(null);
     const settingsDropdownRef = useRef(null);
     const settingsBtnRef = useRef(null);
+    const templatesModalRef = useRef(null);
+    const advancedSearchModalRef = useRef(null);
+    const analyticsDashboardRef = useRef(null);
 
     // Handle click outside to close settings dropdown
     useEffect(() => {
@@ -232,16 +241,19 @@ const AcademicPlanner = () => {
             else if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
                 event.preventDefault();
                 setShowAdvancedSearch(true);
+                centerModalWithSmoothScroll(advancedSearchModalRef);
             }
             // Ctrl/Cmd + T: Templates
             else if ((event.ctrlKey || event.metaKey) && event.key === 't') {
                 event.preventDefault();
                 setShowTemplates(true);
+                centerModalWithSmoothScroll(templatesModalRef);
             }
             // Ctrl/Cmd + D: Data visualization
             else if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
                 event.preventDefault();
                 setShowDataVisualization(true);
+                centerModalWithSmoothScroll(analyticsDashboardRef);
             }
             // Escape: Close modals
             else if (event.key === 'Escape') {
@@ -370,25 +382,47 @@ const AcademicPlanner = () => {
         setShowAddTaskModal(true);
         setEditingTask(null);
         
+        // Use the generic function to center the modal
+        centerModalWithSmoothScroll(addTaskModalRef);
+    };
+
+    // Functions to handle opening modals with smooth scrolling
+    const handleOpenTemplatesModal = () => {
+        setShowTemplates(true);
+        centerModalWithSmoothScroll(templatesModalRef);
+    };
+    
+    const handleOpenAdvancedSearchModal = () => {
+        setShowAdvancedSearch(true);
+        centerModalWithSmoothScroll(advancedSearchModalRef);
+    };
+    
+    const handleOpenAnalyticsDashboard = () => {
+        setShowDataVisualization(true);
+        centerModalWithSmoothScroll(analyticsDashboardRef);
+    };
+
+    // Generic function to smoothly scroll modal to center of screen
+    const centerModalWithSmoothScroll = (modalRef) => {
+        if (!modalRef.current) return;
+        
         // Use setTimeout to ensure the modal is rendered before scrolling
         setTimeout(() => {
-            if (addTaskModalRef.current) {
-                // Calculate the position to center the modal
-                const modalElement = addTaskModalRef.current;
-                const modalRect = modalElement.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                const scrollTop = window.pageYOffset;
-                
-                // Calculate the position to center the modal in viewport
-                const modalCenter = modalRect.top + scrollTop + (modalRect.height / 2);
-                const targetScrollTop = modalCenter - (viewportHeight / 2);
-                
-                // Smooth scroll to center the modal
-                window.scrollTo({
-                    top: Math.max(0, targetScrollTop),
-                    behavior: 'smooth'
-                });
-            }
+            // Calculate the position to center the modal
+            const modalElement = modalRef.current;
+            const modalRect = modalElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const scrollTop = window.pageYOffset;
+            
+            // Calculate the position to center the modal in viewport
+            const modalCenter = modalRect.top + scrollTop + (modalRect.height / 2);
+            const targetScrollTop = modalCenter - (viewportHeight / 2);
+            
+            // Smooth scroll to center the modal
+            window.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
         }, 100); // Small delay to ensure modal is fully rendered
     };
 
@@ -814,21 +848,43 @@ const AcademicPlanner = () => {
 
     // Task template functionality
     const createTaskFromTemplate = (template, customTitle, customSubject) => {
-        const newTask = {
-            id: Date.now() + Math.random(),
-            title: customTitle || `${template.name} - ${customSubject}`,
-            subject: customSubject || 'General',
-            ...template.template,
-            dueDate: new Date(Date.now() + 86400000 * 7), // Default to 1 week from now
-            status: 'not-started',
-            progress: 0,
-            timeSpent: '0 hours',
-            createdAt: new Date()
-        };
+        // Handle both old format and new format from TaskTemplates component
+        let newTask;
+        
+        if (template.template) {
+            // Old format
+            newTask = {
+                id: Date.now() + Math.random(),
+                title: customTitle || `${template.name} - ${customSubject || 'Task'}`,
+                subject: customSubject || 'General',
+                ...template.template,
+                dueDate: new Date(Date.now() + 86400000 * 7), // Default to 1 week from now
+                status: 'not-started',
+                progress: 0,
+                timeSpent: '0 hours',
+                createdAt: new Date()
+            };
+        } else {
+            // New format from TaskTemplates component
+            newTask = {
+                id: Date.now() + Math.random(),
+                title: customTitle || template.title,
+                subject: customSubject || template.subject,
+                type: template.type,
+                priority: template.priority,
+                estimatedTime: template.estimatedTime,
+                description: template.description,
+                dueDate: new Date(Date.now() + 86400000 * 7), // Default to 1 week from now
+                status: 'not-started',
+                progress: 0,
+                timeSpent: '0 hours',
+                createdAt: new Date()
+            };
+        }
         
         setTasks(prevTasks => [...prevTasks, newTask]);
         setShowTemplates(false);
-        showToast(`Task created from template: ${template.name}`, 'success');
+        showToast(`Task created from template: ${template.template ? template.name : template.title}`, 'success');
     };
 
     const addCustomTemplate = (name, template) => {
@@ -850,7 +906,8 @@ const AcademicPlanner = () => {
             filtered = filtered.filter(task =>
                 task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                task.subject.toLowerCase().includes(searchQuery.toLowerCase())
+                task.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                task.type.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
@@ -863,7 +920,13 @@ const AcademicPlanner = () => {
 
         if (searchFilters.subject) {
             filtered = filtered.filter(task =>
-                task.subject.toLowerCase().includes(searchFilters.subject.toLowerCase())
+                task.subject === searchFilters.subject
+            );
+        }
+        
+        if (searchFilters.type) {
+            filtered = filtered.filter(task =>
+                task.type === searchFilters.type
             );
         }
 
@@ -875,20 +938,60 @@ const AcademicPlanner = () => {
             filtered = filtered.filter(task => task.status === searchFilters.status);
         }
 
-        if (searchFilters.dateRange.start) {
+        if (searchFilters.dateRange.start && searchFilters.dateRange.end) {
             const startDate = new Date(searchFilters.dateRange.start);
-            filtered = filtered.filter(task => task.dueDate >= startDate);
-        }
-
-        if (searchFilters.dateRange.end) {
             const endDate = new Date(searchFilters.dateRange.end);
-            filtered = filtered.filter(task => task.dueDate <= endDate);
+            endDate.setHours(23, 59, 59, 999); // Set to end of day
+            
+            filtered = filtered.filter(task => {
+                const taskDate = new Date(task.dueDate);
+                return taskDate >= startDate && taskDate <= endDate;
+            });
+        } else if (searchFilters.dateRange.start) {
+            const startDate = new Date(searchFilters.dateRange.start);
+            filtered = filtered.filter(task => {
+                const taskDate = new Date(task.dueDate);
+                return taskDate >= startDate;
+            });
+        } else if (searchFilters.dateRange.end) {
+            const endDate = new Date(searchFilters.dateRange.end);
+            endDate.setHours(23, 59, 59, 999); // Set to end of day
+            
+            filtered = filtered.filter(task => {
+                const taskDate = new Date(task.dueDate);
+                return taskDate <= endDate;
+            });
+        }
+        
+        // Filter by tags (if task has tags property)
+        if (searchFilters.tags && searchFilters.tags.length > 0) {
+            filtered = filtered.filter(task => {
+                if (!task.tags) return false;
+                return searchFilters.tags.some(tag => task.tags.includes(tag));
+            });
         }
 
         // Apply existing filters
         if (filters.hideCompleted) {
             filtered = filtered.filter(task => task.status !== 'completed');
         }
+        
+        if (filters.showUpcoming) {
+            const now = new Date();
+            const twoWeeksFromNow = new Date(now);
+            twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+            
+            filtered = filtered.filter(task => {
+                const dueDate = new Date(task.dueDate);
+                return dueDate >= now && dueDate <= twoWeeksFromNow;
+            });
+        }
+        
+        filtered = filtered.filter(task => 
+            filters.subjects.includes(task.subject) && 
+            filters.types.includes(task.type) &&
+            filters.priorities.includes(task.priority)
+        );
 
         return filtered;
     };
@@ -1128,6 +1231,77 @@ const AcademicPlanner = () => {
     // All utility functions have been moved to utils.js
     // Using utility functions imported from utils.js
 
+    // Advanced search filtering function
+    const applyAdvancedSearchFilters = useMemo(() => {
+        return (tasks, filters) => {
+            // Start with all tasks
+            let filteredResults = [...tasks];
+            
+            // Filter by title
+            if (filters.title) {
+                filteredResults = filteredResults.filter(task => 
+                    task.title.toLowerCase().includes(filters.title.toLowerCase())
+                );
+            }
+            
+            // Filter by subject
+            if (filters.subject) {
+                filteredResults = filteredResults.filter(task => 
+                    task.subject === filters.subject
+                );
+            }
+            
+            // Filter by type
+            if (filters.type) {
+                filteredResults = filteredResults.filter(task => 
+                    task.type === filters.type
+                );
+            }
+            
+            // Filter by priority
+            if (filters.priority) {
+                filteredResults = filteredResults.filter(task => 
+                    task.priority === filters.priority
+                );
+            }
+            
+            // Filter by status
+            if (filters.status) {
+                filteredResults = filteredResults.filter(task => 
+                    task.status === filters.status
+                );
+            }
+            
+            // Filter by date range
+            if (filters.dateRange.start && filters.dateRange.end) {
+                const startDate = new Date(filters.dateRange.start);
+                const endDate = new Date(filters.dateRange.end);
+                endDate.setHours(23, 59, 59, 999); // Set to end of day
+                
+                filteredResults = filteredResults.filter(task => {
+                    const taskDate = new Date(task.dueDate);
+                    return taskDate >= startDate && taskDate <= endDate;
+                });
+            } else if (filters.dateRange.start) {
+                const startDate = new Date(filters.dateRange.start);
+                filteredResults = filteredResults.filter(task => {
+                    const taskDate = new Date(task.dueDate);
+                    return taskDate >= startDate;
+                });
+            } else if (filters.dateRange.end) {
+                const endDate = new Date(filters.dateRange.end);
+                endDate.setHours(23, 59, 59, 999); // Set to end of day
+                
+                filteredResults = filteredResults.filter(task => {
+                    const taskDate = new Date(task.dueDate);
+                    return taskDate <= endDate;
+                });
+            }
+            
+            return filteredResults;
+        };
+    }, []);
+
     return (
         <div className="academic-planner">
             <Sidebar 
@@ -1144,9 +1318,9 @@ const AcademicPlanner = () => {
                     handleDateNavigation={handleDateNavigation}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    setShowTemplates={setShowTemplates}
-                    setShowAdvancedSearch={setShowAdvancedSearch}
-                    setShowDataVisualization={setShowDataVisualization}
+                    openTemplates={handleOpenTemplatesModal}
+                    openAdvancedSearch={handleOpenAdvancedSearchModal}
+                    openDataVisualization={handleOpenAnalyticsDashboard}
                     setShowNotifications={setShowNotifications}
                     showNotifications={showNotifications}
                     tasks={tasks}
@@ -1237,42 +1411,51 @@ const AcademicPlanner = () => {
             
             {/* Templates Modal */}
             {showTemplates && (
-                <div className="modal-overlay" onClick={() => setShowTemplates(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>Task Templates</h2>
-                            <button className="close-btn" onClick={() => setShowTemplates(false)}>
-                                <i className="ri-close-line"></i>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="templates-container">
-                                {taskTemplates.map(template => (
-                                    <div 
-                                        key={template.id} 
-                                        className="template-card"
-                                        onClick={() => {
-                                            createTaskFromTemplate(template);
-                                            setShowTemplates(false);
-                                        }}
-                                    >
-                                        <h3>{template.name}</h3>
-                                        <div className="template-info">
-                                            <div><strong>Type:</strong> {template.template.type}</div>
-                                            <div><strong>Priority:</strong> {template.template.priority}</div>
-                                            <div><strong>Est. Time:</strong> {template.template.estimatedTime}</div>
-                                        </div>
-                                        <div className="template-description">
-                                            {template.template.description}
-                                        </div>
-                                        <button className="use-template-btn">
-                                            <i className="ri-add-line"></i> Use Template
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                <div ref={templatesModalRef}>
+                <TaskTemplates
+                    onApplyTemplate={createTaskFromTemplate}
+                    onClose={() => setShowTemplates(false)}
+                    onSaveTemplate={(template) => {
+                        // Add the new template to the taskTemplates array
+                        setTaskTemplates(prev => [...prev, {
+                            id: template.id,
+                            name: template.title,
+                            template: {
+                                type: template.type,
+                                priority: template.priority,
+                                estimatedTime: template.estimatedTime,
+                                description: template.description
+                            }
+                        }]);
+                        showToast('Template saved successfully!', 'success');
+                    }}
+                />
+                </div>
+            )}
+            
+            {/* Advanced Search Modal */}
+            {showAdvancedSearch && (
+                <div ref={advancedSearchModalRef}>
+                <AdvancedSearch
+                    onSearch={(filters) => {
+                        setSearchFilters(filters);
+                        setShowAdvancedSearch(false);
+                        // Implement advanced search logic here
+                        showToast('Search filters applied', 'info');
+                    }}
+                    onClose={() => setShowAdvancedSearch(false)}
+                    initialFilters={searchFilters}
+                />
+                </div>
+            )}
+            
+            {/* Analytics Dashboard */}
+            {showDataVisualization && (
+                <div ref={analyticsDashboardRef}>
+                <AnalyticsDashboard
+                    tasks={tasks}
+                    onClose={() => setShowDataVisualization(false)}
+                />
                 </div>
             )}
             

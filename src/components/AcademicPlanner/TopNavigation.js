@@ -9,9 +9,9 @@ const TopNavigation = ({
     handleDateNavigation,
     searchQuery,
     setSearchQuery,
-    setShowTemplates,
-    setShowAdvancedSearch,
-    setShowDataVisualization,
+    openTemplates,
+    openAdvancedSearch,
+    openDataVisualization,
     setShowNotifications,
     showNotifications,
     tasks,
@@ -77,7 +77,7 @@ const TopNavigation = ({
                 <div className="nav-actions">
                     <button 
                         className="nav-icon-btn"
-                        onClick={() => setShowTemplates(true)}
+                        onClick={openTemplates}
                         title="Task Templates (Ctrl+T)"
                     >
                         <i className="ri-file-copy-line"></i>
@@ -85,7 +85,7 @@ const TopNavigation = ({
                     
                     <button 
                         className="nav-icon-btn"
-                        onClick={() => setShowAdvancedSearch(true)}
+                        onClick={openAdvancedSearch}
                         title="Advanced Search (Ctrl+F)"
                     >
                         <i className="ri-search-2-line"></i>
@@ -93,7 +93,7 @@ const TopNavigation = ({
                     
                     <button 
                         className="nav-icon-btn"
-                        onClick={() => setShowDataVisualization(true)}
+                        onClick={openDataVisualization}
                         title="Analytics Dashboard (Ctrl+D)"
                     >
                         <i className="ri-bar-chart-line"></i>

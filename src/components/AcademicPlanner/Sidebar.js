@@ -1,13 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/components/AcademicPlanner/sidebar.css';
 
 const Sidebar = ({ 
     tasks, 
-    filters, 
+    filters = {}, // Add default value 
     handleFilterChange, 
     handleOpenAddTaskModal,
     handleOpenAddAssignmentModal
 }) => {
+    // Ensure filters has all required properties with defaults
+    const safeFilters = {
+        hideCompleted: false,
+        showOnlyUpcoming: false,
+        subjects: [],
+        types: [],
+        priorities: [],
+        ...filters // Override defaults with actual values
+    };
+
+    // Load saved subjects from localStorage
+    const loadSavedItems = (key, defaultItems) => {
+        try {
+            const saved = localStorage.getItem(key);
+            return saved ? [...defaultItems, ...JSON.parse(saved)] : defaultItems;
+        } catch {
+            return defaultItems;
+        }
+    };
+
+    // Default subjects changed to Math and English as requested
+    const defaultSubjects = ['Math', 'English'];
+    const [subjects, setSubjects] = useState(() => loadSavedItems('customSubjects', defaultSubjects));
+
+    // Update subjects when localStorage changes (when new subjects are added via forms)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setSubjects(loadSavedItems('customSubjects', defaultSubjects));
+        };
+
+        // Listen for storage changes
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check for changes periodically since storage events don't fire for same-origin changes
+        const interval = setInterval(handleStorageChange, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(interval);
+        };
+    }, []);
     return (
         <div className="academic-planner-sidebar">
             <div className="sidebar-header">
@@ -33,7 +74,7 @@ const Sidebar = ({
                         <label className="custom-switch">
                             <input 
                                 type="checkbox" 
-                                checked={filters.hideCompleted}
+                                checked={safeFilters.hideCompleted}
                                 onChange={() => handleFilterChange('hideCompleted')}
                             />
                             <span className="switch-slider"></span>
@@ -44,7 +85,7 @@ const Sidebar = ({
                         <label className="custom-switch">
                             <input 
                                 type="checkbox" 
-                                checked={filters.showOnlyUpcoming}
+                                checked={safeFilters.showOnlyUpcoming}
                                 onChange={() => handleFilterChange('showOnlyUpcoming')}
                             />
                             <span className="switch-slider"></span>
@@ -56,16 +97,16 @@ const Sidebar = ({
                 <div className="subjects-section">
                     <h3 className="section-title">SUBJECTS</h3>
                     <div className="checkbox-group">
-                        {['Mathematics', 'History', 'Science', 'Literature', 'Computer Science'].map(subject => (
+                        {subjects.map(subject => (
                             <div key={subject} className="checkbox-item">
                                 <input 
                                     type="checkbox" 
                                     className="custom-checkbox"
-                                    id={`subject-${subject.toLowerCase()}`}
+                                    id={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`}
                                     checked={filters.subjects.includes(subject)}
                                     onChange={() => handleFilterChange('subjects', subject)}
                                 />
-                                <label htmlFor={`subject-${subject.toLowerCase()}`} className="checkbox-label">
+                                <label htmlFor={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`} className="checkbox-label">
                                     {subject}
                                 </label>
                             </div>

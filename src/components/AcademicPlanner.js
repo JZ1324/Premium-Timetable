@@ -15,6 +15,8 @@ import '../styles/components/AcademicPlanner/progressBar.css';
 import '../styles/components/AcademicPlanner/task-grid-fix.css';
 import '../styles/components/AcademicPlanner/AddAssignmentForm.css';
 import '../styles/components/AcademicPlanner/AssignmentCard.css';
+import '../styles/components/AcademicPlanner/toasts.css';
+import '../styles/components/AcademicPlanner/animations.css';
 import AddTaskForm from './AcademicPlanner/AddTaskForm';
 import AddAssignmentForm from './AcademicPlanner/AddAssignmentForm';
 import TopNavigation from './AcademicPlanner/TopNavigation';
@@ -61,14 +63,14 @@ const AcademicPlanner = () => {
         return [
             {
                 id: 1,
-                title: 'History Essay Draft',
-                subject: 'History',
+                title: 'English Essay Draft',
+                subject: 'English',
                 type: 'Assignment',
                 priority: 'High',
                 status: 'in-progress',
                 dueDate: new Date(),
                 estimatedTime: '4 hours',
-                description: 'Write a comprehensive essay on World War II',
+                description: 'Write a comprehensive essay on modern literature',
                 createdAt: new Date(),
                 progress: 0.3,
                 timeSpent: '1.5 hours'
@@ -76,7 +78,7 @@ const AcademicPlanner = () => {
             {
                 id: 2,
                 title: 'Math Problem Set',
-                subject: 'Mathematics',
+                subject: 'Math',
                 type: 'Assignment',
                 priority: 'Medium',
                 status: 'not-started',
@@ -89,36 +91,36 @@ const AcademicPlanner = () => {
             },
             {
                 id: 3,
-                title: 'Science Lab Report',
-                subject: 'Science',
-                type: 'Assignment',
+                title: 'Math Quiz Preparation',
+                subject: 'Math',
+                type: 'Study Block',
                 priority: 'Low',
                 status: 'not-started',
                 dueDate: new Date(Date.now() + 259200000), // 3 days
                 estimatedTime: '2 hours',
-                description: 'Lab report on chemical reactions',
+                description: 'Review algebra and trigonometry concepts',
                 createdAt: new Date(),
                 progress: 0,
                 timeSpent: '0 hours'
             },
             {
                 id: 4,
-                title: 'Programming Project',
-                subject: 'Computer Science',
+                title: 'English Reading Assignment',
+                subject: 'English',
                 type: 'Assignment',
                 priority: 'High',
                 status: 'not-started',
                 dueDate: new Date(Date.now() + 432000000), // 5 days
-                estimatedTime: '8 hours',
-                description: 'Build a web application using React',
+                estimatedTime: '3 hours',
+                description: 'Read and analyze chapters 5-7 of the assigned novel',
                 createdAt: new Date(),
                 progress: 0,
                 timeSpent: '0 hours'
             },
             {
                 id: 5,
-                title: 'Calculus Review Session',
-                subject: 'Mathematics',
+                title: 'Math Review Session',
+                subject: 'Math',
                 type: 'Study Block',
                 priority: 'Low',
                 status: 'in-progress',
@@ -145,10 +147,10 @@ const AcademicPlanner = () => {
 
     const [filters, setFilters] = useState({
         hideCompleted: false,
-        showUpcoming: true,
-        subjects: ['Mathematics', 'History', 'Science', 'Literature', 'Computer Science'],
-        types: ['Assignment', 'Exam', 'Study Block', 'Event', 'Reminder'],
-        priorities: ['High', 'Medium', 'Low'],
+        showOnlyUpcoming: false, // Changed to match the property name used in Sidebar
+        subjects: [], // Empty array means show all subjects
+        types: [], // Empty array means show all types
+        priorities: [], // Empty array means show all priorities
     });
     const [toastMessage, setToastMessage] = useState(null);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -392,8 +394,14 @@ const AcademicPlanner = () => {
 
     // Function to show toast
     const showToast = (message, type = 'success') => {
-        setToastMessage({ message, type });
-        setTimeout(() => setToastMessage(null), 3000);
+        // Clear any existing toast first
+        setToastMessage(null);
+        
+        // Delay slightly before showing new toast to ensure animation works
+        setTimeout(() => {
+            setToastMessage({ message, type });
+            setTimeout(() => setToastMessage(null), 3500);
+        }, 50);
     };
 
     // Function to handle opening add task modal with smooth scroll
@@ -764,12 +772,29 @@ const AcademicPlanner = () => {
 
     // Study timer functionality
     const startStudyTimer = (taskId) => {
+        console.log("Starting study timer for task:", taskId);
+        // First stop any existing timer
+        if (studyTimer.isRunning) {
+            stopStudyTimer();
+        }
+        
+        // Find the task to get its title
+        const task = tasks.find(t => t.id === taskId);
+        const taskTitle = task ? task.title : 'Task';
+        
+        // Start new timer
         setStudyTimer({
             taskId,
             startTime: new Date(),
             isRunning: true
         });
-        showToast('Study timer started! 📚');
+        
+        // Show toast with animation to give visual feedback
+        setToastMessage({ 
+            message: `Timer started for "${taskTitle}"! ⏱️ Focus mode activated.`,
+            type: 'timer' 
+        });
+        setTimeout(() => setToastMessage(null), 4000);
     };
 
     const stopStudyTimer = () => {
@@ -778,6 +803,10 @@ const AcademicPlanner = () => {
             const timeSpentFormatted = timeSpent < 60 
                 ? `${Math.round(timeSpent)} minutes`
                 : `${Math.floor(timeSpent / 60)}h ${Math.round(timeSpent % 60)}m`;
+            
+            // Find the task to get its title
+            const task = tasks.find(t => t.id === studyTimer.taskId);
+            const taskTitle = task ? task.title : 'Task';
             
             setTasks(prevTasks =>
                 prevTasks.map(task =>
@@ -790,7 +819,11 @@ const AcademicPlanner = () => {
                 )
             );
             
-            showToast(`Study session completed! Time: ${timeSpentFormatted}`);
+            setToastMessage({ 
+                message: `Study session completed for "${taskTitle}"! Time spent: ${timeSpentFormatted} ✅`,
+                type: 'success' 
+            });
+            setTimeout(() => setToastMessage(null), 4000);
         }
         
         setStudyTimer({ taskId: null, startTime: null, isRunning: false });
@@ -798,8 +831,39 @@ const AcademicPlanner = () => {
 
     // Helper function to add time spent
     const addTimeSpent = (existingTime, newTime) => {
-        // Simple implementation - you could make this more sophisticated
-        return `${existingTime} + ${newTime}`;
+        // Parse existing time
+        const parseTime = (timeStr) => {
+            if (!timeStr || timeStr === '0 hours') return 0;
+            
+            let totalMinutes = 0;
+            const hourMatch = timeStr.match(/(\d+)h/);
+            const minuteMatch = timeStr.match(/(\d+)m/);
+            const hoursOnlyMatch = timeStr.match(/(\d+)\s*hours?/);
+            const minutesOnlyMatch = timeStr.match(/(\d+)\s*minutes?/);
+            
+            if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
+            if (minuteMatch) totalMinutes += parseInt(minuteMatch[1]);
+            if (hoursOnlyMatch && !hourMatch) totalMinutes += parseInt(hoursOnlyMatch[1]) * 60;
+            if (minutesOnlyMatch && !minuteMatch) totalMinutes += parseInt(minutesOnlyMatch[1]);
+            
+            return totalMinutes;
+        };
+        
+        const formatTime = (totalMinutes) => {
+            if (totalMinutes === 0) return '0 hours';
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            
+            if (hours === 0) return `${minutes} minutes`;
+            if (minutes === 0) return `${hours} hours`;
+            return `${hours}h ${minutes}m`;
+        };
+        
+        const existingMinutes = parseTime(existingTime);
+        const newMinutes = parseTime(newTime);
+        const totalMinutes = existingMinutes + newMinutes;
+        
+        return formatTime(totalMinutes);
     };
 
     // Get timer display for running timer
@@ -816,15 +880,27 @@ const AcademicPlanner = () => {
     useEffect(() => {
         let interval;
         if (studyTimer.isRunning) {
+            console.log("Timer is running for task:", studyTimer.taskId);
+            
+            // Update every second to refresh the timer display and progress
             interval = setInterval(() => {
                 // Force re-render to update timer display
-                setStudyTimer(prev => ({ ...prev }));
+                setStudyTimer(prev => {
+                    console.log("Timer tick, elapsed:", Math.floor((new Date() - prev.startTime) / 1000), "seconds");
+                    return { ...prev, lastUpdate: new Date() };
+                });
+                
+                // Also force a task update to refresh progress for the task with active timer
+                setTasks(prevTasks => {
+                    return [...prevTasks]; // Creates a new array reference to trigger re-render
+                });
             }, 1000);
         }
+        
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [studyTimer.isRunning]);
+    }, [studyTimer.isRunning, studyTimer.taskId]);
 
     // AI Suggestions based on task analysis
     const generateAISuggestions = useMemo(() => {
@@ -995,16 +1071,28 @@ const AcademicPlanner = () => {
     };
 
     const handleFilterChange = (filterType, value) => {
+        console.log('Filter Change Debug:', { filterType, value });
         setFilters(prev => {
             if (filterType === 'hideCompleted' || filterType === 'showOnlyUpcoming') {
                 return { ...prev, [filterType]: !prev[filterType] };
-            } else {
-                const currentValues = prev[filterType];
+            } else if (['subjects', 'types', 'priorities'].includes(filterType)) {
+                // Ensure we're working with arrays
+                const currentValues = Array.isArray(prev[filterType]) ? prev[filterType] : [];
                 const newValues = currentValues.includes(value)
                     ? currentValues.filter(v => v !== value)
                     : [...currentValues, value];
+                
+                console.log('Filter State Update:', {
+                    filterType,
+                    value,
+                    currentValues,
+                    newValues,
+                    newState: { ...prev, [filterType]: newValues }
+                });
+                
                 return { ...prev, [filterType]: newValues };
             }
+            return prev;
         });
     };
 
@@ -1133,7 +1221,7 @@ const AcademicPlanner = () => {
             });
         }
 
-        // Apply existing filters
+        // Apply existing filters with new logic
         if (filters.hideCompleted) {
             filtered = filtered.filter(task => task.status !== 'completed');
         }
@@ -1149,11 +1237,37 @@ const AcademicPlanner = () => {
             });
         }
         
-        filtered = filtered.filter(task => 
-            filters.subjects.includes(task.subject) && 
-            filters.types.includes(task.type) &&
-            filters.priorities.includes(task.priority)
-        );
+        // Apply filter hierarchy: Subject (highest) → Task Types → Priorities (lowest)
+        
+        // 1. Subject filter (highest priority)
+        if (filters.subjects.length > 0) {
+            console.log('Subject Filter Debug:', {
+                selectedSubjects: filters.subjects,
+                tasksBeforeFilter: filtered.length,
+                taskSubjects: filtered.map(task => task.subject),
+                taskTitles: filtered.map(task => task.title)
+            });
+            filtered = filtered.filter(task => filters.subjects.includes(task.subject));
+            console.log('Tasks after subject filter:', filtered.length);
+        }
+        
+        // 2. Task types filter (medium priority)
+        if (filters.types.length > 0) {
+            filtered = filtered.filter(task => filters.types.includes(task.type));
+        }
+        
+        // 3. Priorities filter (lowest priority)
+        if (filters.priorities.length > 0) {
+            filtered = filtered.filter(task => filters.priorities.includes(task.priority));
+        }
+
+        // Sort by priority: High → Medium → Low
+        const priorityOrder = { 'High': 1, 'Medium': 2, 'Low': 3 };
+        filtered.sort((a, b) => {
+            const priorityA = priorityOrder[a.priority] || 4;
+            const priorityB = priorityOrder[b.priority] || 4;
+            return priorityA - priorityB;
+        });
 
         return filtered;
     };
@@ -1558,13 +1672,14 @@ const AcademicPlanner = () => {
             
             {toastMessage && (
                 <div className="toast-container">
-                    <div className={`toast-notification toast-${toastMessage.type} ${toastMessage ? 'show' : 'fade-out'}`}>
+                    <div className={`toast-notification toast-${toastMessage.type} ${toastMessage ? 'show' : 'fade-out'} toast-animation`}>
                         <div className="toast-content">
                             <div className="toast-icon">
                                 {toastMessage.type === 'success' && <i className="ri-check-line"></i>}
                                 {toastMessage.type === 'error' && <i className="ri-error-warning-line"></i>}
                                 {toastMessage.type === 'info' && <i className="ri-information-line"></i>}
                                 {toastMessage.type === 'warning' && <i className="ri-alert-line"></i>}
+                                {toastMessage.type === 'timer' && <i className="ri-timer-line"></i>}
                             </div>
                             <span className="toast-message">{toastMessage.message}</span>
                         </div>

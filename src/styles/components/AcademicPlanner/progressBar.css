@@ -6,12 +6,124 @@
   border-radius: 4px;
   height: 8px;
   overflow: hidden;
+  position: relative;
 }
 
 .progress-bar {
   height: 100%;
   border-radius: 4px;
   transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Timer Running Animation Effects */
+.progress-bar.timer-running {
+  background: linear-gradient(90deg, 
+    var(--progress-color) 0%, 
+    var(--progress-color) 70%, 
+    rgba(255, 255, 255, 0.3) 85%, 
+    var(--progress-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: progressShimmer 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.progress-bar.timer-running::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.6) 50%, 
+    transparent 100%
+  );
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+.progress-bar.timer-running::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.8) 30%, 
+    rgba(255, 255, 255, 0.8) 70%, 
+    transparent 100%
+  );
+  transform: translateY(-50%);
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+/* Sparkling particles effect */
+.progress-container.timer-active::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 50px 12px, 30px 12px, 40px 12px, 35px 12px;
+  animation: sparkleParticles 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Keyframe Animations */
+@keyframes progressShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    left: -100%;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes glow {
+  0% {
+    opacity: 0.5;
+    transform: translateY(-50%) scaleY(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1.5);
+  }
+}
+
+@keyframes sparkleParticles {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.2);
+  }
 }
 
 .progress-info {

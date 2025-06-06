@@ -5,7 +5,8 @@ const Sidebar = ({
     tasks, 
     filters, 
     handleFilterChange, 
-    handleOpenAddTaskModal 
+    handleOpenAddTaskModal,
+    handleOpenAddAssignmentModal
 }) => {
     return (
         <div className="academic-planner-sidebar">
@@ -14,10 +15,16 @@ const Sidebar = ({
             </div>
             <div className="sidebar-content">
                 <div className="add-task-section">
-                    <button className="add-task-btn" onClick={handleOpenAddTaskModal}>
-                        <i className="ri-add-line"></i>
-                        Add New Task
-                    </button>
+                    <div className="add-buttons-row">
+                        <button className="add-task-btn half-width" onClick={handleOpenAddTaskModal}>
+                            <i className="ri-add-line"></i>
+                            Task
+                        </button>
+                        <button className="add-assignment-btn half-width" onClick={handleOpenAddAssignmentModal}>
+                            <i className="ri-add-line"></i>
+                            Assignment
+                        </button>
+                    </div>
                 </div>
 
                 <div className="filters-section">

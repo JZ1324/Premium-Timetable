@@ -115,6 +115,37 @@
 
 .nav-icon-btn:hover {
     background-color: #e5e7eb;
+    color: #111827;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-task-btn {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.add-task-btn:hover {
+    background-color: #4338ca;
+}
+
+.add-assignment-btn {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+.add-assignment-btn:hover {
+    background-color: #7c3aed;
 }
 
 .notification-badge {

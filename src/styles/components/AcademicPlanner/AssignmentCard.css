@@ -1,0 +1,140 @@
+/* Assignment Card Styles */
+.assignment-card {
+    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.assignment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.assignment-card.priority-high {
+    border-left: 4px solid #ef4444;
+}
+
+.assignment-card.priority-medium {
+    border-left: 4px solid #f59e0b;
+}
+
+.assignment-card.priority-low {
+    border-left: 4px solid #3b82f6;
+}
+
+/* Subtasks Section */
+.subtasks-section {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.subtask-item {
+    padding: 0.75rem;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-left-width: 3px;
+}
+
+.subtask-item.priority-high {
+    border-left-color: #ef4444;
+}
+
+.subtask-item.priority-medium {
+    border-left-color: #f59e0b;
+}
+
+.subtask-item.priority-low {
+    border-left-color: #3b82f6;
+}
+
+.subtask-complete-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subtask-content {
+    flex: 1;
+}
+
+.subtask-title {
+    font-weight: 500;
+    color: #111827;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.subtask-details {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.subtask-estimate, .subtask-priority {
+    display: flex;
+    align-items: center;
+}
+
+.subtask-estimate::before {
+    content: "";
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #9ca3af;
+    margin-right: 0.25rem;
+}
+
+.subtask-priority::before {
+    content: "";
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+}
+
+.subtask-item.priority-high .subtask-priority::before {
+    background-color: #ef4444;
+}
+
+.subtask-item.priority-medium .subtask-priority::before {
+    background-color: #f59e0b;
+}
+
+.subtask-item.priority-low .subtask-priority::before {
+    background-color: #3b82f6;
+}
+
+.subtask-description {
+    font-size: 0.75rem;
+    color: #4b5563;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+}

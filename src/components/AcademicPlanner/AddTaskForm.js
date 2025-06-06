@@ -131,6 +131,8 @@ const AddTaskForm = ({ onAddTask, onClose, initialData = null }) => {
             priority: formData.priority,
             dueDate: new Date(`${formData.dueDate}T${formData.dueTime}`),
             estimatedTime: formData.estimatedTime,
+            progress: 0, // Initialize progress at 0%
+            status: 'not-started'
         };
 
         onAddTask(taskData);

@@ -11,7 +11,12 @@ import '../styles/components/AcademicPlanner/tailwind-utils.css';
 import '../styles/components/AcademicPlanner/AdvancedSearch.css';
 import '../styles/components/AcademicPlanner/TaskTemplates.css';
 import '../styles/components/AcademicPlanner/AnalyticsDashboard.css';
+import '../styles/components/AcademicPlanner/progressBar.css';
+import '../styles/components/AcademicPlanner/task-grid-fix.css';
+import '../styles/components/AcademicPlanner/AddAssignmentForm.css';
+import '../styles/components/AcademicPlanner/AssignmentCard.css';
 import AddTaskForm from './AcademicPlanner/AddTaskForm';
+import AddAssignmentForm from './AcademicPlanner/AddAssignmentForm';
 import TopNavigation from './AcademicPlanner/TopNavigation';
 import Sidebar from './AcademicPlanner/Sidebar';
 import DayView from './AcademicPlanner/DayView';
@@ -19,6 +24,7 @@ import WeekView from './AcademicPlanner/WeekView';
 import MonthView from './AcademicPlanner/MonthView';
 import YearView from './AcademicPlanner/YearView';
 import TaskCard from './AcademicPlanner/TaskCard';
+import AssignmentCard from './AcademicPlanner/AssignmentCard';
 import AdvancedSearch from './AcademicPlanner/AdvancedSearch';
 import TaskTemplates from './AcademicPlanner/TaskTemplates';
 import AnalyticsDashboard from './AcademicPlanner/AnalyticsDashboard';
@@ -27,6 +33,16 @@ import { formatDate } from './AcademicPlanner/utils';
 const AcademicPlanner = () => {
     const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const [showAddAssignmentModal, setShowAddAssignmentModal] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+    const [editingAssignment, setEditingAssignment] = useState(null);
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [showTaskTemplates, setShowTaskTemplates] = useState(false);
+    const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     
     // Load tasks from localStorage on component mount
     const loadTasksFromStorage = () => {
@@ -134,17 +150,14 @@ const AcademicPlanner = () => {
         types: ['Assignment', 'Exam', 'Study Block', 'Event', 'Reminder'],
         priorities: ['High', 'Medium', 'Low'],
     });
-    const [searchQuery, setSearchQuery] = useState('');
     const [toastMessage, setToastMessage] = useState(null);
-    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-    const [editingTask, setEditingTask] = useState(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [studyTimer, setStudyTimer] = useState({ taskId: null, startTime: null, isRunning: false });
+    const [showConfirmDialog, setShowConfirmDialog] = useState({ show: false });
     
     // New features state
     const [draggedTask, setDraggedTask] = useState(null);
     const [showTemplates, setShowTemplates] = useState(false);
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [showDataVisualization, setShowDataVisualization] = useState(false);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     const [searchFilters, setSearchFilters] = useState({
@@ -394,6 +407,17 @@ const AcademicPlanner = () => {
         }, 150);
     };
 
+    // Function to handle opening add assignment modal with smooth scroll
+    const handleOpenAddAssignmentModal = () => {
+        setShowAddAssignmentModal(true);
+        setEditingAssignment(null);
+        
+        // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
+        setTimeout(() => {
+            centerModalWithSmoothScroll(addTaskModalRef);
+        }, 150);
+    };
+
     // Functions to handle opening modals with smooth scrolling
     const handleOpenTemplatesModal = () => {
         setShowTemplates(true);
@@ -633,6 +657,96 @@ const AcademicPlanner = () => {
         handleTaskStatusChange(taskId, newStatus);
     };
 
+    // Handle adding assignments with subtasks
+    const handleAddAssignment = (assignmentData) => {
+        if (editingAssignment) {
+            // Update existing assignment
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === editingAssignment.id
+                        ? { 
+                            ...task, 
+                            ...assignmentData,
+                            updatedAt: new Date()
+                        }
+                        : task
+                )
+            );
+            setEditingAssignment(null);
+            showToast('Assignment updated successfully! 📚');
+        } else {
+            // Add new assignment
+            const newAssignment = {
+                id: Date.now(), // Simple ID generation
+                ...assignmentData,
+                isAssignment: true,
+                subject: assignmentData.subject || 'General',
+                type: 'Major Assignment'
+            };
+            
+            setTasks(prevTasks => [...prevTasks, newAssignment]);
+            showToast('New assignment added successfully! 📚');
+        }
+    };
+    
+    // Handle editing an assignment
+    const handleEditAssignment = (assignment) => {
+        setEditingAssignment(assignment);
+        setShowAddAssignmentModal(true);
+    };
+    
+    // Handle deleting an assignment
+    const handleDeleteAssignment = (assignmentId) => {
+        setShowConfirmDialog({
+            show: true,
+            title: 'Delete Assignment',
+            message: 'Are you sure you want to delete this assignment? This will also delete all subtasks associated with it.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            onConfirm: () => {
+                setTasks(prevTasks => prevTasks.filter(task => task.id !== assignmentId));
+                showToast('Assignment deleted successfully! 🗑️');
+                setShowConfirmDialog({ show: false });
+            },
+            onCancel: () => setShowConfirmDialog({ show: false })
+        });
+    };
+    
+    // Handle completing a subtask
+    const handleSubtaskComplete = (subtaskId, assignmentId) => {
+        setTasks(prevTasks =>
+            prevTasks.map(task => {
+                if (task.id === assignmentId && task.subtasks) {
+                    const updatedSubtasks = task.subtasks.map(subtask => {
+                        if (subtask.id === subtaskId) {
+                            const newStatus = subtask.status === 'completed' ? 'not-started' : 'completed';
+                            return { 
+                                ...subtask, 
+                                status: newStatus,
+                                progress: newStatus === 'completed' ? 100 : 0
+                            };
+                        }
+                        return subtask;
+                    });
+                    
+                    // Calculate overall progress for the assignment
+                    const completedCount = updatedSubtasks.filter(s => s.status === 'completed').length;
+                    const totalCount = updatedSubtasks.length;
+                    const overallProgress = Math.round((completedCount / totalCount) * 100);
+                    
+                    return { 
+                        ...task, 
+                        subtasks: updatedSubtasks,
+                        progress: overallProgress,
+                        status: overallProgress === 100 ? 'completed' : 
+                               overallProgress > 0 ? 'in-progress' : 'not-started'
+                    };
+                }
+                return task;
+            })
+        );
+    };
+    
     // Enhanced task progress tracking
     const handleProgressUpdate = (taskId, progress) => {
         setTasks(prevTasks =>
@@ -640,8 +754,8 @@ const AcademicPlanner = () => {
                 task.id === taskId 
                     ? { 
                         ...task, 
-                        progress: Math.min(Math.max(progress, 0), 1),
-                        status: progress >= 1 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
+                        progress: progress, // Store the percentage (0-100)
+                        status: progress >= 100 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
                     } 
                     : task
             )
@@ -1357,6 +1471,7 @@ const AcademicPlanner = () => {
                 filters={filters}
                 handleFilterChange={handleFilterChange}
                 handleOpenAddTaskModal={handleOpenAddTaskModal}
+                handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
             />
             <div className={`main-content ${currentView === 'year' ? 'year-view-active' : ''}`}>
                 <TopNavigation 
@@ -1380,6 +1495,8 @@ const AcademicPlanner = () => {
                     setShowSettingsDropdown={setShowSettingsDropdown}
                     settingsDropdownRef={settingsDropdownRef}
                     settingsBtnRef={settingsBtnRef}
+                    handleOpenAddTaskModal={handleOpenAddTaskModal}
+                    handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
                 />
                 
                 <div className="view-content">
@@ -1391,6 +1508,10 @@ const AcademicPlanner = () => {
                             handleDeleteTask={handleDeleteTask}
                             handleTaskStatusChange={handleTaskStatusChange}
                             handleOpenAddTaskModal={handleOpenAddTaskModal}
+                            handleEditAssignment={handleEditAssignment}
+                            handleDeleteAssignment={handleDeleteAssignment}
+                            handleSubtaskComplete={handleSubtaskComplete}
+                            handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
                         />
                     )}
                     
@@ -1569,6 +1690,40 @@ const AcademicPlanner = () => {
                         // Pass any other necessary props like subjects, task types if AddTaskForm needs them for dropdowns
                         initialData={editingTask} // Pass editingTask data to the form for editing
                     />
+                </div>
+            )}
+
+            {showAddAssignmentModal && (
+                <div ref={addTaskModalRef}>
+                    <AddAssignmentForm
+                        onAddAssignment={handleAddAssignment}
+                        onClose={() => setShowAddAssignmentModal(false)}
+                        initialData={editingAssignment} // Pass editingAssignment data to the form for editing
+                    />
+                </div>
+            )}
+
+            {/* Confirmation Dialog */}
+            {showConfirmDialog.show && (
+                <div className="modal-overlay">
+                    <div className="confirm-dialog">
+                        <h3>{showConfirmDialog.title}</h3>
+                        <p>{showConfirmDialog.message}</p>
+                        <div className="confirm-dialog-actions">
+                            <button 
+                                className="btn btn-danger" 
+                                onClick={showConfirmDialog.onConfirm}
+                            >
+                                {showConfirmDialog.confirmText}
+                            </button>
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={showConfirmDialog.onCancel}
+                            >
+                                {showConfirmDialog.cancelText}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

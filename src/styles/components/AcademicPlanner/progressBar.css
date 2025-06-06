@@ -1,0 +1,46 @@
+/* Progress Bar Styles */
+.progress-container {
+  margin-top: 12px;
+  width: 100%;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #4f46e5;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Progress bar colors based on completion */
+.progress-bar-low {
+  background-color: #ef4444; /* Red for low progress */
+}
+
+.progress-bar-medium {
+  background-color: #f59e0b; /* Amber for medium progress */
+}
+
+.progress-bar-high {
+  background-color: #10b981; /* Green for high progress */
+}

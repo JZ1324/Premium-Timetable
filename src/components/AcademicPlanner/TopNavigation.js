@@ -22,7 +22,9 @@ const TopNavigation = ({
     showSettingsDropdown,
     setShowSettingsDropdown,
     settingsDropdownRef,
-    settingsBtnRef
+    settingsBtnRef,
+    handleOpenAddTaskModal,
+    handleOpenAddAssignmentModal
 }) => {
     return (
         <div className="top-navigation">

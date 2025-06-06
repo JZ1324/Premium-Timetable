@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../../styles/components/AcademicPlanner/taskCard.css';
+import '../../styles/components/AcademicPlanner/progressBar.css';
 import { getPriorityColor, getStatusBadgeConfig } from './utils';
 
 const TaskCard = ({ 
@@ -15,6 +16,22 @@ const TaskCard = ({
     handleProgressUpdate,
     getTimerDisplay
 }) => {
+    const [progress, setProgress] = useState(task.progress || 0);
+
+    // Helper function to get progress bar color based on percentage
+    const getProgressBarColor = (percentage) => {
+        if (percentage < 30) return 'progress-bar-low';
+        if (percentage < 70) return 'progress-bar-medium';
+        return 'progress-bar-high';
+    };
+
+    // Handle progress update
+    const handleProgressChange = (e) => {
+        const newProgress = parseInt(e.target.value);
+        setProgress(newProgress);
+        handleProgressUpdate && handleProgressUpdate(task.id, newProgress);
+    };
+
     // Helper function to get due date status
     const getDueDateStatus = () => {
         const today = new Date();
@@ -82,6 +99,28 @@ const TaskCard = ({
                         {getStatusBadgeConfig(task.status).label}
                     </div>
                 </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mt-3">
+                <div className="progress-info">
+                    <span className="progress-label">Progress</span>
+                    <span className="progress-percentage">{progress}%</span>
+                </div>
+                <div className="progress-container">
+                    <div 
+                        className={`progress-bar ${getProgressBarColor(progress)}`} 
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={progress} 
+                    onChange={handleProgressChange}
+                    className="w-full mt-2 accent-indigo-600"
+                />
             </div>
             
             {/* Bottom Section */}

@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css');
+@import url('./AcademicPlanner/task-grid-fix.css');
 
 /* Global Box Sizing */
 *, *::before, *::after {
@@ -536,11 +537,64 @@ input:checked + .switch-slider:before {
 
 .tasks-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     width: 100%;
-    max-width: 100%; /* Ensure it doesn't exceed the container width */
-    margin: 0 auto; /* Center the grid in its container */
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Dynamic task layout based on number of tasks */
+.tasks-list.tasks-count-1 {
+    grid-template-columns: 1fr; /* 1 task = full width */
+}
+
+.tasks-list.tasks-count-2 {
+    grid-template-columns: 1fr 1fr; /* 2 tasks = split evenly */
+}
+
+.tasks-list.tasks-count-3 {
+    grid-template-columns: 1fr 1fr; /* 3 tasks = 2 in first row, 1 full width in second */
+}
+
+.tasks-list.tasks-count-3 .task-card:nth-child(3) {
+    grid-column: 1 / -1; /* Make 3rd task span full width */
+}
+
+.tasks-list.tasks-count-4 {
+    grid-template-columns: 1fr 1fr; /* 4 tasks = 2x2 grid */
+}
+
+.tasks-list.tasks-count-5 {
+    grid-template-columns: 1fr 1fr; /* 5 tasks = 2+2+1 layout */
+}
+
+.tasks-list.tasks-count-5 .task-card:nth-child(5) {
+    grid-column: 1 / -1; /* Make 5th task span full width */
+}
+
+.tasks-list.tasks-count-6 {
+    grid-template-columns: 1fr 1fr; /* 6 tasks = 3x2 grid */
+}
+
+.tasks-list.tasks-count-7 {
+    grid-template-columns: 1fr 1fr; /* 7 tasks = 2+2+2+1 layout */
+}
+
+.tasks-list.tasks-count-7 .task-card:nth-child(7) {
+    grid-column: 1 / -1; /* Make 7th task span full width */
+}
+
+.tasks-list.tasks-count-8 {
+    grid-template-columns: 1fr 1fr; /* 8 tasks = 4x2 grid */
+}
+
+/* Default for 9+ tasks */
+.tasks-list:not([class*="tasks-count-"]),
+.tasks-list.tasks-count-9,
+.tasks-list.tasks-count-10,
+.tasks-list.tasks-count-11,
+.tasks-list.tasks-count-12 {
+    grid-template-columns: 1fr 1fr; /* Default 2-column layout for many tasks */
 }
 
 /* Week View */
@@ -1307,16 +1361,42 @@ input:checked + .switch-slider:before {
     }
 }
 
-/* Control number of tasks per row at different screen sizes */
-@media (min-width: 640px) and (max-width: 1023px) {
-    .tasks-list {
-        grid-template-columns: repeat(2, 1fr); /* 2 tasks per row on medium screens */
+/* Responsive behavior for smaller screens */
+@media (max-width: 639px) {
+    .tasks-list,
+    .tasks-list.tasks-count-2,
+    .tasks-list.tasks-count-3,
+    .tasks-list.tasks-count-4,
+    .tasks-list.tasks-count-5,
+    .tasks-list.tasks-count-6,
+    .tasks-list.tasks-count-7,
+    .tasks-list.tasks-count-8 {
+        grid-template-columns: 1fr !important; /* Force single column on mobile */
+    }
+    
+    .tasks-list .task-card:nth-child(3),
+    .tasks-list .task-card:nth-child(5),
+    .tasks-list .task-card:nth-child(7) {
+        grid-column: auto !important; /* Reset full-width spanning on mobile */
     }
 }
 
-@media (min-width: 1024px) {
+/* Medium screens - allow up to 2 columns */
+@media (min-width: 640px) and (max-width: 1023px) {
+    /* Keep the dynamic layout but ensure minimum card width */
     .tasks-list {
-        grid-template-columns: repeat(3, 1fr); /* 3 tasks per row on larger screens */
+        min-width: 0;
+    }
+    
+    .tasks-list .task-card {
+        min-width: 250px;
+    }
+}
+
+/* Large screens - full dynamic layout */
+@media (min-width: 1024px) {
+    .tasks-list .task-card {
+        min-width: 300px;
     }
 }
 

@@ -1,0 +1,68 @@
+/* Task Grid Layout Fix - Display 2 tasks per row */
+
+/* Base task grid layout - default to 1 column */
+.tasks-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+}
+
+/* Force two tasks per row on larger screens */
+@media (min-width: 640px) {
+    .tasks-list {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* Dynamic grid based on task count */
+@media (min-width: 640px) {
+    /* 1 task - take full width */
+    .tasks-list.tasks-count-1 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* 2 tasks - two equal columns */
+    .tasks-list.tasks-count-2 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* 3 tasks - two in first row, one full width in second row */
+    .tasks-list.tasks-count-3 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    .tasks-list.tasks-count-3 .task-card:nth-child(3) {
+        grid-column: 1 / span 2 !important;
+    }
+
+    /* 4+ tasks - two columns */
+    .tasks-list.tasks-count-4,
+    .tasks-list.tasks-count-5,
+    .tasks-list.tasks-count-6,
+    .tasks-list.tasks-count-7,
+    .tasks-list.tasks-count-8,
+    .tasks-list.tasks-count-9,
+    .tasks-list.tasks-count-10 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* For 5 tasks, 7 tasks, 9 tasks - make last task full width */
+    .tasks-list.tasks-count-5 .task-card:nth-child(5),
+    .tasks-list.tasks-count-7 .task-card:nth-child(7),
+    .tasks-list.tasks-count-9 .task-card:nth-child(9) {
+        grid-column: 1 / span 2 !important;
+    }
+}
+
+/* Single column for mobile */
+@media (max-width: 639px) {
+    .tasks-list {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .tasks-list .task-card {
+        grid-column: auto !important;
+    }
+}

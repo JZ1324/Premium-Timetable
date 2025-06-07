@@ -770,68 +770,135 @@ const AcademicPlanner = () => {
         );
     };
 
-    // Study timer functionality
+    // NEW TIMER SYSTEM - Simplified and reliable
     const startStudyTimer = (taskId) => {
-        console.log("Starting study timer for task:", taskId);
-        // First stop any existing timer
+        console.log("🎯 Starting timer for task:", taskId);
+        
+        // Stop any existing timer first
         if (studyTimer.isRunning) {
             stopStudyTimer();
         }
         
-        // Find the task to get its title
+        // Find the task
         const task = tasks.find(t => t.id === taskId);
-        const taskTitle = task ? task.title : 'Task';
+        if (!task) {
+            console.error("❌ Task not found:", taskId);
+            return;
+        }
         
-        // Start new timer
-        setStudyTimer({
+        // Create new timer state
+        const newTimerState = {
             taskId,
             startTime: new Date(),
             isRunning: true
-        });
+        };
         
-        // Show toast with animation to give visual feedback
-        setToastMessage({ 
-            message: `Timer started for "${taskTitle}"! ⏱️ Focus mode activated.`,
-            type: 'timer' 
-        });
-        setTimeout(() => setToastMessage(null), 4000);
+        // Set timer state immediately for instant UI feedback
+        setStudyTimer(newTimerState);
+        
+        // Update task status immediately
+        setTasks(prevTasks =>
+            prevTasks.map(t =>
+                t.id === taskId
+                    ? { ...t, status: 'in-progress' }
+                    : t
+            )
+        );
+        
+        // Show success toast
+        showToast(`Timer started for "${task.title}" ⏱️`, 'timer');
+        
+        console.log("✅ Timer started successfully");
     };
 
     const stopStudyTimer = () => {
-        if (studyTimer.isRunning && studyTimer.taskId) {
-            const timeSpent = (new Date() - studyTimer.startTime) / 1000 / 60; // minutes
-            const timeSpentFormatted = timeSpent < 60 
-                ? `${Math.round(timeSpent)} minutes`
-                : `${Math.floor(timeSpent / 60)}h ${Math.round(timeSpent % 60)}m`;
+        console.log("⏹️ Stopping timer");
+        
+        if (!studyTimer.isRunning || !studyTimer.taskId) {
+            console.log("⚠️ No active timer to stop");
+            return;
+        }
+        
+        // Calculate time spent
+        const timeElapsed = (new Date() - studyTimer.startTime) / 1000 / 60; // minutes
+        const task = tasks.find(t => t.id === studyTimer.taskId);
+        
+        // Only record time if session was longer than 5 seconds
+        if (timeElapsed * 60 >= 5) {
+            const timeSpentFormatted = timeElapsed < 60 
+                ? `${Math.round(timeElapsed)} minutes`
+                : `${Math.floor(timeElapsed / 60)}h ${Math.round(timeElapsed % 60)}m`;
             
-            // Find the task to get its title
-            const task = tasks.find(t => t.id === studyTimer.taskId);
-            const taskTitle = task ? task.title : 'Task';
-            
+            // Update task with time spent
             setTasks(prevTasks =>
-                prevTasks.map(task =>
-                    task.id === studyTimer.taskId
+                prevTasks.map(t =>
+                    t.id === studyTimer.taskId
                         ? { 
-                            ...task, 
-                            timeSpent: addTimeSpent(task.timeSpent || '0 hours', timeSpentFormatted)
+                            ...t, 
+                            timeSpent: addTimeSpent(t.timeSpent || '0 hours', timeSpentFormatted)
                         }
-                        : task
+                        : t
                 )
             );
             
-            setToastMessage({ 
-                message: `Study session completed for "${taskTitle}"! Time spent: ${timeSpentFormatted} ✅`,
-                type: 'success' 
-            });
-            setTimeout(() => setToastMessage(null), 4000);
+            showToast(`Study session complete! Time: ${timeSpentFormatted} ✅`, 'success');
         }
         
+        // Reset timer state
         setStudyTimer({ taskId: null, startTime: null, isRunning: false });
+        
+        console.log("✅ Timer stopped successfully");
     };
 
-    // Helper function to add time spent
+    // TIMER DISPLAY AND PROGRESS MANAGEMENT
+    const getTimerDisplay = () => {
+        if (!studyTimer.isRunning || !studyTimer.startTime) return '00:00';
+        
+        const elapsed = Math.floor((new Date() - studyTimer.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    // Simplified timer interval - only updates display and progress
+    useEffect(() => {
+        let interval;
+        
+        if (studyTimer.isRunning && studyTimer.taskId && studyTimer.startTime) {
+            interval = setInterval(() => {
+                // Force re-render to update timer display
+                setStudyTimer(prev => ({ ...prev, lastUpdate: new Date() }));
+                
+                // Update task progress based on elapsed time
+                const task = tasks.find(t => t.id === studyTimer.taskId);
+                if (task) {
+                    const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
+                    const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
+                    const timerProgress = Math.min((elapsedMinutes / estimatedMinutes) * 100, 100);
+                    
+                    // Only update if progress has increased significantly
+                    if (timerProgress > (task.progress || 0)) {
+                        setTasks(prevTasks =>
+                            prevTasks.map(t =>
+                                t.id === studyTimer.taskId
+                                    ? { ...t, progress: Math.max(t.progress || 0, timerProgress) }
+                                    : t
+                            )
+                        );
+                    }
+                }
+            }, 1000); // Update every second
+        }
+        
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, [studyTimer.isRunning, studyTimer.taskId, studyTimer.startTime]);
+
+    // HELPER FUNCTIONS
     const addTimeSpent = (existingTime, newTime) => {
-        // Parse existing time
         const parseTime = (timeStr) => {
             if (!timeStr || timeStr === '0 hours') return 0;
             
@@ -865,42 +932,6 @@ const AcademicPlanner = () => {
         
         return formatTime(totalMinutes);
     };
-
-    // Get timer display for running timer
-    const getTimerDisplay = () => {
-        if (!studyTimer.isRunning || !studyTimer.startTime) return '00:00';
-        
-        const elapsed = Math.floor((new Date() - studyTimer.startTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
-
-    // Update timer display every second when running
-    useEffect(() => {
-        let interval;
-        if (studyTimer.isRunning) {
-            console.log("Timer is running for task:", studyTimer.taskId);
-            
-            // Update every second to refresh the timer display and progress
-            interval = setInterval(() => {
-                // Force re-render to update timer display
-                setStudyTimer(prev => {
-                    console.log("Timer tick, elapsed:", Math.floor((new Date() - prev.startTime) / 1000), "seconds");
-                    return { ...prev, lastUpdate: new Date() };
-                });
-                
-                // Also force a task update to refresh progress for the task with active timer
-                setTasks(prevTasks => {
-                    return [...prevTasks]; // Creates a new array reference to trigger re-render
-                });
-            }, 1000);
-        }
-        
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [studyTimer.isRunning, studyTimer.taskId]);
 
     // AI Suggestions based on task analysis
     const generateAISuggestions = useMemo(() => {
@@ -1626,6 +1657,14 @@ const AcademicPlanner = () => {
                             handleDeleteAssignment={handleDeleteAssignment}
                             handleSubtaskComplete={handleSubtaskComplete}
                             handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
+                            enterFocusMode={enterFocusMode}
+                            shareTask={shareTask}
+                            studyTimer={studyTimer}
+                            startStudyTimer={startStudyTimer}
+                            stopStudyTimer={stopStudyTimer}
+                            handleTaskComplete={handleTaskComplete}
+                            handleProgressUpdate={handleProgressUpdate}
+                            getTimerDisplay={getTimerDisplay}
                         />
                     )}
                     

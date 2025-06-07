@@ -1,53 +1,153 @@
 /* Custom Animations for Academic Planner */
 
-/* Subtle pulse animation for timer button */
-@keyframes pulse-subtle {
-  0%, 100% {
-    box-shadow: 0 0 0 rgba(220, 38, 38, 0.2);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
-    transform: scale(1.05);
-  }
+/* Specific pulse animation for play/pause button */
+@keyframes pulse-play-pause {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+        filter: brightness(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.timer-active {
+    animation: timer-active 3s ease-in-out infinite;
 }
 
-/* Icon pulse animation */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+@keyframes timer-active {
+    0%, 100% {
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+    }
 }
 
 /* Button click flash animation */
 @keyframes click-flash {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .click-flash {
-  animation: click-flash 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: click-flash 0.2s ease-out;
+}
+
+/* Ripple effect for button clicks */
+.ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: scale(0);
+    animation: ripple 0.8s linear;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 5;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* Sparkle animation for progress bar when timer starts */
+.sparkle-animation {
+    position: relative;
+    overflow: visible !important;
+}
+
+.sparkle-animation::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background-image: 
+        radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.8) 2px, transparent 2px),
+        radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.6) 3px, transparent 3px),
+        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.7) 2px, transparent 2px),
+        radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.5) 3px, transparent 3px),
+        radial-gradient(circle at 90% 40%, rgba(255, 255, 255, 0.8) 2px, transparent 2px);
+    background-size: 50px 50px;
+    opacity: 0;
+    animation: sparkle-in-out 2s ease-in-out;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.sparkle-animation::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(59, 130, 246, 0.3) 50%, 
+        transparent 100%);
+    animation: slide-glow 1s ease-in-out;
+    z-index: 5;
+}
+
+@keyframes slide-glow {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes sparkle-in-out {
+    0% {
+        opacity: 0;
+        transform: translateY(5px) scale(0.9);
+    }
+    40% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.1);
+    }
+    80% {
+        opacity: 0.7;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* Particle effects for timer running */
@@ -84,4 +184,114 @@
   background-color: #ef4444;
   margin-right: 6px;
   animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Subtle pulse animation for timer display */
+@keyframes pulse-subtle {
+    0% {
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+    }
+    100% {
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Shimmer effect for starting animation */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.shimmer-effect {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 25%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Enhanced ripple animation for timer button */
+.timer-button-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.timer-button-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+.timer-button-ripple:focus:not(:active)::after {
+    animation: ripple-timer 1s ease-out;
+}
+
+@keyframes ripple-timer {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(20, 20);
+        opacity: 0;
+    }
+}
+
+/* Pulsing shadow for pause button */
+@keyframes pulse-shadow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+}
+
+.pulse-shadow {
+    animation: pulse-shadow 2s infinite;
 }

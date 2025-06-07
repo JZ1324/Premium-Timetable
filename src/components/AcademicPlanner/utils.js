@@ -70,6 +70,11 @@ export const getStatusBadgeConfig = (status) => {
             icon: 'ri-play-line',
             class: 'bg-yellow-100 text-yellow-800'
         },
+        'starting': {
+            label: 'Starting...',
+            icon: 'ri-loader-4-line',
+            class: 'bg-blue-100 text-blue-800 animate-pulse'
+        },
         'not-started': {
             label: 'Not started',
             icon: 'ri-pause-line',

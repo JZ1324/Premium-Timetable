@@ -24,12 +24,33 @@ const TaskCard = ({
     handleProgressUpdate,
     getTimerDisplay
 }) => {
-    // NEW TIMER SYSTEM - Simplified state management
+    // Local state for real-time progress updates during timer
     const [localProgress, setLocalProgress] = useState(task.progress || 0);
+    
+    // Check if this task is currently running the timer
     const isTimerRunning = studyTimer.isRunning && studyTimer.taskId === task.id;
     
-    // Parse time string to minutes
-    const parseTimeToMinutes = (timeStr) => {
+    // Calculate real-time progress based on timer
+    useEffect(() => {
+        if (isTimerRunning && studyTimer.startTime) {
+            const updateProgress = () => {
+                const elapsedMinutes = (Date.now() - studyTimer.startTime) / (1000 * 60);
+                const estimatedMinutes = parseEstimatedTime(task.estimatedTime);
+                const timerProgress = Math.min((elapsedMinutes / estimatedMinutes) * 100, 100);
+                const combinedProgress = Math.min((task.progress || 0) + timerProgress, 100);
+                setLocalProgress(combinedProgress);
+            };
+            
+            updateProgress();
+            const interval = setInterval(updateProgress, 1000);
+            return () => clearInterval(interval);
+        } else {
+            setLocalProgress(task.progress || 0);
+        }
+    }, [isTimerRunning, studyTimer.startTime, task.progress, task.estimatedTime]);
+    
+    // Parse estimated time to minutes
+    const parseEstimatedTime = (timeStr) => {
         if (!timeStr) return 60;
         
         let totalMinutes = 0;
@@ -44,64 +65,15 @@ const TaskCard = ({
         return totalMinutes || 60;
     };
 
-    // Update local progress when timer is running or task progress changes
-    useEffect(() => {
-        if (isTimerRunning && studyTimer.startTime) {
-            // Calculate real-time progress for display
-            const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
-            const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
-            const timerProgress = Math.min((elapsedMinutes / estimatedMinutes) * 100, 100);
-            setLocalProgress(Math.max(task.progress || 0, timerProgress));
-        } else {
-            setLocalProgress(task.progress || 0);
-        }
-    }, [isTimerRunning, task.progress, task.estimatedTime, studyTimer.startTime]);
-
-    // Simplified timer button click handler
+    // Handle timer button click
     const handleTimerClick = () => {
-        console.log(`🎯 Timer button clicked for task: ${task.title}`);
-        
         if (isTimerRunning) {
-            console.log('⏹️ Stopping timer');
             stopStudyTimer();
         } else {
-            console.log('▶️ Starting timer');
             startStudyTimer(task.id);
         }
     };
 
-    // Progress bar change handler
-    const handleProgressChange = (e) => {
-        const newProgress = parseInt(e.target.value);
-        handleProgressUpdate && handleProgressUpdate(task.id, newProgress);
-    };
-
-    // Helper function to get due date status
-    const getDueDateStatus = () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const dueDate = new Date(task.dueDate);
-        dueDate.setHours(0, 0, 0, 0);
-        
-        const diffTime = dueDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-            return { 
-                text: `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} overdue`, 
-                class: 'bg-red-100 text-red-800' 
-            };
-        } else if (diffDays === 0) {
-            return { text: 'Due today', class: 'bg-orange-100 text-orange-800' };
-        } else if (diffDays === 1) {
-            return { text: 'Due tomorrow', class: 'bg-yellow-100 text-yellow-800' };
-        } else if (diffDays <= 3) {
-            return { text: `In ${diffDays} day${diffDays === 1 ? '' : 's'}`, class: 'bg-blue-100 text-blue-800' };
-        }
-        return null;
-    };
-
-    const dueDateStatus = getDueDateStatus();
     const { color: priorityColor } = getPriorityColor(task.priority);
     const { text: statusText, className: statusClass, color: statusColor } = getStatusBadgeConfig(task.status);
 
@@ -119,7 +91,7 @@ const TaskCard = ({
                 </div>
                 <div className="task-actions">
                     <button 
-                        className={`timer-btn ${isTimerRunning ? 'timer-button-active' : ''}`}
+                        className={`timer-btn ${isTimerRunning ? 'active' : ''}`}
                         onClick={handleTimerClick}
                         title={isTimerRunning ? 'Stop Timer' : 'Start Timer'}
                     >
@@ -155,35 +127,24 @@ const TaskCard = ({
                         </span>
                     </div>
                 </div>
-            
+
                 <div className="progress-section">
                     <div className="progress-info">
                         <span className="progress-label">Progress</span>
-                        <span className="progress-percentage">
-                            {Math.round(localProgress)}%
-                        </span>
+                        <span className="progress-percentage">{Math.round(localProgress)}%</span>
                     </div>
                     <div className={`progress-container ${isTimerRunning ? 'timer-active' : ''}`}>
                         <div 
-                            className={`progress-bar ${getProgressBarColor(localProgress)} ${isTimerRunning ? 'timer-running' : ''}`} 
+                            className={`progress-bar ${getProgressBarColor(localProgress)} ${isTimerRunning ? 'timer-running' : ''}`}
                             style={{ 
                                 width: `${localProgress}%`,
                                 '--progress-color': getProgressBarColor(localProgress) === 'progress-bar-low' ? '#ef4444' :
-                                                  getProgressBarColor(localProgress) === 'progress-bar-medium' ? '#f59e0b' : '#10b981'
+                                                   getProgressBarColor(localProgress) === 'progress-bar-medium' ? '#f59e0b' : '#10b981'
                             }}
-                        ></div>
-                        {isTimerRunning && (
-                            <div className="progress-animation-overlay"></div>
-                        )}
+                        >
+                            {isTimerRunning && <div className="progress-animation-overlay"></div>}
+                        </div>
                     </div>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
-                        value={Math.round(localProgress)} 
-                        onChange={handleProgressChange}
-                        className="progress-slider"
-                    />
                 </div>
 
                 {isTimerRunning && (

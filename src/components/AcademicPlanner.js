@@ -30,7 +30,7 @@ import AssignmentCard from './AcademicPlanner/AssignmentCard';
 import AdvancedSearch from './AcademicPlanner/AdvancedSearch';
 import TaskTemplates from './AcademicPlanner/TaskTemplates';
 import AnalyticsDashboard from './AcademicPlanner/AnalyticsDashboard';
-import { formatDate } from './AcademicPlanner/utils';
+import { formatDate, formatTimerDisplay, parseTimeToMinutes, formatMinutesToTimeString } from './AcademicPlanner/utils';
 
 const AcademicPlanner = () => {
     const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
@@ -661,8 +661,35 @@ const AcademicPlanner = () => {
 
     const handleTaskComplete = (taskId) => {
         const task = tasks.find(t => t.id === taskId);
-        const newStatus = task?.status === 'completed' ? 'not-started' : 'completed';
-        handleTaskStatusChange(taskId, newStatus);
+        if (!task) return;
+        
+        const newStatus = task.status === 'completed' ? 'not-started' : 'completed';
+        
+        // If marking as completed and timer is running for this task, stop the timer
+        if (newStatus === 'completed' && studyTimer.isRunning && studyTimer.taskId === taskId) {
+            stopStudyTimer();
+        }
+        
+        // Update the task status and progress
+        setTasks(prevTasks =>
+            prevTasks.map(t =>
+                t.id === taskId
+                    ? { 
+                        ...t, 
+                        status: newStatus,
+                        progress: newStatus === 'completed' ? 100 : t.progress,
+                        completedAt: newStatus === 'completed' ? new Date() : null
+                    }
+                    : t
+            )
+        );
+        
+        // Show appropriate toast message
+        if (newStatus === 'completed') {
+            showToast(`Task "${task.title}" marked as completed! 🎉`, 'success');
+        } else {
+            showToast(`Task "${task.title}" marked as incomplete`, 'info');
+        }
     };
 
     // Handle adding assignments with subtasks
@@ -858,6 +885,23 @@ const AcademicPlanner = () => {
         const minutes = Math.floor(elapsed / 60);
         const seconds = elapsed % 60;
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    // Get estimated time countdown
+    const getEstimatedTimeCountdown = (task) => {
+        if (!task || !studyTimer.isRunning || studyTimer.taskId !== task.id || !studyTimer.startTime) {
+            return task?.estimatedTime || 'Unknown';
+        }
+        
+        const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
+        const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
+        const remainingMinutes = Math.max(0, estimatedMinutes - elapsedMinutes);
+        
+        if (remainingMinutes < 1) {
+            return 'Time up!';
+        }
+        
+        return formatMinutesToTimeString(Math.round(remainingMinutes)) + ' remaining';
     };
 
     // Simplified timer interval - only updates display and progress
@@ -1665,6 +1709,7 @@ const AcademicPlanner = () => {
                             handleTaskComplete={handleTaskComplete}
                             handleProgressUpdate={handleProgressUpdate}
                             getTimerDisplay={getTimerDisplay}
+                            getEstimatedTimeCountdown={getEstimatedTimeCountdown}
                         />
                     )}
                     
@@ -1785,14 +1830,14 @@ const AcademicPlanner = () => {
             {/* Task Focus Modal */}
             {focusTask && (
                 <div className="modal-overlay" onClick={() => setFocusTask(null)}>
-                    <div className="focus-modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2>Focus Mode</h2>
                             <button className="close-btn" onClick={() => setFocusTask(null)}>
                                 <i className="ri-close-line"></i>
                             </button>
                         </div>
-                        <div className="focus-modal-body">
+                        <div className="modal-body">
                             <div className="focus-task-info">
                                 <h3>{focusTask.title}</h3>
                                 <div className="task-meta">
@@ -1815,7 +1860,7 @@ const AcademicPlanner = () => {
                                 <div className="study-timer">
                                     <div className="timer-display">
                                         {studyTimer.isRunning && studyTimer.taskId === focusTask.id 
-                                            ? formatTimerDisplay(studyTimer.startTime) 
+                                            ? getTimerDisplay() 
                                             : '00:00'}
                                     </div>
                                     <div className="timer-controls">

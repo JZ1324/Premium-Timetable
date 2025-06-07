@@ -22,7 +22,8 @@ const TaskCard = ({
     stopStudyTimer, 
     handleTaskComplete,
     handleProgressUpdate,
-    getTimerDisplay
+    getTimerDisplay,
+    getEstimatedTimeCountdown
 }) => {
     // NEW TIMER SYSTEM - Simplified state management
     const [localProgress, setLocalProgress] = useState(task.progress || 0);
@@ -60,6 +61,12 @@ const TaskCard = ({
     // Simplified timer button click handler
     const handleTimerClick = () => {
         console.log(`🎯 Timer button clicked for task: ${task.title}`);
+        
+        // Don't allow timer to start if task is completed
+        if (task.status === 'completed') {
+            console.log('⚠️ Cannot start timer - task is completed');
+            return;
+        }
         
         if (isTimerRunning) {
             console.log('⏹️ Stopping timer');
@@ -119,11 +126,15 @@ const TaskCard = ({
                 </div>
                 <div className="task-actions">
                     <button 
-                        className={`timer-btn ${isTimerRunning ? 'timer-button-active' : ''}`}
+                        className={`timer-btn ${isTimerRunning ? 'timer-button-active' : ''} ${task.status === 'completed' ? 'timer-disabled' : ''}`}
                         onClick={handleTimerClick}
-                        title={isTimerRunning ? 'Stop Timer' : 'Start Timer'}
+                        title={
+                            task.status === 'completed' ? 'Task Completed - Timer Disabled' :
+                            isTimerRunning ? 'Stop Timer' : 'Start Timer'
+                        }
+                        disabled={task.status === 'completed'}
                     >
-                        {isTimerRunning ? '⏸️' : '▶️'}
+                        {task.status === 'completed' ? '✅' : (isTimerRunning ? '⏸️' : '▶️')}
                     </button>
                     <button onClick={() => handleEditTask(task)} className="edit-btn" title="Edit Task">
                         ✏️
@@ -188,8 +199,16 @@ const TaskCard = ({
 
                 {isTimerRunning && (
                     <div className="timer-display">
-                        <span className="timer-label">Timer:</span>
-                        <span className="timer-time">{getTimerDisplay()}</span>
+                        <div className="timer-elapsed">
+                            <span className="timer-label">Timer:</span>
+                            <span className="timer-time">{getTimerDisplay()}</span>
+                        </div>
+                        {getEstimatedTimeCountdown && (
+                            <div className="timer-countdown">
+                                <span className="timer-label">Remaining:</span>
+                                <span className="timer-time">{getEstimatedTimeCountdown(task)}</span>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -203,10 +222,9 @@ const TaskCard = ({
                 </button>
                 <button 
                     onClick={() => handleTaskComplete(task.id)} 
-                    className="complete-btn"
-                    disabled={task.status === 'completed'}
+                    className={`complete-btn ${task.status === 'completed' ? 'completed' : ''}`}
                 >
-                    {task.status === 'completed' ? 'Completed' : 'Mark Complete'}
+                    {task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
                 </button>
             </div>
         </div>

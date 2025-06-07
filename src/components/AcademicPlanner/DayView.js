@@ -23,6 +23,7 @@ const DayView = ({
     handleDeleteAssignment = () => {},
     handleSubtaskComplete = () => {},
     getTimerDisplay = () => '00:00',
+    getEstimatedTimeCountdown = () => 'Unknown',
     generateAISuggestions = [],
     handleSuggestionAction = () => {}
 }) => {
@@ -107,6 +108,7 @@ const DayView = ({
                                 handleTaskComplete={handleTaskComplete}
                                 handleProgressUpdate={handleProgressUpdate}
                                 getTimerDisplay={getTimerDisplay}
+                                getEstimatedTimeCountdown={getEstimatedTimeCountdown}
                             />
                         ))}
                         {regularTasks.length === 0 && (

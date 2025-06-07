@@ -66,7 +66,7 @@ export const getStatusBadgeConfig = (status) => {
             class: 'bg-green-100 text-green-800'
         },
         'in-progress': {
-            label: 'In progress',
+            label: 'Started',
             icon: 'ri-play-line',
             class: 'bg-yellow-100 text-yellow-800'
         },
@@ -76,7 +76,7 @@ export const getStatusBadgeConfig = (status) => {
             class: 'bg-blue-100 text-blue-800 animate-pulse'
         },
         'not-started': {
-            label: 'Not started',
+            label: 'Not Started',
             icon: 'ri-pause-line',
             class: 'bg-gray-100 text-gray-800'
         }

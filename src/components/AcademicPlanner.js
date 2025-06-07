@@ -87,7 +87,65 @@ const AcademicPlanner = () => {
                     lastStartTime: null,
                     isActive: false,
                     sessions: []
-                }
+                },
+                subtasks: [
+                    {
+                        id: 101,
+                        title: 'Research modern literature themes',
+                        status: 'completed',
+                        priority: 'High',
+                        estimatedTime: '1 hour',
+                        description: 'Research key themes in 20th-21st century literature',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 102,
+                        title: 'Create essay outline',
+                        status: 'in-progress',
+                        priority: 'High',
+                        estimatedTime: '30 minutes',
+                        description: 'Structure the main arguments and supporting points',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 103,
+                        title: 'Write first draft',
+                        status: 'not-started',
+                        priority: 'High',
+                        estimatedTime: '2 hours',
+                        description: 'Write the complete first draft of the essay',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 104,
+                        title: 'Review and edit',
+                        status: 'not-started',
+                        priority: 'Medium',
+                        estimatedTime: '30 minutes',
+                        description: 'Proofread and make final edits',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    }
+                ]
             },
             {
                 id: 2,
@@ -107,7 +165,65 @@ const AcademicPlanner = () => {
                     lastStartTime: null,
                     isActive: false,
                     sessions: []
-                }
+                },
+                subtasks: [
+                    {
+                        id: 201,
+                        title: 'Review chapter 12 concepts',
+                        status: 'not-started',
+                        priority: 'Medium',
+                        estimatedTime: '45 minutes',
+                        description: 'Go through the chapter and understand key concepts',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 202,
+                        title: 'Solve problems 1-10',
+                        status: 'not-started',
+                        priority: 'High',
+                        estimatedTime: '1 hour',
+                        description: 'Work through the first set of problems',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 203,
+                        title: 'Solve problems 11-20',
+                        status: 'not-started',
+                        priority: 'High',
+                        estimatedTime: '1 hour',
+                        description: 'Work through the second set of problems',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    },
+                    {
+                        id: 204,
+                        title: 'Check answers and review',
+                        status: 'not-started',
+                        priority: 'Low',
+                        estimatedTime: '15 minutes',
+                        description: 'Verify solutions and understand any mistakes',
+                        timerData: {
+                            totalTimeSpent: 0,
+                            lastStartTime: null,
+                            isActive: false,
+                            sessions: []
+                        }
+                    }
+                ]
             },
             {
                 id: 3,
@@ -738,10 +854,17 @@ const AcademicPlanner = () => {
         }
     };
 
-    const handleTaskComplete = (taskId) => {
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) return;
+    const handleTaskComplete = (taskId, parentTaskId = null) => {
+        console.log("🎯 Handling task completion:", { taskId, parentTaskId });
         
+        // Find the task or subtask
+        const taskInfo = findTaskOrSubtask(taskId);
+        if (!taskInfo) {
+            console.error("❌ Task not found:", taskId);
+            return;
+        }
+        
+        const { task, isSubtask, parentTask } = taskInfo;
         const newStatus = task.status === 'completed' ? 'not-started' : 'completed';
         
         // If marking as completed and timer is running for this task, stop the timer
@@ -749,26 +872,86 @@ const AcademicPlanner = () => {
             stopStudyTimer();
         }
         
-        // Update the task status and progress
-        setTasks(prevTasks =>
-            prevTasks.map(t =>
-                t.id === taskId
-                    ? { 
-                        ...t, 
-                        status: newStatus,
-                        progress: newStatus === 'completed' ? 100 : t.progress,
-                        completedAt: newStatus === 'completed' ? new Date() : null
+        if (isSubtask) {
+            // Update subtask within its parent task
+            setTasks(prevTasks =>
+                prevTasks.map(t =>
+                    t.id === parentTask.id
+                        ? {
+                            ...t,
+                            subtasks: t.subtasks.map(st => {
+                                if (st.id === taskId) {
+                                    return {
+                                        ...st,
+                                        status: newStatus,
+                                        progress: newStatus === 'completed' ? 100 : st.progress,
+                                        completedAt: newStatus === 'completed' ? new Date() : null
+                                    };
+                                }
+                                return st;
+                            })
+                        }
+                        : t
+                ).map(t => {
+                    // After updating the subtask, recalculate parent assignment progress
+                    if (t.id === parentTask.id && t.subtasks) {
+                        const updatedSubtasks = t.subtasks;
+                        
+                        // Calculate progress based on actual subtask progress, not just completion
+                        let totalProgress = 0;
+                        updatedSubtasks.forEach(subtask => {
+                            if (subtask.status === 'completed') {
+                                totalProgress += 100;
+                            } else {
+                                // Use the subtask's current progress (from timer or manual progress)
+                                totalProgress += (subtask.progress || 0);
+                            }
+                        });
+                        
+                        const overallProgress = Math.round(totalProgress / updatedSubtasks.length);
+                        const completedCount = updatedSubtasks.filter(s => s.status === 'completed').length;
+                        
+                        return {
+                            ...t,
+                            progress: overallProgress,
+                            status: completedCount === updatedSubtasks.length ? 'completed' : 
+                                   overallProgress > 0 ? 'in-progress' : 'not-started'
+                        };
                     }
-                    : t
-            )
-        );
-        
-        // Show appropriate toast message
-        if (newStatus === 'completed') {
-            showToast(`Task "${task.title}" marked as completed! 🎉`, 'success');
+                    return t;
+                })
+            );
+            
+            // Show appropriate toast message for subtask
+            if (newStatus === 'completed') {
+                showToast(`Subtask "${task.title}" marked as completed! 🎉`, 'success');
+            } else {
+                showToast(`Subtask "${task.title}" marked as incomplete`, 'info');
+            }
         } else {
-            showToast(`Task "${task.title}" marked as incomplete`, 'info');
+            // Update main task
+            setTasks(prevTasks =>
+                prevTasks.map(t =>
+                    t.id === taskId
+                        ? { 
+                            ...t, 
+                            status: newStatus,
+                            progress: newStatus === 'completed' ? 100 : t.progress,
+                            completedAt: newStatus === 'completed' ? new Date() : null
+                        }
+                        : t
+                )
+            );
+            
+            // Show appropriate toast message for main task
+            if (newStatus === 'completed') {
+                showToast(`Task "${task.title}" marked as completed! 🎉`, 'success');
+            } else {
+                showToast(`Task "${task.title}" marked as incomplete`, 'info');
+            }
         }
+        
+        console.log(`✅ ${isSubtask ? 'Subtask' : 'Task'} "${task.title}" marked as ${newStatus}`);
     };
 
     // Handle adding assignments with subtasks
@@ -826,57 +1009,86 @@ const AcademicPlanner = () => {
         });
     };
     
-    // Handle completing a subtask
-    const handleSubtaskComplete = (subtaskId, assignmentId) => {
-        setTasks(prevTasks =>
-            prevTasks.map(task => {
-                if (task.id === assignmentId && task.subtasks) {
-                    const updatedSubtasks = task.subtasks.map(subtask => {
-                        if (subtask.id === subtaskId) {
-                            const newStatus = subtask.status === 'completed' ? 'not-started' : 'completed';
-                            return { 
-                                ...subtask, 
-                                status: newStatus,
-                                progress: newStatus === 'completed' ? 100 : 0
-                            };
-                        }
-                        return subtask;
-                    });
-                    
-                    // Calculate overall progress for the assignment
-                    const completedCount = updatedSubtasks.filter(s => s.status === 'completed').length;
-                    const totalCount = updatedSubtasks.length;
-                    const overallProgress = Math.round((completedCount / totalCount) * 100);
-                    
-                    return { 
-                        ...task, 
-                        subtasks: updatedSubtasks,
-                        progress: overallProgress,
-                        status: overallProgress === 100 ? 'completed' : 
-                               overallProgress > 0 ? 'in-progress' : 'not-started'
-                    };
-                }
-                return task;
-            })
-        );
-    };
-    
     // Enhanced task progress tracking
-    const handleProgressUpdate = (taskId, progress) => {
-        setTasks(prevTasks =>
-            prevTasks.map(task =>
-                task.id === taskId 
-                    ? { 
-                        ...task, 
-                        progress: progress, // Store the percentage (0-100)
-                        status: progress >= 100 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
-                    } 
-                    : task
-            )
-        );
+    const handleProgressUpdate = (taskId, progress, isSubtaskId = null) => {
+        if (isSubtaskId) {
+            // This is a subtask progress update
+            setTasks(prevTasks =>
+                prevTasks.map(task => {
+                    if (task.id === taskId && task.subtasks) {
+                        // Update the specific subtask
+                        const updatedSubtasks = task.subtasks.map(st =>
+                            st.id === isSubtaskId
+                                ? { 
+                                    ...st, 
+                                    progress: progress,
+                                    status: progress >= 100 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
+                                }
+                                : st
+                        );
+                        
+                        // Recalculate assignment progress
+                        let totalProgress = 0;
+                        updatedSubtasks.forEach(subtask => {
+                            if (subtask.status === 'completed') {
+                                totalProgress += 100;
+                            } else {
+                                totalProgress += (subtask.progress || 0);
+                            }
+                        });
+                        
+                        const overallProgress = Math.round(totalProgress / updatedSubtasks.length);
+                        const completedCount = updatedSubtasks.filter(s => s.status === 'completed').length;
+                        
+                        return {
+                            ...task,
+                            subtasks: updatedSubtasks,
+                            progress: overallProgress,
+                            status: completedCount === updatedSubtasks.length ? 'completed' : 
+                                   overallProgress > 0 ? 'in-progress' : 'not-started'
+                        };
+                    }
+                    return task;
+                })
+            );
+        } else {
+            // Regular task progress update
+            setTasks(prevTasks =>
+                prevTasks.map(task =>
+                    task.id === taskId 
+                        ? { 
+                            ...task, 
+                            progress: progress, // Store the percentage (0-100)
+                            status: progress >= 100 ? 'completed' : progress > 0 ? 'in-progress' : 'not-started'
+                        } 
+                        : task
+                )
+            );
+        }
     };
 
     // NEW TIMER SYSTEM - Enhanced with persistent data
+    // Helper function to find a task or subtask by ID
+    const findTaskOrSubtask = (taskId) => {
+        // First, look for the task in the main tasks array
+        const mainTask = tasks.find(t => t.id === taskId);
+        if (mainTask) {
+            return { task: mainTask, isSubtask: false, parentTask: null };
+        }
+        
+        // If not found, look for it as a subtask
+        for (const task of tasks) {
+            if (task.subtasks) {
+                const subtask = task.subtasks.find(st => st.id === taskId);
+                if (subtask) {
+                    return { task: subtask, isSubtask: true, parentTask: task };
+                }
+            }
+        }
+        
+        return null;
+    };
+
     const startStudyTimer = (taskId) => {
         console.log("🎯 Starting timer for task:", taskId);
         
@@ -885,13 +1097,14 @@ const AcademicPlanner = () => {
             stopStudyTimer();
         }
         
-        // Find the task
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) {
+        // Find the task or subtask
+        const taskInfo = findTaskOrSubtask(taskId);
+        if (!taskInfo) {
             console.error("❌ Task not found:", taskId);
             return;
         }
         
+        const { task, isSubtask, parentTask } = taskInfo;
         const now = new Date();
         
         // Create new timer state
@@ -905,21 +1118,48 @@ const AcademicPlanner = () => {
         setStudyTimer(newTimerState);
         
         // Update task with active timer state
-        setTasks(prevTasks =>
-            prevTasks.map(t =>
-                t.id === taskId
-                    ? { 
-                        ...t, 
-                        status: 'in-progress',
-                        timerData: {
-                            ...t.timerData,
-                            lastStartTime: now.toISOString(),
-                            isActive: true
+        if (isSubtask) {
+            // Update subtask within its parent task
+            setTasks(prevTasks =>
+                prevTasks.map(t =>
+                    t.id === parentTask.id
+                        ? {
+                            ...t,
+                            subtasks: t.subtasks.map(st =>
+                                st.id === taskId
+                                    ? {
+                                        ...st,
+                                        status: 'in-progress',
+                                        timerData: {
+                                            ...st.timerData,
+                                            lastStartTime: now.toISOString(),
+                                            isActive: true
+                                        }
+                                    }
+                                    : st
+                            )
                         }
-                    }
-                    : t
-            )
-        );
+                        : t
+                )
+            );
+        } else {
+            // Update main task
+            setTasks(prevTasks =>
+                prevTasks.map(t =>
+                    t.id === taskId
+                        ? { 
+                            ...t, 
+                            status: 'in-progress',
+                            timerData: {
+                                ...t.timerData,
+                                lastStartTime: now.toISOString(),
+                                isActive: true
+                            }
+                        }
+                        : t
+                )
+            );
+        }
         
         // Show success toast
         showToast(`Timer started for "${task.title}" ⏱️`, 'timer');
@@ -937,34 +1177,78 @@ const AcademicPlanner = () => {
         
         const now = new Date();
         const sessionDuration = Math.floor((now - studyTimer.startTime) / 1000); // in seconds
-        const task = tasks.find(t => t.id === studyTimer.taskId);
+        
+        // Find the task or subtask
+        const taskInfo = findTaskOrSubtask(studyTimer.taskId);
+        if (!taskInfo) {
+            console.error("❌ Task not found:", studyTimer.taskId);
+            setStudyTimer({ taskId: null, startTime: null, isRunning: false });
+            return;
+        }
+        
+        const { task, isSubtask, parentTask } = taskInfo;
         
         // Only record time if session was longer than 5 seconds
-        if (sessionDuration >= 5 && task) {
+        if (sessionDuration >= 5) {
             // Update task with session data
-            setTasks(prevTasks =>
-                prevTasks.map(t =>
-                    t.id === studyTimer.taskId
-                        ? { 
-                            ...t, 
-                            timerData: {
-                                ...t.timerData,
-                                totalTimeSpent: (t.timerData.totalTimeSpent || 0) + sessionDuration,
-                                lastStartTime: null,
-                                isActive: false,
-                                sessions: [
-                                    ...(t.timerData.sessions || []),
-                                    {
-                                        startTime: studyTimer.startTime.toISOString(),
-                                        endTime: now.toISOString(),
-                                        duration: sessionDuration
-                                    }
-                                ]
+            if (isSubtask) {
+                // Update subtask within its parent task
+                setTasks(prevTasks =>
+                    prevTasks.map(t =>
+                        t.id === parentTask.id
+                            ? {
+                                ...t,
+                                subtasks: t.subtasks.map(st =>
+                                    st.id === studyTimer.taskId
+                                        ? {
+                                            ...st,
+                                            timerData: {
+                                                ...st.timerData,
+                                                totalTimeSpent: (st.timerData?.totalTimeSpent || 0) + sessionDuration,
+                                                lastStartTime: null,
+                                                isActive: false,
+                                                sessions: [
+                                                    ...(st.timerData?.sessions || []),
+                                                    {
+                                                        startTime: studyTimer.startTime.toISOString(),
+                                                        endTime: now.toISOString(),
+                                                        duration: sessionDuration
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                        : st
+                                )
                             }
-                        }
-                        : t
-                )
-            );
+                            : t
+                    )
+                );
+            } else {
+                // Update main task
+                setTasks(prevTasks =>
+                    prevTasks.map(t =>
+                        t.id === studyTimer.taskId
+                            ? { 
+                                ...t, 
+                                timerData: {
+                                    ...t.timerData,
+                                    totalTimeSpent: (t.timerData?.totalTimeSpent || 0) + sessionDuration,
+                                    lastStartTime: null,
+                                    isActive: false,
+                                    sessions: [
+                                        ...(t.timerData?.sessions || []),
+                                        {
+                                            startTime: studyTimer.startTime.toISOString(),
+                                            endTime: now.toISOString(),
+                                            duration: sessionDuration
+                                        }
+                                    ]
+                                }
+                            }
+                            : t
+                    )
+                );
+            }
             
             const timeSpentFormatted = formatSecondsToTimeString(sessionDuration);
             showToast(`Study session complete! Time: ${timeSpentFormatted} ✅`, 'success');
@@ -992,10 +1276,21 @@ const AcademicPlanner = () => {
     };
 
     // TIMER DISPLAY AND PROGRESS MANAGEMENT
-    const getTimerDisplay = () => {
-        if (!studyTimer.isRunning || !studyTimer.startTime) {
-            // If no active timer, check if the current focus task has previous time
-            if (focusTask && focusTask.timerData && focusTask.timerData.totalTimeSpent > 0) {
+    const getTimerDisplay = (taskId = null) => {
+        // If a specific taskId is provided, check if it's the currently running timer
+        const activeTaskId = taskId || studyTimer.taskId;
+        
+        if (!studyTimer.isRunning || !studyTimer.startTime || (taskId && studyTimer.taskId !== taskId)) {
+            // If no active timer for this specific task, check if it has previous time
+            if (taskId) {
+                const taskInfo = findTaskOrSubtask(taskId);
+                if (taskInfo && taskInfo.task.timerData && taskInfo.task.timerData.totalTimeSpent > 0) {
+                    const totalSeconds = taskInfo.task.timerData.totalTimeSpent;
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            } else if (focusTask && focusTask.timerData && focusTask.timerData.totalTimeSpent > 0) {
                 const totalSeconds = focusTask.timerData.totalTimeSpent;
                 const minutes = Math.floor(totalSeconds / 60);
                 const seconds = totalSeconds % 60;
@@ -1004,8 +1299,13 @@ const AcademicPlanner = () => {
             return '00:00';
         }
         
-        // Get current task's previous time
-        const task = tasks.find(t => t.id === studyTimer.taskId);
+        // Find the current task or subtask
+        const taskInfo = findTaskOrSubtask(activeTaskId);
+        if (!taskInfo) {
+            return '00:00';
+        }
+        
+        const { task } = taskInfo;
         const previousTimeSpent = task?.timerData?.totalTimeSpent || 0;
         
         // Calculate current session time
@@ -1045,22 +1345,42 @@ const AcademicPlanner = () => {
                 // Force re-render to update timer display
                 setStudyTimer(prev => ({ ...prev, lastUpdate: new Date() }));
                 
-                // Update task progress based on elapsed time
-                const task = tasks.find(t => t.id === studyTimer.taskId);
-                if (task) {
+                // Find the task or subtask that's currently running
+                const taskInfo = findTaskOrSubtask(studyTimer.taskId);
+                if (taskInfo) {
+                    const { task, isSubtask, parentTask } = taskInfo;
                     const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
                     const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
                     const timerProgress = Math.min((elapsedMinutes / estimatedMinutes) * 100, 100);
                     
                     // Only update if progress has increased significantly
                     if (timerProgress > (task.progress || 0)) {
-                        setTasks(prevTasks =>
-                            prevTasks.map(t =>
-                                t.id === studyTimer.taskId
-                                    ? { ...t, progress: Math.max(t.progress || 0, timerProgress) }
-                                    : t
-                            )
-                        );
+                        if (isSubtask) {
+                            // Update subtask within its parent task
+                            setTasks(prevTasks =>
+                                prevTasks.map(t =>
+                                    t.id === parentTask.id
+                                        ? {
+                                            ...t,
+                                            subtasks: t.subtasks.map(st =>
+                                                st.id === studyTimer.taskId
+                                                    ? { ...st, progress: Math.max(st.progress || 0, timerProgress) }
+                                                    : st
+                                            )
+                                        }
+                                        : t
+                                )
+                            );
+                        } else {
+                            // Update main task
+                            setTasks(prevTasks =>
+                                prevTasks.map(t =>
+                                    t.id === studyTimer.taskId
+                                        ? { ...t, progress: Math.max(t.progress || 0, timerProgress) }
+                                        : t
+                                )
+                            );
+                        }
                     }
                 }
             }, 1000); // Update every second
@@ -1071,7 +1391,7 @@ const AcademicPlanner = () => {
                 clearInterval(interval);
             }
         };
-    }, [studyTimer.isRunning, studyTimer.taskId, studyTimer.startTime]);
+    }, [studyTimer.isRunning, studyTimer.taskId, studyTimer.startTime, tasks]);
 
     // HELPER FUNCTIONS
     const addTimeSpent = (existingTime, newTime) => {
@@ -1831,7 +2151,6 @@ const AcademicPlanner = () => {
                             handleOpenAddTaskModal={handleOpenAddTaskModal}
                             handleEditAssignment={handleEditAssignment}
                             handleDeleteAssignment={handleDeleteAssignment}
-                            handleSubtaskComplete={handleSubtaskComplete}
                             handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
                             enterFocusMode={enterFocusMode}
                             shareTask={shareTask}

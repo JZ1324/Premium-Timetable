@@ -2,11 +2,12 @@
 .timetable-container {
     background-color: var(--bg-secondary);
     border-radius: 16px;
-    padding: 25px;
+    padding: 25px; /* Reduced padding for better proportion */
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
-    max-width: 1400px; /* Increased from default to provide more space */
+    max-width: 1100px; /* Set to requested 1000px max width */
+    min-width: 800px; /* Reasonable minimum width */
     margin: 0 auto; /* Center the container */
     animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1);
     transform-origin: center;
@@ -298,10 +299,13 @@
 /* Day Selector Buttons */
 .day-selector {
     display: flex;
-    gap: 4px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    gap: 6px; /* Optimized gap for 1000px width */
+    margin-bottom: 25px;
+    flex-wrap: nowrap;
     justify-content: center;
+    max-width: 100%;
+    padding: 0 10px; /* Reduced padding for better fit */
+    width: 100%; /* Ensure full width usage */
 }
 /* Media queries for responsive design */
 @media (max-width: 768px) {
@@ -314,31 +318,44 @@
     }
     
     .day-selector {
-        gap: 3px;
+        gap: 2px;
+        padding: 0 5px;
     }
     
     .day-button {
-        padding: 3px 4px;
-        font-size: 0.7rem;
-        min-width: 28px;
+        padding: 4px 6px;
+        font-size: 0.65rem;
+        min-width: 35px;
+        max-width: 40px;
+        height: 28px;
+        white-space: nowrap;
+        line-height: 1.1;
     }
 }
 
 .day-button {
-    padding: 4px 6px; /* Smaller padding */
+    padding: 6px 10px; /* Good padding for 1000px width */
     border-radius: 6px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    font-size: 0.78rem; /* Smaller font */
+    font-size: 0.75rem; /* Optimized size for single-line text */
     font-weight: 500;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    min-width: 30px; /* Smaller width to fit all buttons */
-    text-align: center;
+    min-width: 55px; /* Increased for better proportion at 1000px */
+    max-width: 70px; /* Increased for better text display */
+    height: 32px; /* Fixed height to prevent vertical stretching */
+    display: flex; /* Use flexbox for perfect centering */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    text-align: center; /* Fallback for text centering */
+    flex: 1; /* Allow buttons to grow equally to fill space */
+    white-space: nowrap; /* Force text to stay on one line */
+    line-height: 1; /* Normalize line height for better centering */
 }
 .day-button::before {
     content: '';
@@ -401,7 +418,7 @@
 /* Timetable Grid */
 .timetable {
     display: grid;
-    grid-template-columns: 200px 1fr; /* Increased from 180px to 200px */
+    grid-template-columns: 220px 1fr; /* Increased from 200px for better proportion */
     border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow: visible; /* Changed from hidden to visible to allow elements to pop out */
@@ -1002,14 +1019,19 @@
 /* Responsive Styles */
 @media (max-width: 768px) {
     .day-selector {
-        gap: 3px;
+        gap: 2px;
         justify-content: center;
+        padding: 0 5px;
     }
     
     .day-button {
-        padding: 3px 4px;
-        font-size: 0.7rem;
-        min-width: 28px;
+        padding: 4px 6px;
+        font-size: 0.65rem;
+        min-width: 35px;
+        max-width: 40px;
+        height: 28px;
+        white-space: nowrap;
+        line-height: 1.1;
     }
     
     .template-controls {

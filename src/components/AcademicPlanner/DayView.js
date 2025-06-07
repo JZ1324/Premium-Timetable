@@ -21,7 +21,6 @@ const DayView = ({
     handleProgressUpdate = () => {},
     handleEditAssignment = () => {},
     handleDeleteAssignment = () => {},
-    handleSubtaskComplete = () => {},
     getTimerDisplay = () => '00:00',
     getEstimatedTimeCountdown = () => 'Unknown',
     generateAISuggestions = [],
@@ -79,8 +78,12 @@ const DayView = ({
                                     assignment={assignment}
                                     handleEditAssignment={handleEditAssignment}
                                     handleDeleteAssignment={handleDeleteAssignment}
-                                    handleTaskComplete={handleSubtaskComplete}
+                                    handleTaskComplete={handleTaskComplete}
                                     handleProgressUpdate={handleProgressUpdate}
+                                    studyTimer={studyTimer}
+                                    startStudyTimer={startStudyTimer}
+                                    stopStudyTimer={stopStudyTimer}
+                                    getTimerDisplay={getTimerDisplay}
                                 />
                             ))}
                         </div>

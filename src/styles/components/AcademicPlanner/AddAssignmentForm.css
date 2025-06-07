@@ -182,8 +182,6 @@
 /* Subtasks Section */
 .subtasks-list {
     margin-bottom: 1.5rem;
-    max-height: 300px;
-    overflow-y: auto;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     padding: 0.5rem;

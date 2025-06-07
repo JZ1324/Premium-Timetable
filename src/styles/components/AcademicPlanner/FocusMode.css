@@ -1,0 +1,428 @@
+/* Focus Mode Styles - Scoped to avoid conflicts */
+
+/* Hide all content when in focus mode except focus overlay */
+body.focus-mode-active {
+    overflow: hidden;
+}
+
+/* Hide the sidebar and main content areas specifically */
+body.focus-mode-active .academic-planner > *:not(.focus-mode-overlay) {
+    display: none !important;
+}
+
+/* Hide header/navigation elements outside of academic planner */
+body.focus-mode-active header,
+body.focus-mode-active nav,
+body.focus-mode-active .header,
+body.focus-mode-active .navigation,
+body.focus-mode-active .banner,
+body.focus-mode-active footer {
+    display: none !important;
+}
+
+/* Ensure focus mode overlay is always visible and on top */
+body.focus-mode-active .focus-mode-overlay {
+    display: flex !important;
+    position: fixed !important;
+    z-index: 99999 !important;
+}
+
+/* Focus Mode Modal Overlay */
+.focus-mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(139, 162, 188, 0.95), rgba(165, 180, 201, 0.95));
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: focusFadeIn 0.3s ease-out;
+}
+
+@keyframes focusFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Focus Mode Container */
+.focus-mode-container {
+    width: 90%;
+    max-width: 600px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: focusSlideUp 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes focusSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Focus Mode Header */
+.focus-mode-header {
+    background: linear-gradient(135deg, #8facc4, #a5b4c9);
+    padding: 24px;
+    color: white;
+    position: relative;
+}
+
+.focus-mode-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.focus-mode-subtitle {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.focus-mode-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.focus-mode-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.focus-mode-close i {
+    font-size: 20px;
+}
+
+/* Focus Mode Body */
+.focus-mode-body {
+    padding: 32px;
+}
+
+/* Task Info Section */
+.focus-task-info {
+    margin-bottom: 32px;
+}
+
+.focus-task-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.focus-meta-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.focus-meta-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.focus-meta-icon.subject {
+    background: linear-gradient(135deg, #6b9397, #8db0b5);
+}
+
+.focus-meta-icon.due-date {
+    background: linear-gradient(135deg, #c4a07d, #d4b896);
+}
+
+.focus-meta-icon.time {
+    background: linear-gradient(135deg, #9ea1c4, #b5b8d6);
+}
+
+.focus-meta-icon.priority {
+    background: linear-gradient(135deg, #c49ea1, #d6b5b8);
+}
+
+.focus-meta-content h4 {
+    margin: 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.focus-meta-content p {
+    margin: 4px 0 0 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* Task Description */
+.focus-task-description {
+    background: #f1f5f9;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.focus-task-description h4 {
+    margin: 0 0 8px 0;
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.focus-task-description p {
+    margin: 0;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* Timer Section */
+.focus-timer-section {
+    text-align: center;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 16px;
+    padding: 32px;
+    border: 2px solid #e2e8f0;
+}
+
+.focus-timer-label {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.focus-timer-display {
+    font-size: 48px;
+    font-weight: 700;
+    font-family: 'Monaco', 'Menlo', monospace;
+    color: #6b9397;
+    margin-bottom: 24px;
+    text-shadow: 0 2px 4px rgba(107, 147, 151, 0.1);
+}
+
+.focus-timer-controls {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+}
+
+.focus-timer-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.focus-timer-btn.start {
+    background: linear-gradient(135deg, #6b9397, #8db0b5);
+    color: white;
+}
+
+.focus-timer-btn.start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(107, 147, 151, 0.3);
+}
+
+.focus-timer-btn.pause {
+    background: linear-gradient(135deg, #c4a07d, #d4b896);
+    color: white;
+}
+
+.focus-timer-btn.pause:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(196, 160, 125, 0.3);
+}
+
+.focus-timer-btn.exit {
+    background: linear-gradient(135deg, #9ea1c4, #b5b8d6);
+    color: white;
+}
+
+.focus-timer-btn.exit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(158, 161, 196, 0.3);
+}
+
+/* Progress Indicator */
+.focus-progress-section {
+    margin: 24px 0;
+}
+
+.focus-progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.focus-progress-label span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.focus-progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.focus-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Focus Tips */
+.focus-tips {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.focus-tips h4 {
+    margin: 0 0 12px 0;
+    color: #059669;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.focus-tips ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #047857;
+}
+
+.focus-tips li {
+    margin-bottom: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .focus-mode-container {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .focus-mode-header {
+        padding: 20px;
+    }
+    
+    .focus-mode-body {
+        padding: 24px;
+    }
+    
+    .focus-task-meta {
+        grid-template-columns: 1fr;
+    }
+    
+    .focus-timer-display {
+        font-size: 36px;
+    }
+    
+    .focus-timer-controls {
+        flex-direction: column;
+    }
+    
+    .focus-timer-btn {
+        width: 100%;
+    }
+}
+
+/* Animation States */
+.focus-mode-container.closing {
+    animation: focusSlideDown 0.3s ease-in forwards;
+}
+
+@keyframes focusSlideDown {
+    to {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+}
+
+.focus-mode-overlay.closing {
+    animation: focusFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes focusFadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+/* Timer Pulse Animation */
+.focus-timer-display.active {
+    animation: timerPulse 2s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Focus Mode Active Body Class */
+body.focus-mode-active {
+    overflow: hidden;
+}

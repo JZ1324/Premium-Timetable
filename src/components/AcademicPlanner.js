@@ -17,6 +17,7 @@ import '../styles/components/AcademicPlanner/AddAssignmentForm.css';
 import '../styles/components/AcademicPlanner/AssignmentCard.css';
 import '../styles/components/AcademicPlanner/toasts.css';
 import '../styles/components/AcademicPlanner/animations.css';
+import '../styles/components/AcademicPlanner/FocusMode.css';
 import AddTaskForm from './AcademicPlanner/AddTaskForm';
 import AddAssignmentForm from './AcademicPlanner/AddAssignmentForm';
 import TopNavigation from './AcademicPlanner/TopNavigation';
@@ -54,7 +55,14 @@ const AcademicPlanner = () => {
                 return JSON.parse(savedTasks).map(task => ({
                     ...task,
                     dueDate: new Date(task.dueDate),
-                    createdAt: new Date(task.createdAt)
+                    createdAt: new Date(task.createdAt),
+                    // Initialize timer data if not present
+                    timerData: task.timerData || {
+                        totalTimeSpent: 0, // in seconds
+                        lastStartTime: null,
+                        isActive: false,
+                        sessions: [] // array of { startTime, endTime, duration }
+                    }
                 }));
             }
         } catch (error) {
@@ -73,7 +81,13 @@ const AcademicPlanner = () => {
                 description: 'Write a comprehensive essay on modern literature',
                 createdAt: new Date(),
                 progress: 0.3,
-                timeSpent: '1.5 hours'
+                timeSpent: '1.5 hours',
+                timerData: {
+                    totalTimeSpent: 0,
+                    lastStartTime: null,
+                    isActive: false,
+                    sessions: []
+                }
             },
             {
                 id: 2,
@@ -87,7 +101,13 @@ const AcademicPlanner = () => {
                 description: 'Complete calculus problem set chapter 12',
                 createdAt: new Date(),
                 progress: 0,
-                timeSpent: '0 hours'
+                timeSpent: '0 hours',
+                timerData: {
+                    totalTimeSpent: 0,
+                    lastStartTime: null,
+                    isActive: false,
+                    sessions: []
+                }
             },
             {
                 id: 3,
@@ -101,7 +121,13 @@ const AcademicPlanner = () => {
                 description: 'Review algebra and trigonometry concepts',
                 createdAt: new Date(),
                 progress: 0,
-                timeSpent: '0 hours'
+                timeSpent: '0 hours',
+                timerData: {
+                    totalTimeSpent: 0,
+                    lastStartTime: null,
+                    isActive: false,
+                    sessions: []
+                }
             },
             {
                 id: 4,
@@ -115,7 +141,13 @@ const AcademicPlanner = () => {
                 description: 'Read and analyze chapters 5-7 of the assigned novel',
                 createdAt: new Date(),
                 progress: 0,
-                timeSpent: '0 hours'
+                timeSpent: '0 hours',
+                timerData: {
+                    totalTimeSpent: 0,
+                    lastStartTime: null,
+                    isActive: false,
+                    sessions: []
+                }
             },
             {
                 id: 5,
@@ -129,12 +161,59 @@ const AcademicPlanner = () => {
                 description: 'Review calculus concepts for upcoming exam',
                 createdAt: new Date(),
                 progress: 0.6,
-                timeSpent: '1.2 hours'
+                timeSpent: '1.2 hours',
+                timerData: {
+                    totalTimeSpent: 0,
+                    lastStartTime: null,
+                    isActive: false,
+                    sessions: []
+                }
             }
         ];
     };
 
     const [tasks, setTasks] = useState(loadTasksFromStorage);
+    
+    // Check for active timers on component mount
+    useEffect(() => {
+        const savedTasks = loadTasksFromStorage();
+        const activeTimerTask = savedTasks.find(task => task.timerData?.isActive);
+        
+        if (activeTimerTask && activeTimerTask.timerData.lastStartTime) {
+            // Restore the timer if it was active
+            const lastStartTime = new Date(activeTimerTask.timerData.lastStartTime);
+            
+            // Only restore if the timer was started within the last 24 hours (to avoid very old sessions)
+            const timeSinceStart = (new Date() - lastStartTime) / (1000 * 60 * 60); // hours
+            
+            if (timeSinceStart < 24) {
+                setStudyTimer({
+                    taskId: activeTimerTask.id,
+                    startTime: lastStartTime,
+                    isRunning: true
+                });
+                
+                showToast(`Restored timer for "${activeTimerTask.title}" 🔄`, 'info');
+                console.log("✅ Timer restored for task:", activeTimerTask.title);
+            } else {
+                // Clean up old active timer states
+                setTasks(prevTasks =>
+                    prevTasks.map(t =>
+                        t.id === activeTimerTask.id
+                            ? {
+                                ...t,
+                                timerData: {
+                                    ...t.timerData,
+                                    isActive: false,
+                                    lastStartTime: null
+                                }
+                            }
+                            : t
+                    )
+                );
+            }
+        }
+    }, []);
     
     // Save tasks to localStorage whenever tasks change
     useEffect(() => {
@@ -797,7 +876,7 @@ const AcademicPlanner = () => {
         );
     };
 
-    // NEW TIMER SYSTEM - Simplified and reliable
+    // NEW TIMER SYSTEM - Enhanced with persistent data
     const startStudyTimer = (taskId) => {
         console.log("🎯 Starting timer for task:", taskId);
         
@@ -813,21 +892,31 @@ const AcademicPlanner = () => {
             return;
         }
         
+        const now = new Date();
+        
         // Create new timer state
         const newTimerState = {
             taskId,
-            startTime: new Date(),
+            startTime: now,
             isRunning: true
         };
         
         // Set timer state immediately for instant UI feedback
         setStudyTimer(newTimerState);
         
-        // Update task status immediately
+        // Update task with active timer state
         setTasks(prevTasks =>
             prevTasks.map(t =>
                 t.id === taskId
-                    ? { ...t, status: 'in-progress' }
+                    ? { 
+                        ...t, 
+                        status: 'in-progress',
+                        timerData: {
+                            ...t.timerData,
+                            lastStartTime: now.toISOString(),
+                            isActive: true
+                        }
+                    }
                     : t
             )
         );
@@ -846,28 +935,38 @@ const AcademicPlanner = () => {
             return;
         }
         
-        // Calculate time spent
-        const timeElapsed = (new Date() - studyTimer.startTime) / 1000 / 60; // minutes
+        const now = new Date();
+        const sessionDuration = Math.floor((now - studyTimer.startTime) / 1000); // in seconds
         const task = tasks.find(t => t.id === studyTimer.taskId);
         
         // Only record time if session was longer than 5 seconds
-        if (timeElapsed * 60 >= 5) {
-            const timeSpentFormatted = timeElapsed < 60 
-                ? `${Math.round(timeElapsed)} minutes`
-                : `${Math.floor(timeElapsed / 60)}h ${Math.round(timeElapsed % 60)}m`;
-            
-            // Update task with time spent
+        if (sessionDuration >= 5 && task) {
+            // Update task with session data
             setTasks(prevTasks =>
                 prevTasks.map(t =>
                     t.id === studyTimer.taskId
                         ? { 
                             ...t, 
-                            timeSpent: addTimeSpent(t.timeSpent || '0 hours', timeSpentFormatted)
+                            timerData: {
+                                ...t.timerData,
+                                totalTimeSpent: (t.timerData.totalTimeSpent || 0) + sessionDuration,
+                                lastStartTime: null,
+                                isActive: false,
+                                sessions: [
+                                    ...(t.timerData.sessions || []),
+                                    {
+                                        startTime: studyTimer.startTime.toISOString(),
+                                        endTime: now.toISOString(),
+                                        duration: sessionDuration
+                                    }
+                                ]
+                            }
                         }
                         : t
                 )
             );
             
+            const timeSpentFormatted = formatSecondsToTimeString(sessionDuration);
             showToast(`Study session complete! Time: ${timeSpentFormatted} ✅`, 'success');
         }
         
@@ -877,13 +976,46 @@ const AcademicPlanner = () => {
         console.log("✅ Timer stopped successfully");
     };
 
+    // Helper function to format seconds to time string
+    const formatSecondsToTimeString = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        } else if (minutes > 0) {
+            return `${minutes}m ${remainingSeconds}s`;
+        } else {
+            return `${remainingSeconds}s`;
+        }
+    };
+
     // TIMER DISPLAY AND PROGRESS MANAGEMENT
     const getTimerDisplay = () => {
-        if (!studyTimer.isRunning || !studyTimer.startTime) return '00:00';
+        if (!studyTimer.isRunning || !studyTimer.startTime) {
+            // If no active timer, check if the current focus task has previous time
+            if (focusTask && focusTask.timerData && focusTask.timerData.totalTimeSpent > 0) {
+                const totalSeconds = focusTask.timerData.totalTimeSpent;
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            return '00:00';
+        }
         
-        const elapsed = Math.floor((new Date() - studyTimer.startTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
+        // Get current task's previous time
+        const task = tasks.find(t => t.id === studyTimer.taskId);
+        const previousTimeSpent = task?.timerData?.totalTimeSpent || 0;
+        
+        // Calculate current session time
+        const currentSessionSeconds = Math.floor((new Date() - studyTimer.startTime) / 1000);
+        
+        // Total time is previous + current session
+        const totalSeconds = previousTimeSpent + currentSessionSeconds;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
 
@@ -1551,8 +1683,8 @@ const AcademicPlanner = () => {
         startStudyTimer(task.id);
         showToast(`Focus mode activated for: ${task.title}`, 'success');
         
-        // Hide other tasks and show minimal UI
-        document.body.classList.add('focus-mode');
+        // Hide all other content and show only focus mode
+        document.body.classList.add('focus-mode-active');
     };
 
     const exitFocusMode = () => {
@@ -1561,7 +1693,7 @@ const AcademicPlanner = () => {
         if (studyTimer.isRunning) {
             stopStudyTimer();
         }
-        document.body.classList.remove('focus-mode');
+        document.body.classList.remove('focus-mode-active');
         showToast('Focus mode deactivated', 'info');
     };
 
@@ -1829,52 +1961,108 @@ const AcademicPlanner = () => {
             
             {/* Task Focus Modal */}
             {focusTask && (
-                <div className="modal-overlay" onClick={() => setFocusTask(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>Focus Mode</h2>
-                            <button className="close-btn" onClick={() => setFocusTask(null)}>
+                <div className="focus-mode-overlay" onClick={exitFocusMode}>
+                    <div className="focus-mode-container" onClick={e => e.stopPropagation()}>
+                        <div className="focus-mode-header">
+                            <h1 className="focus-mode-title">{focusTask.title}</h1>
+                            <p className="focus-mode-subtitle">Focus Mode Active</p>
+                            <button className="focus-mode-close" onClick={exitFocusMode}>
                                 <i className="ri-close-line"></i>
                             </button>
                         </div>
-                        <div className="modal-body">
+                        
+                        <div className="focus-mode-body">
+                            {/* Task Info Section */}
                             <div className="focus-task-info">
-                                <h3>{focusTask.title}</h3>
-                                <div className="task-meta">
-                                    <div className="meta-item">
-                                        <i className="ri-book-mark-line"></i>
-                                        {focusTask.subject}
+                                <div className="focus-task-meta">
+                                    <div className="focus-meta-card">
+                                        <div className="focus-meta-icon subject">
+                                            <i className="ri-book-line"></i>
+                                        </div>
+                                        <div className="focus-meta-content">
+                                            <h4>Subject</h4>
+                                            <p>{focusTask.subject}</p>
+                                        </div>
                                     </div>
-                                    <div className="meta-item">
-                                        <i className="ri-calendar-line"></i>
-                                        Due: {formatDate(focusTask.dueDate)}
+                                    
+                                    <div className="focus-meta-card">
+                                        <div className="focus-meta-icon due-date">
+                                            <i className="ri-calendar-line"></i>
+                                        </div>
+                                        <div className="focus-meta-content">
+                                            <h4>Due Date</h4>
+                                            <p>{formatDate(focusTask.dueDate)}</p>
+                                        </div>
                                     </div>
-                                    <div className="meta-item">
-                                        <i className="ri-time-line"></i>
-                                        Est. Time: {focusTask.estimatedTime}
+                                    
+                                    <div className="focus-meta-card">
+                                        <div className="focus-meta-icon time">
+                                            <i className="ri-time-line"></i>
+                                        </div>
+                                        <div className="focus-meta-content">
+                                            <h4>Estimated Time</h4>
+                                            <p>{focusTask.estimatedTime}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="focus-meta-card">
+                                        <div className="focus-meta-icon priority">
+                                            <i className="ri-flag-line"></i>
+                                        </div>
+                                        <div className="focus-meta-content">
+                                            <h4>Priority</h4>
+                                            <p>{focusTask.priority}</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="task-description">
-                                    {focusTask.description}
-                                </div>
-                                <div className="study-timer">
-                                    <div className="timer-display">
-                                        {studyTimer.isRunning && studyTimer.taskId === focusTask.id 
-                                            ? getTimerDisplay() 
-                                            : '00:00'}
+                                
+                                {focusTask.description && (
+                                    <div className="focus-task-description">
+                                        <h4>Description</h4>
+                                        <p>{focusTask.description}</p>
                                     </div>
-                                    <div className="timer-controls">
-                                        {studyTimer.isRunning && studyTimer.taskId === focusTask.id ? (
-                                            <button onClick={stopStudyTimer} className="btn btn-danger">
-                                                <i className="ri-pause-line"></i> Pause
-                                            </button>
-                                        ) : (
-                                            <button onClick={() => startStudyTimer(focusTask.id)} className="btn btn-success">
-                                                <i className="ri-play-line"></i> Start
-                                            </button>
-                                        )}
-                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Timer Section */}
+                            <div className="focus-timer-section">
+                                <h3 className="focus-timer-label">Study Timer</h3>
+                                <div className={`focus-timer-display ${studyTimer.isRunning && studyTimer.taskId === focusTask.id ? 'active' : ''}`}>
+                                    {studyTimer.isRunning && studyTimer.taskId === focusTask.id 
+                                        ? getTimerDisplay() 
+                                        : '00:00'}
                                 </div>
+                                <div className="focus-timer-controls">
+                                    {studyTimer.isRunning && studyTimer.taskId === focusTask.id ? (
+                                        <button onClick={stopStudyTimer} className="focus-timer-btn pause">
+                                            <i className="ri-pause-line"></i>
+                                            Pause Timer
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => startStudyTimer(focusTask.id)} className="focus-timer-btn start">
+                                            <i className="ri-play-line"></i>
+                                            Start Timer
+                                        </button>
+                                    )}
+                                    <button onClick={exitFocusMode} className="focus-timer-btn exit">
+                                        <i className="ri-arrow-left-line"></i>
+                                        Exit Focus
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Focus Tips */}
+                            <div className="focus-tips">
+                                <h4>
+                                    <i className="ri-lightbulb-line"></i>
+                                    Focus Tips
+                                </h4>
+                                <ul>
+                                    <li>Remove distractions from your workspace</li>
+                                    <li>Take short breaks every 25-30 minutes</li>
+                                    <li>Stay hydrated and keep snacks nearby</li>
+                                    <li>Set specific goals for this study session</li>
+                                </ul>
                             </div>
                         </div>
                     </div>

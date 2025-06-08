@@ -1,3 +1,4 @@
+#this is a view only file for the academic planner project
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -180,6 +181,28 @@
       transform: scale(1.05);
       z-index: 10;
       }
+      
+      /* Collapsible sidebar sections */
+      .rotate-180 {
+        transform: rotate(180deg);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar-section-content {
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+      }
+      
+      /* Ensure arrows have smooth transition */
+      .ri-arrow-down-s-line {
+        transition: transform 0.3s ease;
+      }
+      
+      /* Make sure section headers are always visible */
+      .section-header-button {
+        display: flex !important;
+        visibility: visible !important;
+      }
     </style>
   </head>
   <body>
@@ -200,9 +223,19 @@
               <span>Add New Task</span>
             </button>
           </div>
+          
+          <!-- Test button for debugging -->
+          <div class="mb-4" style="display: none;">
+            <button onclick="toggleSection('filters')" class="w-full bg-red-500 text-white py-1 px-2 rounded text-xs">
+              Test Toggle Filters
+            </button>
+          </div>
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">FILTERS</h3>
-            <div class="space-y-2">
+            <button class="section-header-button w-full flex items-center justify-between text-sm font-medium text-gray-500 mb-2 hover:text-gray-700 transition-colors" onclick="toggleSection('filters')">
+              <span>FILTERS</span>
+              <i class="ri-arrow-down-s-line transition-transform duration-200" id="filters-icon"></i>
+            </button>
+            <div class="space-y-2 sidebar-section-content" id="filters-content">
               <div class="flex items-center">
                 <label class="custom-switch">
                   <input type="checkbox" checked />
@@ -224,8 +257,11 @@
             </div>
           </div>
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">SUBJECTS</h3>
-            <div class="space-y-2">
+            <button class="section-header-button w-full flex items-center justify-between text-sm font-medium text-gray-500 mb-2 hover:text-gray-700 transition-colors" onclick="toggleSection('subjects')">
+              <span>SUBJECTS</span>
+              <i class="ri-arrow-down-s-line transition-transform duration-200" id="subjects-icon"></i>
+            </button>
+            <div class="space-y-2 sidebar-section-content" id="subjects-content">
               <div class="flex items-center">
                 <input
                   type="checkbox"
@@ -286,8 +322,11 @@
             </div>
           </div>
           <div class="mb-6">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">TASK TYPES</h3>
-            <div class="space-y-2">
+            <button class="section-header-button w-full flex items-center justify-between text-sm font-medium text-gray-500 mb-2 hover:text-gray-700 transition-colors" onclick="toggleSection('taskTypes')">
+              <span>TASK TYPES</span>
+              <i class="ri-arrow-down-s-line transition-transform duration-200" id="taskTypes-icon"></i>
+            </button>
+            <div class="space-y-2 sidebar-section-content" id="taskTypes-content">
               <div class="flex items-center">
                 <input
                   type="checkbox"
@@ -346,8 +385,11 @@
             </div>
           </div>
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">PRIORITY</h3>
-            <div class="space-y-2">
+            <button class="section-header-button w-full flex items-center justify-between text-sm font-medium text-gray-500 mb-2 hover:text-gray-700 transition-colors" onclick="toggleSection('priority')">
+              <span>PRIORITY</span>
+              <i class="ri-arrow-down-s-line transition-transform duration-200" id="priority-icon"></i>
+            </button>
+            <div class="space-y-2 sidebar-section-content" id="priority-content">
               <div class="flex items-center">
                 <input
                   type="checkbox"
@@ -510,24 +552,6 @@
         <!-- Day View (Active by default) -->
         <div id="day-view" class="flex-1 overflow-y-auto p-6">
           <div class="max-w-4xl mx-auto">
-            <div class="mb-6">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-semibold text-gray-800">
-                  Today's Quote
-                </h3>
-              </div>
-              <div
-                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              >
-                <p class="text-gray-600 italic">
-                  "The secret of getting ahead is getting started. The secret of
-                  getting started is breaking your complex overwhelming tasks
-                  into small manageable tasks, and then starting on the first
-                  one."
-                </p>
-                <p class="text-gray-500 text-sm mt-1">— Mark Twain</p>
-              </div>
-            </div>
             <div class="mb-6">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-lg font-semibold text-gray-800">Overdue</h3>
@@ -1212,17 +1236,6 @@
         <!-- Week View (Hidden by default) -->
         <div id="week-view" class="flex-1 overflow-y-auto p-6 hidden">
           <div class="max-w-6xl mx-auto">
-            <div class="mb-6">
-              <div
-                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              >
-                <p class="text-gray-600 italic">
-                  "Success is the sum of small efforts, repeated day in and day
-                  out."
-                </p>
-                <p class="text-gray-500 text-sm mt-1">— Robert Collier</p>
-              </div>
-            </div>
             <div
               class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
             >
@@ -2520,7 +2533,65 @@
       </div>
     </div>
     <script>
+      // Sidebar collapsible sections functionality
+      function toggleSection(sectionName) {
+        console.log('toggleSection called with:', sectionName);
+        const content = document.getElementById(sectionName + '-content');
+        const icon = document.getElementById(sectionName + '-icon');
+        
+        console.log('Elements found:', content, icon);
+        
+        if (!content || !icon) {
+          console.error('Elements not found for section:', sectionName);
+          return;
+        }
+        
+        // Check if section is currently collapsed
+        const isCollapsed = content.style.display === 'none';
+        console.log('Section collapsed?', isCollapsed);
+        
+        if (isCollapsed) {
+          // Expand the section
+          content.style.display = 'block';
+          icon.classList.remove('rotate-180');
+          console.log('Expanded section:', sectionName);
+        } else {
+          // Collapse the section
+          content.style.display = 'none';
+          icon.classList.add('rotate-180');
+          console.log('Collapsed section:', sectionName);
+        }
+      }
+      
+      // Make function globally available
+      window.toggleSection = toggleSection;
+
       document.addEventListener("DOMContentLoaded", function () {
+        console.log('DOM loaded, initializing sections...');
+        // Initialize all sections as collapsed
+        const sections = ['filters', 'subjects', 'taskTypes', 'priority'];
+        sections.forEach(section => {
+          const content = document.getElementById(section + '-content');
+          const icon = document.getElementById(section + '-icon');
+          const button = document.querySelector(`[onclick="toggleSection('${section}')"]`);
+          
+          console.log(`Section ${section}:`, content, icon, button);
+          
+          // Ensure the button/title is always visible
+          if (button) {
+            button.style.display = 'flex';
+          }
+          
+          if (content) {
+            content.style.display = 'none';
+            console.log(`Hidden ${section} content`);
+          }
+          if (icon) {
+            icon.classList.add('rotate-180');
+            console.log(`Rotated ${section} icon`);
+          }
+        });
+
         const dayBtn = document.getElementById("day-btn");
         const weekBtn = document.getElementById("week-btn");
         const monthBtn = document.getElementById("month-btn");

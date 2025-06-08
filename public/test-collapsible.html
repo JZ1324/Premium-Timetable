@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Collapsible</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        .rotate-180 {
+            transform: rotate(180deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-section-content {
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .ri-arrow-down-s-line {
+            transition: transform 0.3s ease;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .section {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .section-header {
+            background: #f5f5f5;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-content {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Collapsible Sections Test</h1>
+    
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('test1')">
+            <span>Test Section 1</span>
+            <i class="ri-arrow-down-s-line" id="test1-icon"></i>
+        </div>
+        <div class="section-content sidebar-section-content" id="test1-content">
+            <p>This is the content of section 1</p>
+            <p>Multiple lines of content to test the animation</p>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('test2')">
+            <span>Test Section 2</span>
+            <i class="ri-arrow-down-s-line" id="test2-icon"></i>
+        </div>
+        <div class="section-content sidebar-section-content" id="test2-content">
+            <p>This is the content of section 2</p>
+            <p>Some more content here</p>
+        </div>
+    </div>
+    
+    <button onclick="testAllSections()" style="margin-top: 20px; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px;">
+        Toggle All Sections
+    </button>
+
+    <script>
+        function toggleSection(sectionName) {
+            console.log('toggleSection called with:', sectionName);
+            const content = document.getElementById(sectionName + '-content');
+            const icon = document.getElementById(sectionName + '-icon');
+            
+            console.log('Elements found:', { content, icon });
+            
+            if (!content || !icon) {
+                console.error('Elements not found for section:', sectionName);
+                return;
+            }
+            
+            // Check if section is currently collapsed
+            const isCollapsed = content.style.display === 'none';
+            
+            if (isCollapsed) {
+                // Expand the section
+                content.style.display = 'block';
+                icon.classList.remove('rotate-180');
+                console.log('Showing section:', sectionName);
+            } else {
+                // Collapse the section
+                content.style.display = 'none';
+                icon.classList.add('rotate-180');
+                console.log('Hiding section:', sectionName);
+            }
+        }
+        
+        function testAllSections() {
+            const sections = ['test1', 'test2'];
+            sections.forEach(section => {
+                console.log('Testing section:', section);
+                toggleSection(section);
+            });
+        }
+        
+        // Initialize sections as collapsed
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log('DOM loaded, initializing collapsed sections...');
+            const sections = ['test1', 'test2'];
+            sections.forEach(section => {
+                const content = document.getElementById(section + '-content');
+                const icon = document.getElementById(section + '-icon');
+                console.log(`Initializing section ${section}:`, { content, icon });
+                if (content) {
+                    content.style.display = 'none';
+                    console.log(`Hidden ${section}-content`);
+                }
+                if (icon) {
+                    icon.classList.add('rotate-180');
+                    console.log(`Rotated ${section}-icon`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

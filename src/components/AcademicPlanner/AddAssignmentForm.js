@@ -53,6 +53,17 @@ const AddAssignmentForm = ({ onAddAssignment, onClose, initialData = null }) => 
         }
     }, [initialData]);
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        // Disable body scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Re-enable body scroll on cleanup
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
+
     // Handle escape key to close modal
     useEffect(() => {
         const handleEscape = (e) => {

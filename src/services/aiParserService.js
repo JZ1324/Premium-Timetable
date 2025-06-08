@@ -31,26 +31,29 @@ if (typeof window !== 'undefined' && window.EnglishTruncationFix) {
 
 // Multiple API keys for token limit management
 const API_KEYS = [
-  "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", // Primary key
+  "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", // Primary key
   "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", // Second backup key
-  "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", // Third backup key for additional reliability
-  "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"  // Fourth backup key for increased reliability
+  "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", // Third backup key for additional reliability
+  "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", // Fourth backup key
+  "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", // Fifth backup key
+  "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"  // Sixth backup key
 ];
 let currentKeyIndex = 0; // Start with the first key
 // Track which keys have been exhausted in this session to prevent useless retries
 const exhaustedKeys = new Set();
 
-// Using Gemini 2.0 Flash exclusively for improved consistency
+// Using DeepSeek R1 models exclusively for improved consistency
 const MODELS = [
-  "google/gemini-2.0-flash-exp:free" // Primary model - Gemini 2.0 Flash
+  "deepseek/deepseek-r1-0528:free", // Primary model - DeepSeek R1
+  "deepseek/deepseek-r1-0528-qwen3-8b:free" // Secondary model - DeepSeek R1 Qwen3-8B
 ];
-let currentModelIndex = 0; // Stay with the only model
+let currentModelIndex = 0; // Start with the primary model
 // Track which models have failed in the current parsing attempt (kept for compatibility)
 const failedModels = new Set();
 
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// Provider: chute (using Gemini 2.0 Flash model via OpenRouter)
+// Provider: chute (using DeepSeek R1 models via OpenRouter)
 async function parseTimetableWithChuteAI(timetableText) {
   // Reset failed models set at the start of each new parsing attempt
   failedModels.clear();
@@ -196,12 +199,19 @@ Return only valid JSON. No markdown. No explanation.`;
           errorBody.includes("error code")) {
         
         // Log the provider error
-        console.log(`Provider error detected with Gemini 2.0 Flash. Will try again with a different API key.`);
+        console.log(`Provider error detected with DeepSeek R1. Will try with different model or API key.`);
         
-        // Since we only have one model, we'll try with a different API key if available
-        if (currentKeyIndex < API_KEYS.length - 1) {
+        // First try different model with same key if available
+        if (currentModelIndex < MODELS.length - 1) {
+          nextModelIndex = currentModelIndex + 1;
+          console.log(`Trying different DeepSeek model: ${MODELS[nextModelIndex]} (API Key #${currentKeyIndex + 1})`);
+          shouldRetry = true;
+        }
+        // If no more models, try different API key with current model
+        else if (currentKeyIndex < API_KEYS.length - 1) {
           nextKeyIndex = currentKeyIndex + 1;
-          console.log(`Trying Gemini 2.0 Flash with a different API key (#${nextKeyIndex + 1})`);
+          nextModelIndex = 0; // Reset to first model
+          console.log(`Trying DeepSeek R1 with a different API key (#${nextKeyIndex + 1})`);
           shouldRetry = true;
         }
       }
@@ -233,7 +243,7 @@ Return only valid JSON. No markdown. No explanation.`;
         
         // Since we only have one model, we only need to report if all keys are exhausted
         if (!foundNonExhausted) {
-          console.log(`All API keys exhausted. Cannot proceed with Gemini 2.0 Flash.`);
+          console.log(`All API keys exhausted. Cannot proceed with DeepSeek R1.`);
         }
       }
       
@@ -253,7 +263,7 @@ Return only valid JSON. No markdown. No explanation.`;
           // One last attempt - try with a different key if we haven't already tried all keys
           if (nextKeyIndex === currentKeyIndex && currentKeyIndex < API_KEYS.length - 1) {
             currentKeyIndex++;
-            console.log(`Final attempt with Gemini 2.0 Flash and key #${currentKeyIndex + 1}`);
+            console.log(`Final attempt with DeepSeek R1 and key #${currentKeyIndex + 1}`);
             response = await makeRequest(currentKeyIndex, currentModelIndex);
           }
           
@@ -280,11 +290,11 @@ Return only valid JSON. No markdown. No explanation.`;
         : data.error;
       console.error(`OpenRouter API returned an error:`, errorMessage);
       
-      // Handle provider errors with Gemini
+      // Handle provider errors with DeepSeek
       if (errorMessage.includes("Provider returned error") || 
           errorMessage.includes("provider") || 
           errorMessage.includes("error code") ||
-          errorMessage.includes("google/gemini") ||   // Specifically capture Gemini model errors
+          errorMessage.includes("deepseek/deepseek") ||   // Specifically capture DeepSeek model errors
           errorMessage.includes("Model") || 
           errorMessage.includes("model")) {
         
@@ -292,12 +302,12 @@ Return only valid JSON. No markdown. No explanation.`;
         if (currentKeyIndex < API_KEYS.length - 1) {
           // Try the next API key
           currentKeyIndex++;
-          console.log(`Provider error detected with Gemini 2.0 Flash. Trying with API key #${currentKeyIndex + 1}`);
+          console.log(`Provider error detected with DeepSeek R1. Trying with API key #${currentKeyIndex + 1}`);
           
           // Recursive call with the same model but different key
           return parseTimetableWithChuteAI(timetableText);
         } else {
-          console.log("All API keys tried with Gemini 2.0 Flash, but provider errors persist.");
+          console.log("All API keys tried with DeepSeek R1, but provider errors persist.");
         }
       }
       // Check if error is token/quota related
@@ -347,7 +357,7 @@ Return only valid JSON. No markdown. No explanation.`;
       jsonContent = jsonContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
       jsonContent = jsonContent.replace(/```javascript\s*/g, '').replace(/```\s*$/g, '');
       
-      // Special fix for common truncation issues with Gemini models around position ~10982
+      // Special fix for common truncation issues with DeepSeek models around position ~10982
       if (jsonContent.length > 10500 && jsonContent.length < 11500) {
         console.log("Response length in known truncation range (~10982), checking for truncation pattern");
         
@@ -404,7 +414,7 @@ Return only valid JSON. No markdown. No explanation.`;
               
               fixedJson += '}\n}'; // Close classes and root object
               
-              console.log(`Applied enhanced fix for Gemini truncation, reconstructed with ${completeDayBlocks.length} complete day blocks`);
+              console.log(`Applied enhanced fix for DeepSeek truncation, reconstructed with ${completeDayBlocks.length} complete day blocks`);
               jsonContent = fixedJson;
               
               // Try to parse it immediately to validate our fix
@@ -606,7 +616,7 @@ Return only valid JSON. No markdown. No explanation.`;
                       // Fix unterminated strings in the block
                       .replace(/("\w+"\s*:\s*")([^"]*?)(?=,\s*")/g, '$1$2"');
                     
-                    // Check for specific Gemini truncation pattern
+                    // Check for specific DeepSeek truncation pattern
                     if (cleanBlock.match(/"code"\s*:\s*"[^"]*$/)) {
                       // This block ends with a truncated code field, find last complete period
                       const lastCompletePeriod = cleanBlock.match(/("Period \d+"|"Tutorial")\s*:\s*\[.*?\]\s*(?=,\s*(?:"Period|"Tutorial)|$)/g);
@@ -953,7 +963,7 @@ Return only valid JSON. No markdown. No explanation.`;
     }
   } catch (error) {
     console.error(`Error calling OpenRouter API:`, error);
-    throw new Error(`Error parsing timetable with OpenRouter API (Gemini 2.0 Flash, key: ${currentKeyIndex + 1}): ${error.message}`);
+    throw new Error(`Error parsing timetable with OpenRouter API (DeepSeek R1, key: ${currentKeyIndex + 1}): ${error.message}`);
   }
 }
 

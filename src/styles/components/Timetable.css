@@ -829,6 +829,24 @@
     box-shadow: 0 2px 4px rgba(var(--accent-color-rgb), 0.3);
 }
 
+.form-actions .delete-button {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+}
+
+.form-actions .delete-button:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
+.form-actions .delete-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
 .form-actions .cancel-button {
     background-color: var(--button-bg);
     color: var(--text-primary);

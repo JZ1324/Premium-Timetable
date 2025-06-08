@@ -11,6 +11,9 @@
   align-items: center;
   z-index: 10000;
   animation: templateFadeIn 0.2s ease;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .template-name-container {
@@ -20,17 +23,12 @@
   padding: 2rem;
   width: 100%;
   max-width: 400px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   text-align: center;
   position: relative;
-  margin: auto;
   border: 1px solid rgba(0, 0, 0, 0.1);
   animation: templateSlideIn 0.3s ease;
-  /* Center vertically in the viewport */
-  top: 50%;
-  transform: translateY(-50%);
-  /* Ensure the modal is visible in the viewport regardless of scroll position */
-  margin-top: 0;
-  margin-bottom: 0;
 }
 
 .template-name-container h2 {

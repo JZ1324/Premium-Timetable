@@ -286,12 +286,23 @@ const TimeSlot = ({ slot, onUpdate, onRemove, displaySettings, isEditing, onStar
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
+                            onRemove(slot.id || `${slot.day}-${slot.period}`);
+                        }} 
+                        className="delete-button"
+                        type="button"
+                    >
+                        Delete
+                    </button>
+                    <button 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             cancelEdit();
                         }} 
                         className="cancel-button"
                         type="button"
                     >
-                        Cancel
+                        Edit Mode
                     </button>
                 </div>
             </div>

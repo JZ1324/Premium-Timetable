@@ -22,7 +22,36 @@ const AnalyticsDashboard = ({ tasks, onClose }) => {
         calculateStats();
     }, [tasks, timeRange]);
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        // Disable body scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Re-enable body scroll on cleanup
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
+
     const calculateStats = () => {
+        // Ensure tasks is an array
+        if (!Array.isArray(tasks)) {
+            console.warn('Tasks is not an array:', tasks);
+            setStats({
+                total: 0,
+                completed: 0,
+                inProgress: 0,
+                notStarted: 0,
+                byPriority: { high: 0, medium: 0, low: 0 },
+                bySubject: {},
+                byType: {},
+                overdue: 0,
+                completionRate: 0,
+                avgCompletionTime: 0
+            });
+            return;
+        }
+
         // Filter tasks based on time range
         const filteredTasks = filterTasksByTimeRange(tasks);
         
@@ -44,8 +73,15 @@ const AnalyticsDashboard = ({ tasks, onClose }) => {
         const now = new Date();
         
         filteredTasks.forEach(task => {
+            // Ensure task has required properties with defaults
+            const taskStatus = task.status || 'not-started';
+            const taskPriority = (task.priority || 'medium').toLowerCase();
+            const taskSubject = task.subject || 'Uncategorized';
+            const taskType = task.type || 'Task';
+            const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+            
             // Count by status
-            if (task.status === 'completed') {
+            if (taskStatus === 'completed') {
                 completed++;
                 
                 // Calculate completion time if data available
@@ -54,34 +90,35 @@ const AnalyticsDashboard = ({ tasks, onClose }) => {
                     completionTimeSum += completionTime;
                     completedCount++;
                 }
-            } else if (task.status === 'in-progress') {
+            } else if (taskStatus === 'in-progress') {
                 inProgress++;
             } else {
                 notStarted++;
             }
             
             // Check if overdue
-            if (task.status !== 'completed' && task.dueDate < now) {
+            if (taskStatus !== 'completed' && taskDueDate && taskDueDate < now) {
                 overdue++;
             }
             
             // Count by priority
-            const priority = task.priority.toLowerCase();
-            if (byPriority[priority] !== undefined) {
-                byPriority[priority]++;
+            if (byPriority[taskPriority] !== undefined) {
+                byPriority[taskPriority]++;
+            } else {
+                byPriority[taskPriority] = 1;
             }
             
             // Count by subject
-            if (!bySubject[task.subject]) {
-                bySubject[task.subject] = 0;
+            if (!bySubject[taskSubject]) {
+                bySubject[taskSubject] = 0;
             }
-            bySubject[task.subject]++;
+            bySubject[taskSubject]++;
             
             // Count by type
-            if (!byType[task.type]) {
-                byType[task.type] = 0;
+            if (!byType[taskType]) {
+                byType[taskType] = 0;
             }
-            byType[task.type]++;
+            byType[taskType]++;
         });
         
         // Calculate completion rate and average completion time
@@ -104,23 +141,36 @@ const AnalyticsDashboard = ({ tasks, onClose }) => {
     };
 
     const filterTasksByTimeRange = (tasks) => {
+        if (!Array.isArray(tasks)) {
+            return [];
+        }
+        
         const now = new Date();
         
         switch (timeRange) {
             case 'week': {
                 const weekAgo = new Date(now);
                 weekAgo.setDate(weekAgo.getDate() - 7);
-                return tasks.filter(task => new Date(task.createdAt) >= weekAgo);
+                return tasks.filter(task => {
+                    const createdAt = task.createdAt ? new Date(task.createdAt) : null;
+                    return createdAt && createdAt >= weekAgo;
+                });
             }
             case 'month': {
                 const monthAgo = new Date(now);
                 monthAgo.setMonth(monthAgo.getMonth() - 1);
-                return tasks.filter(task => new Date(task.createdAt) >= monthAgo);
+                return tasks.filter(task => {
+                    const createdAt = task.createdAt ? new Date(task.createdAt) : null;
+                    return createdAt && createdAt >= monthAgo;
+                });
             }
             case 'semester': {
                 const sixMonthsAgo = new Date(now);
                 sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-                return tasks.filter(task => new Date(task.createdAt) >= sixMonthsAgo);
+                return tasks.filter(task => {
+                    const createdAt = task.createdAt ? new Date(task.createdAt) : null;
+                    return createdAt && createdAt >= sixMonthsAgo;
+                });
             }
             case 'all':
             default:
@@ -265,54 +315,66 @@ const AnalyticsDashboard = ({ tasks, onClose }) => {
                                 <div className="analytics-col">
                                     <div className="analytics-card">
                                         <h4 className="analytics-card-title">Task Status</h4>
-                                        <div className="progress-container">
-                                            <div className="progress-ring-container">
-                                                <div className="progress-ring">
-                                                    <div className="completion-rate">
-                                                        <span className="percentage">{Math.round(stats.completionRate)}%</span>
-                                                        <span className="label">Completion Rate</span>
+                                        {stats.total === 0 ? (
+                                            <div className="empty-state">
+                                                <div className="empty-state-icon">
+                                                    <i className="ri-task-line"></i>
+                                                </div>
+                                                <p className="empty-state-message">No tasks yet</p>
+                                                <p className="empty-state-subtitle">Create your first task to see analytics</p>
+                                            </div>
+                                        ) : (
+                                            <div className="progress-container">
+                                                <div className="progress-ring-container">
+                                                    <div className="progress-ring">
+                                                        <div className="completion-rate">
+                                                            <span className="percentage">{Math.round(stats.completionRate) || 0}%</span>
+                                                            <span className="label">Completion Rate</span>
+                                                        </div>
+                                                        <svg viewBox="0 0 120 120" className="ring-svg">
+                                                            {/* Background circle */}
+                                                            <circle
+                                                                cx="60"
+                                                                cy="60"
+                                                                r="50"
+                                                                fill="none"
+                                                                stroke="#e5e7eb"
+                                                                strokeWidth="10"
+                                                            />
+                                                            {/* Progress circle */}
+                                                            <circle
+                                                                cx="60"
+                                                                cy="60"
+                                                                r="50"
+                                                                fill="none"
+                                                                stroke="#4f46e5"
+                                                                strokeWidth="10"
+                                                                strokeDasharray={`${Math.max(0, (stats.completionRate || 0) / 100 * 314.16)} 314.16`}
+                                                                strokeDashoffset="0"
+                                                                style={{ transition: 'stroke-dasharray 0.5s ease-in-out' }}
+                                                            />
+                                                        </svg>
                                                     </div>
-                                                    <svg viewBox="0 0 120 120" className="ring-svg">
-                                                        <circle
-                                                            cx="60"
-                                                            cy="60"
-                                                            r="50"
-                                                            fill="none"
-                                                            stroke="#e5e7eb"
-                                                            strokeWidth="10"
-                                                        />
-                                                        <circle
-                                                            cx="60"
-                                                            cy="60"
-                                                            r="50"
-                                                            fill="none"
-                                                            stroke="#4f46e5"
-                                                            strokeWidth="10"
-                                                            strokeDasharray={`${stats.completionRate * 3.14}`}
-                                                            strokeDashoffset="0"
-                                                            transform="rotate(-90 60 60)"
-                                                        />
-                                                    </svg>
+                                                </div>
+                                                <div className="status-legend">
+                                                    <div className="legend-item">
+                                                        <span className="legend-color completed"></span>
+                                                        <span className="legend-label">Completed</span>
+                                                        <span className="legend-value">{stats.completed}</span>
+                                                    </div>
+                                                    <div className="legend-item">
+                                                        <span className="legend-color in-progress"></span>
+                                                        <span className="legend-label">In Progress</span>
+                                                        <span className="legend-value">{stats.inProgress}</span>
+                                                    </div>
+                                                    <div className="legend-item">
+                                                        <span className="legend-color not-started"></span>
+                                                        <span className="legend-label">Not Started</span>
+                                                        <span className="legend-value">{stats.notStarted}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="status-legend">
-                                                <div className="legend-item">
-                                                    <span className="legend-color completed"></span>
-                                                    <span className="legend-label">Completed</span>
-                                                    <span className="legend-value">{stats.completed}</span>
-                                                </div>
-                                                <div className="legend-item">
-                                                    <span className="legend-color in-progress"></span>
-                                                    <span className="legend-label">In Progress</span>
-                                                    <span className="legend-value">{stats.inProgress}</span>
-                                                </div>
-                                                <div className="legend-item">
-                                                    <span className="legend-color not-started"></span>
-                                                    <span className="legend-label">Not Started</span>
-                                                    <span className="legend-value">{stats.notStarted}</span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                                 

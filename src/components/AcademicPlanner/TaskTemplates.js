@@ -30,6 +30,17 @@ const TaskTemplates = ({ onApplyTemplate, onClose, onSaveTemplate }) => {
         }
     }, []);
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        // Disable body scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Re-enable body scroll on cleanup
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
+
     // Save templates to localStorage whenever they change
     useEffect(() => {
         try {

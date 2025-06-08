@@ -5,6 +5,7 @@ import ChangePassword from './ChangePassword';
 import LogoutButton from './LogoutButton';
 import LogoutConfirm from './LogoutConfirm';
 import HelpPage from './HelpPage';
+// import HelpCenter from './HelpCenter';
 import { useAuth } from './AuthProvider';
 import '../styles/components/Header.css';
 
@@ -18,6 +19,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
     const [showUserInfo, setShowUserInfo] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showHelpPage, setShowHelpPage] = useState(false);
+    const [showHelpCenter, setShowHelpCenter] = useState(false);
     const lastScrollY = useRef(0);
     const ticking = useRef(false);
     const userMenuRef = useRef(null);
@@ -138,7 +140,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
         setShowUserInfo(true);
     };
 
-    // Toggle help page
+    // Toggle help page (original clean modal)
     const handleToggleHelp = () => {
         setShowHelpPage(!showHelpPage);
     };
@@ -225,7 +227,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
                                 )}
                             </div>
                         )}
-                        <button className="help-button" title="Help" onClick={handleToggleHelp}>
+                        <button className="help-button" title="Help & FAQ" onClick={handleToggleHelp}>
                             <span>?</span>
                         </button>
                     </div>
@@ -241,6 +243,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
                 onConfirm={handleLogoutSuccess} 
             />}
             {showHelpPage && <HelpPage onClose={() => setShowHelpPage(false)} />}
+            {/* {showHelpCenter && <HelpCenter onClose={() => setShowHelpCenter(false)} />} */}
         </>
     );
 };

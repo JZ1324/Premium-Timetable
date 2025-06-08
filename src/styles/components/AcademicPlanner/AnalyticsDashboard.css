@@ -11,6 +11,9 @@
     justify-content: center;
     z-index: 1000;
     font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .analytics-modal {
@@ -19,9 +22,12 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 900px;
-    max-height: 90vh;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
     animation: slideIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
 }
 
 @keyframes slideIn {
@@ -133,6 +139,8 @@
 /* Analytics Content */
 .analytics-content {
     padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* Stat Cards */
@@ -214,7 +222,8 @@
 
 .analytics-col {
     flex: 1;
-    min-width: 300px;
+    min-width: 280px;
+    max-width: 100%;
 }
 
 /* Analytics Card */
@@ -224,6 +233,8 @@
     border: 1px solid #e5e7eb;
     padding: 1.25rem;
     height: 100%;
+    min-height: 200px;
+    overflow: hidden;
 }
 
 .analytics-card-title {
@@ -237,11 +248,13 @@
 .progress-container {
     display: flex;
     gap: 1.5rem;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .progress-ring-container {
     flex: 0 0 auto;
+    min-width: 140px;
 }
 
 .progress-ring {
@@ -280,8 +293,14 @@
     transform: rotate(-90deg);
 }
 
+.ring-svg circle:last-child {
+    transition: stroke-dasharray 0.3s ease-in-out;
+}
+
 .status-legend {
     flex: 1;
+    min-width: 200px;
+    padding-top: 0.5rem;
 }
 
 .legend-item {
@@ -673,6 +692,43 @@
     background-color: #3b82f6;
 }
 
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    min-height: 200px;
+}
+
+.empty-state-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #9ca3af;
+}
+
+.empty-state-message {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .analytics-modal {
@@ -693,14 +749,35 @@
     
     .progress-container {
         flex-direction: column;
-    }
-    
-    .pie-chart-container {
-        flex-direction: column;
         align-items: center;
+        gap: 1rem;
     }
     
-    .metrics-grid {
-        grid-template-columns: 1fr;
+    .status-legend {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-col {
+        min-width: 200px;
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .progress-ring-container {
+        min-width: 120px;
+    }
+    
+    .percentage {
+        font-size: 1.5rem;
+    }
+    
+    .legend-item {
+        margin-bottom: 0.5rem;
     }
 }

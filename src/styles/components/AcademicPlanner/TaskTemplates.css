@@ -11,6 +11,9 @@
     justify-content: center;
     z-index: 1000;
     font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .templates-modal {
@@ -19,7 +22,7 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 680px;
-    max-height: 90vh;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
     animation: slideIn 0.3s ease-out;
 }

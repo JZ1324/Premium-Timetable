@@ -11,6 +11,9 @@
     justify-content: center;
     z-index: 1000;
     font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .task-form-modal {

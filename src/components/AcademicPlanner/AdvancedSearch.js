@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/components/AcademicPlanner/AdvancedSearch.css';
 
 const AdvancedSearch = ({ onSearch, onClose, initialFilters = {} }) => {
@@ -13,6 +13,17 @@ const AdvancedSearch = ({ onSearch, onClose, initialFilters = {} }) => {
     });
     
     const [newTag, setNewTag] = useState('');
+
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        // Disable body scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Re-enable body scroll on cleanup
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

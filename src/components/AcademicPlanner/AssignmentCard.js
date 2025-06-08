@@ -30,8 +30,14 @@ const AssignmentCard = ({
         handleProgressUpdate && handleProgressUpdate(assignment.id, newProgress);
     };
 
-    // Helper function to get due date status
+    // Helper function to get due date status - use from DayView if available, otherwise calculate
     const getDueDateStatus = () => {
+        // If DayView has already calculated the status, use it
+        if (assignment.dueDateStatus) {
+            return assignment.dueDateStatus;
+        }
+        
+        // Otherwise calculate it ourselves (for backward compatibility)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const dueDate = new Date(assignment.dueDate);
@@ -47,6 +53,8 @@ const AssignmentCard = ({
             };
         } else if (diffDays === 0) {
             return { text: 'Due today', class: 'bg-orange-100 text-orange-800' };
+        } else if (diffDays === 1) {
+            return { text: 'Due tomorrow', class: 'bg-yellow-100 text-yellow-800' };
         } else if (diffDays <= 3) {
             return { text: `In ${diffDays} day${diffDays === 1 ? '' : 's'}`, class: 'bg-blue-100 text-blue-800' };
         }
@@ -75,7 +83,7 @@ const AssignmentCard = ({
     })() : 0;
 
     return (
-        <div className={`assignment-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-${assignment.priority.toLowerCase()}`}>
+        <div className={`assignment-card bg-white p-4 rounded-lg border border-gray-200 shadow-sm priority-${assignment.priority.toLowerCase()}`} data-task-id={assignment.id}>
             {/* Main Card Content - Clickable to expand */}
             <div 
                 className="assignment-card-main cursor-pointer"

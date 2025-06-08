@@ -83,8 +83,14 @@ const TaskCard = ({
         handleProgressUpdate && handleProgressUpdate(task.id, newProgress);
     };
 
-    // Helper function to get due date status
+    // Helper function to get due date status - use from DayView if available, otherwise calculate
     const getDueDateStatus = () => {
+        // If DayView has already calculated the status, use it
+        if (task.dueDateStatus) {
+            return task.dueDateStatus;
+        }
+        
+        // Otherwise calculate it ourselves (for backward compatibility)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const dueDate = new Date(task.dueDate);
@@ -113,16 +119,23 @@ const TaskCard = ({
     const { text: statusText, className: statusClass, color: statusColor } = getStatusBadgeConfig(task.status);
 
     return (
-        <div className={`task-card ${isTimerRunning ? 'timer-active' : ''}`}>
+        <div className={`task-card ${isTimerRunning ? 'timer-active' : ''}`} data-task-id={task.id}>
             <div className="task-header">
                 <div className="task-title-section">
                     <h3 className="task-title">{task.title}</h3>
-                    <span 
-                        className={`priority-badge ${task.priority?.toLowerCase()}`}
-                        style={{ backgroundColor: priorityColor }}
-                    >
-                        {task.priority}
-                    </span>
+                    <div className="task-badges">
+                        <span 
+                            className={`priority-badge ${task.priority?.toLowerCase()}`}
+                            style={{ backgroundColor: priorityColor }}
+                        >
+                            {task.priority}
+                        </span>
+                        {dueDateStatus && (
+                            <span className={`due-date-badge ${dueDateStatus.class}`}>
+                                {dueDateStatus.text}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className="task-actions">
                     <button 

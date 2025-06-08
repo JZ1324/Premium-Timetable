@@ -21,41 +21,9 @@ const TaskTemplates = ({ onApplyTemplate, onClose, onSaveTemplate }) => {
             if (savedTemplates) {
                 setTemplates(JSON.parse(savedTemplates));
             } else {
-                // Initialize with default templates if none exist
-                const defaultTemplates = [
-                    {
-                        id: 1,
-                        title: 'Essay Assignment',
-                        description: 'Standard essay assignment template',
-                        subject: 'English',
-                        type: 'Assignment',
-                        priority: 'Medium',
-                        estimatedTime: '3 hours',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 2,
-                        title: 'Math Problem Set',
-                        description: 'Weekly math problem set',
-                        subject: 'Math',
-                        type: 'Assignment',
-                        priority: 'High',
-                        estimatedTime: '2 hours',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 3,
-                        title: 'Study Session',
-                        description: 'Regular study session for exam preparation',
-                        subject: 'General',
-                        type: 'Study Block',
-                        priority: 'Medium',
-                        estimatedTime: '1.5 hours',
-                        createdAt: new Date().toISOString()
-                    }
-                ];
-                setTemplates(defaultTemplates);
-                localStorage.setItem('academicPlannerTemplates', JSON.stringify(defaultTemplates));
+                // Start with empty templates - users create their own
+                setTemplates([]);
+                localStorage.setItem('academicPlannerTemplates', JSON.stringify([]));
             }
         } catch (error) {
             console.error('Error loading templates from storage:', error);

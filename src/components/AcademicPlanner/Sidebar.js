@@ -158,53 +158,154 @@ const Sidebar = ({
                 <div className="upcoming-deadlines">
                     <h3 className="section-title">Upcoming Deadlines</h3>
                     <div className="deadlines-list">
-                        {tasks
-                            .filter(task => {
+                        {(() => {
+                            // Get upcoming tasks with proper date handling
+                            const getUpcomingTasks = () => {
                                 const now = new Date();
-                                const daysDiff = (task.dueDate - now) / (1000 * 3600 * 24);
-                                return daysDiff >= 0 && daysDiff <= 7 && task.status !== 'completed';
-                            })
-                            .sort((a, b) => a.dueDate - b.dueDate)
-                            .slice(0, 5)
-                            .map(task => {
-                                const now = new Date();
-                                const daysDiff = Math.ceil((task.dueDate - now) / (1000 * 3600 * 24));
-                                let dateLabel;
+                                // Set to start of today for consistent comparison
+                                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                                 
-                                if (daysDiff === 0) {
-                                    dateLabel = "Today";
+                                return tasks.filter(task => {
+                                    // Skip tasks without due dates or completed tasks
+                                    if (!task.dueDate || task.status === 'completed') return false;
+                                    
+                                    const dueDate = new Date(task.dueDate);
+                                    const taskDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                                    
+                                    // Calculate days difference properly
+                                    const timeDiff = taskDate.getTime() - today.getTime();
+                                    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                                    
+                                    // Include overdue tasks (negative days) and tasks up to 7 days ahead
+                                    return daysDiff >= -7 && daysDiff <= 7;
+                                })
+                                .sort((a, b) => {
+                                    // Sort by due date first, then by priority
+                                    const dateCompare = new Date(a.dueDate) - new Date(b.dueDate);
+                                    if (dateCompare !== 0) return dateCompare;
+                                    
+                                    // Priority order: High > Medium > Low
+                                    const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+                                    return (priorityOrder[b.priority] || 1) - (priorityOrder[a.priority] || 1);
+                                })
+                                .slice(0, 8); // Show more items for better overview
+                            };
+
+                            const upcomingTasks = getUpcomingTasks();
+
+                            return upcomingTasks.length > 0 ? upcomingTasks.map(task => {
+                                const now = new Date();
+                                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                const dueDate = new Date(task.dueDate);
+                                const taskDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                                
+                                const timeDiff = taskDate.getTime() - today.getTime();
+                                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                                
+                                // Generate date label with urgency context
+                                let dateLabel, urgencyClass = '';
+                                
+                                if (daysDiff < 0) {
+                                    const overdueDays = Math.abs(daysDiff);
+                                    dateLabel = `${overdueDays} day${overdueDays === 1 ? '' : 's'} overdue`;
+                                    urgencyClass = 'overdue';
+                                } else if (daysDiff === 0) {
+                                    // Check if it's due today and what time
+                                    const timeStr = dueDate.toLocaleTimeString('en-US', { 
+                                        hour: 'numeric', 
+                                        minute: '2-digit', 
+                                        hour12: true 
+                                    });
+                                    dateLabel = `Today ${timeStr}`;
+                                    urgencyClass = 'today';
                                 } else if (daysDiff === 1) {
-                                    dateLabel = "Tomorrow";
-                                } else {
-                                    dateLabel = task.dueDate.toLocaleDateString('en-US', { 
+                                    const timeStr = dueDate.toLocaleTimeString('en-US', { 
+                                        hour: 'numeric', 
+                                        minute: '2-digit', 
+                                        hour12: true 
+                                    });
+                                    dateLabel = `Tomorrow ${timeStr}`;
+                                    urgencyClass = 'tomorrow';
+                                } else if (daysDiff <= 3) {
+                                    dateLabel = dueDate.toLocaleDateString('en-US', { 
+                                        weekday: 'short',
                                         month: 'short', 
                                         day: 'numeric' 
                                     });
+                                    urgencyClass = 'soon';
+                                } else {
+                                    dateLabel = dueDate.toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                    });
+                                    urgencyClass = 'upcoming';
                                 }
 
+                                // Get priority color
+                                const getPriorityColor = (priority) => {
+                                    switch (priority) {
+                                        case 'High': return '#ef4444';
+                                        case 'Medium': return '#f59e0b';
+                                        case 'Low': return '#10b981';
+                                        default: return '#6b7280';
+                                    }
+                                };
+
                                 return (
-                                    <div key={task.id} className="deadline-item">
+                                    <div 
+                                        key={task.id} 
+                                        className={`deadline-item ${urgencyClass} priority-${task.priority?.toLowerCase() || 'medium'}`}
+                                        onClick={() => {
+                                            // Scroll to task if it's visible, or show a notification
+                                            const taskElement = document.querySelector(`[data-task-id="${task.id}"]`);
+                                            if (taskElement) {
+                                                taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                taskElement.classList.add('highlight-task');
+                                                setTimeout(() => taskElement.classList.remove('highlight-task'), 2000);
+                                            }
+                                        }}
+                                        title={`Click to view ${task.title} - ${task.description || 'No description'}`}
+                                    >
                                         <div className="deadline-task-info">
-                                            <span className="deadline-title">{task.title}</span>
-                                            <span className="deadline-subject">{task.subject}</span>
+                                            <div className="deadline-header">
+                                                <span className="deadline-title">{task.title}</span>
+                                                <div 
+                                                    className="deadline-priority-dot" 
+                                                    style={{ backgroundColor: getPriorityColor(task.priority) }}
+                                                    title={`${task.priority || 'Medium'} priority`}
+                                                ></div>
+                                            </div>
+                                            <div className="deadline-meta">
+                                                <span className="deadline-subject">{task.subject}</span>
+                                                {task.type && (
+                                                    <>
+                                                        <span className="deadline-separator">•</span>
+                                                        <span className="deadline-type">{task.type}</span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                        <span className={`deadline-date ${daysDiff === 0 ? 'today' : daysDiff === 1 ? 'tomorrow' : ''}`}>
-                                            {dateLabel}
-                                        </span>
+                                        <div className="deadline-date-container">
+                                            <span className={`deadline-date ${urgencyClass}`}>
+                                                {dateLabel}
+                                            </span>
+                                            {urgencyClass === 'overdue' && (
+                                                <i className="ri-error-warning-line deadline-warning-icon" title="Overdue!"></i>
+                                            )}
+                                            {urgencyClass === 'today' && (
+                                                <i className="ri-time-line deadline-warning-icon" title="Due today!"></i>
+                                            )}
+                                        </div>
                                     </div>
                                 );
-                            })
-                        }
-                        {tasks.filter(task => {
-                            const now = new Date();
-                            const daysDiff = (task.dueDate - now) / (1000 * 3600 * 24);
-                            return daysDiff >= 0 && daysDiff <= 7 && task.status !== 'completed';
-                        }).length === 0 && (
-                            <div className="no-deadlines">
-                                <i className="ri-calendar-check-line"></i>
-                                <span>No upcoming deadlines</span>
-                            </div>
-                        )}
+                            }) : (
+                                <div className="no-deadlines">
+                                    <i className="ri-calendar-check-line"></i>
+                                    <span>No upcoming deadlines</span>
+                                    <small>Tasks due within the next 7 days will appear here</small>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

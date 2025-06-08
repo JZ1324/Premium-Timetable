@@ -68,224 +68,8 @@ const AcademicPlanner = () => {
         } catch (error) {
             console.error('Error loading tasks from storage:', error);
         }
-        return [
-            {
-                id: 1,
-                title: 'English Essay Draft',
-                subject: 'English',
-                type: 'Assignment',
-                priority: 'High',
-                status: 'in-progress',
-                dueDate: new Date(),
-                estimatedTime: '4 hours',
-                description: 'Write a comprehensive essay on modern literature',
-                createdAt: new Date(),
-                progress: 0.3,
-                timeSpent: '1.5 hours',
-                timerData: {
-                    totalTimeSpent: 0,
-                    lastStartTime: null,
-                    isActive: false,
-                    sessions: []
-                },
-                subtasks: [
-                    {
-                        id: 101,
-                        title: 'Research modern literature themes',
-                        status: 'completed',
-                        priority: 'High',
-                        estimatedTime: '1 hour',
-                        description: 'Research key themes in 20th-21st century literature',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 102,
-                        title: 'Create essay outline',
-                        status: 'in-progress',
-                        priority: 'High',
-                        estimatedTime: '30 minutes',
-                        description: 'Structure the main arguments and supporting points',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 103,
-                        title: 'Write first draft',
-                        status: 'not-started',
-                        priority: 'High',
-                        estimatedTime: '2 hours',
-                        description: 'Write the complete first draft of the essay',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 104,
-                        title: 'Review and edit',
-                        status: 'not-started',
-                        priority: 'Medium',
-                        estimatedTime: '30 minutes',
-                        description: 'Proofread and make final edits',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    }
-                ]
-            },
-            {
-                id: 2,
-                title: 'Math Problem Set',
-                subject: 'Math',
-                type: 'Assignment',
-                priority: 'Medium',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 86400000), // Tomorrow
-                estimatedTime: '3 hours',
-                description: 'Complete calculus problem set chapter 12',
-                createdAt: new Date(),
-                progress: 0,
-                timeSpent: '0 hours',
-                timerData: {
-                    totalTimeSpent: 0,
-                    lastStartTime: null,
-                    isActive: false,
-                    sessions: []
-                },
-                subtasks: [
-                    {
-                        id: 201,
-                        title: 'Review chapter 12 concepts',
-                        status: 'not-started',
-                        priority: 'Medium',
-                        estimatedTime: '45 minutes',
-                        description: 'Go through the chapter and understand key concepts',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 202,
-                        title: 'Solve problems 1-10',
-                        status: 'not-started',
-                        priority: 'High',
-                        estimatedTime: '1 hour',
-                        description: 'Work through the first set of problems',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 203,
-                        title: 'Solve problems 11-20',
-                        status: 'not-started',
-                        priority: 'High',
-                        estimatedTime: '1 hour',
-                        description: 'Work through the second set of problems',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    },
-                    {
-                        id: 204,
-                        title: 'Check answers and review',
-                        status: 'not-started',
-                        priority: 'Low',
-                        estimatedTime: '15 minutes',
-                        description: 'Verify solutions and understand any mistakes',
-                        timerData: {
-                            totalTimeSpent: 0,
-                            lastStartTime: null,
-                            isActive: false,
-                            sessions: []
-                        }
-                    }
-                ]
-            },
-            {
-                id: 3,
-                title: 'Math Quiz Preparation',
-                subject: 'Math',
-                type: 'Study Block',
-                priority: 'Low',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 259200000), // 3 days
-                estimatedTime: '2 hours',
-                description: 'Review algebra and trigonometry concepts',
-                createdAt: new Date(),
-                progress: 0,
-                timeSpent: '0 hours',
-                timerData: {
-                    totalTimeSpent: 0,
-                    lastStartTime: null,
-                    isActive: false,
-                    sessions: []
-                }
-            },
-            {
-                id: 4,
-                title: 'English Reading Assignment',
-                subject: 'English',
-                type: 'Assignment',
-                priority: 'High',
-                status: 'not-started',
-                dueDate: new Date(Date.now() + 432000000), // 5 days
-                estimatedTime: '3 hours',
-                description: 'Read and analyze chapters 5-7 of the assigned novel',
-                createdAt: new Date(),
-                progress: 0,
-                timeSpent: '0 hours',
-                timerData: {
-                    totalTimeSpent: 0,
-                    lastStartTime: null,
-                    isActive: false,
-                    sessions: []
-                }
-            },
-            {
-                id: 5,
-                title: 'Math Review Session',
-                subject: 'Math',
-                type: 'Study Block',
-                priority: 'Low',
-                status: 'in-progress',
-                dueDate: new Date(),
-                estimatedTime: '2 hours',
-                description: 'Review calculus concepts for upcoming exam',
-                createdAt: new Date(),
-                progress: 0.6,
-                timeSpent: '1.2 hours',
-                timerData: {
-                    totalTimeSpent: 0,
-                    lastStartTime: null,
-                    isActive: false,
-                    sessions: []
-                }
-            }
-        ];
+        // Return empty array - users start with a clean slate
+        return [];
     };
 
     const [tasks, setTasks] = useState(loadTasksFromStorage);
@@ -365,48 +149,7 @@ const AcademicPlanner = () => {
         dateRange: { start: '', end: '' },
         tags: []
     });
-    const [taskTemplates, setTaskTemplates] = useState([
-        {
-            id: 'template1',
-            name: 'Essay Assignment',
-            template: {
-                type: 'Assignment',
-                priority: 'High',
-                estimatedTime: '4 hours',
-                description: 'Research, outline, and write essay'
-            }
-        },
-        {
-            id: 'template2',
-            name: 'Math Problem Set',
-            template: {
-                type: 'Assignment',
-                priority: 'Medium',
-                estimatedTime: '2 hours',
-                description: 'Complete assigned problem set'
-            }
-        },
-        {
-            id: 'template3',
-            name: 'Study Session',
-            template: {
-                type: 'Study Block',
-                priority: 'Medium',
-                estimatedTime: '1.5 hours',
-                description: 'Review material and practice problems'
-            }
-        },
-        {
-            id: 'template4',
-            name: 'Exam Preparation',
-            template: {
-                type: 'Study Block',
-                priority: 'High',
-                estimatedTime: '3 hours',
-                description: 'Intensive review for upcoming exam'
-            }
-        }
-    ]);
+    const [taskTemplates, setTaskTemplates] = useState([]);
     
     // Create ref for the add task modal to enable smooth scrolling
     const addTaskModalRef = useRef(null);
@@ -542,27 +285,90 @@ const AcademicPlanner = () => {
     useEffect(() => {
         const checkDeadlines = () => {
             const now = new Date();
-            const upcomingTasks = tasks.filter(task => {
-                const timeDiff = task.dueDate.getTime() - now.getTime();
-                const hoursDiff = timeDiff / (1000 * 3600);
-                return hoursDiff <= 24 && hoursDiff > 0 && task.status !== 'completed';
-            });
-
-            if (upcomingTasks.length > 0) {
-                // Show browser notifications if permission granted
-                if (Notification.permission === 'granted') {
-                    upcomingTasks.forEach(task => {
-                        const timeDiff = task.dueDate.getTime() - now.getTime();
-                        const hoursDiff = Math.round(timeDiff / (1000 * 3600));
-                        
-                        new Notification(`Academic Planner - Deadline Alert`, {
-                            body: `${task.title} is due in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`,
-                            icon: '/favicon.ico',
-                            tag: `task-${task.id}` // Prevent duplicate notifications
-                        });
+            
+            // Get all tasks and their subtasks for deadline checking
+            const allItems = [];
+            
+            tasks.forEach(task => {
+                // Add main task if it has a due date
+                if (task.dueDate) {
+                    allItems.push({
+                        ...task,
+                        itemType: 'task'
                     });
                 }
-                console.log('Upcoming deadlines:', upcomingTasks);
+                
+                // Add subtasks if they have due dates
+                if (task.subtasks) {
+                    task.subtasks.forEach(subtask => {
+                        if (subtask.dueDate) {
+                            allItems.push({
+                                ...subtask,
+                                itemType: 'subtask',
+                                parentTitle: task.title
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Filter for items due within different time windows
+            const overdueItems = allItems.filter(item => {
+                const dueDate = new Date(item.dueDate);
+                return dueDate < now && item.status !== 'completed';
+            });
+            
+            const dueTodayItems = allItems.filter(item => {
+                const dueDate = new Date(item.dueDate);
+                const timeDiff = dueDate.getTime() - now.getTime();
+                const hoursDiff = timeDiff / (1000 * 3600);
+                return hoursDiff <= 24 && hoursDiff > 0 && item.status !== 'completed';
+            });
+            
+            const upcomingItems = allItems.filter(item => {
+                const dueDate = new Date(item.dueDate);
+                const timeDiff = dueDate.getTime() - now.getTime();
+                const daysDiff = timeDiff / (1000 * 3600 * 24);
+                return daysDiff > 1 && daysDiff <= 3 && item.status !== 'completed';
+            });
+
+            // Show browser notifications if permission granted
+            if (Notification.permission === 'granted') {
+                // Notify about overdue items (limit to avoid spam)
+                overdueItems.slice(0, 3).forEach(item => {
+                    const daysOverdue = Math.ceil((now.getTime() - new Date(item.dueDate).getTime()) / (1000 * 3600 * 24));
+                    const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
+                    
+                    new Notification(`Academic Planner - Overdue!`, {
+                        body: `${title} was due ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
+                        icon: '/favicon.ico',
+                        tag: `overdue-${item.id}`,
+                        requireInteraction: true
+                    });
+                });
+                
+                // Notify about items due today
+                dueTodayItems.forEach(item => {
+                    const timeDiff = new Date(item.dueDate).getTime() - now.getTime();
+                    const hoursDiff = Math.max(1, Math.round(timeDiff / (1000 * 3600)));
+                    const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
+                    
+                    new Notification(`Academic Planner - Due Today!`, {
+                        body: `${title} is due in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`,
+                        icon: '/favicon.ico',
+                        tag: `today-${item.id}`
+                    });
+                });
+            }
+            
+            // Log deadline summary for debugging
+            if (overdueItems.length > 0 || dueTodayItems.length > 0 || upcomingItems.length > 0) {
+                console.log('Deadline Summary:', {
+                    overdue: overdueItems.length,
+                    dueToday: dueTodayItems.length,
+                    upcoming: upcomingItems.length,
+                    totalTracked: allItems.length
+                });
             }
         };
 

@@ -18,6 +18,19 @@ const Sidebar = ({
         ...filters // Override defaults with actual values
     };
 
+    // State for collapsible sections - only FILTERS is collapsible now
+    const [collapsedSections, setCollapsedSections] = useState({
+        filters: true
+    });
+
+    // Toggle function for sections
+    const toggleSection = (section) => {
+        setCollapsedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+    };
+
     // Load saved subjects from localStorage
     const loadSavedItems = (key, defaultItems) => {
         try {
@@ -69,89 +82,121 @@ const Sidebar = ({
                 </div>
 
                 <div className="filters-section">
-                    <h3 className="section-title">FILTERS</h3>
-                    <div className="filter-group">
-                        <label className="custom-switch">
-                            <input 
-                                type="checkbox" 
-                                checked={safeFilters.hideCompleted}
-                                onChange={() => handleFilterChange('hideCompleted')}
-                            />
-                            <span className="switch-slider"></span>
-                        </label>
-                        <span className="filter-label">Hide completed tasks</span>
-                    </div>
-                    <div className="filter-group">
-                        <label className="custom-switch">
-                            <input 
-                                type="checkbox" 
-                                checked={safeFilters.showOnlyUpcoming}
-                                onChange={() => handleFilterChange('showOnlyUpcoming')}
-                            />
-                            <span className="switch-slider"></span>
-                        </label>
-                        <span className="filter-label">Show only upcoming</span>
+                    <button 
+                        className="section-title-button" 
+                        onClick={() => toggleSection('filters')}
+                    >
+                        <h3 className="section-title">FILTERS</h3>
+                        <i className={`ri-arrow-down-s-line section-arrow ${collapsedSections.filters ? '' : 'rotate-180'}`}></i>
+                    </button>
+                    <div className={`section-content ${collapsedSections.filters ? 'collapsed' : 'expanded'}`}>
+                        <div className="filter-group">
+                            <label className="custom-switch">
+                                <input 
+                                    type="checkbox" 
+                                    checked={safeFilters.hideCompleted}
+                                    onChange={() => handleFilterChange('hideCompleted')}
+                                />
+                                <span className="switch-slider"></span>
+                            </label>
+                            <span className="filter-label">Hide completed tasks</span>
+                        </div>
+                        <div className="filter-group">
+                            <label className="custom-switch">
+                                <input 
+                                    type="checkbox" 
+                                    checked={safeFilters.showOnlyUpcoming}
+                                    onChange={() => handleFilterChange('showOnlyUpcoming')}
+                                />
+                                <span className="switch-slider"></span>
+                            </label>
+                            <span className="filter-label">Show only upcoming</span>
+                        </div>
                     </div>
                 </div>
 
                 <div className="subjects-section">
-                    <h3 className="section-title">SUBJECTS</h3>
-                    <div className="checkbox-group">
-                        {subjects.map(subject => (
-                            <div key={subject} className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    className="custom-checkbox"
-                                    id={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`}
-                                    checked={filters.subjects.includes(subject)}
-                                    onChange={() => handleFilterChange('subjects', subject)}
-                                />
-                                <label htmlFor={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`} className="checkbox-label">
-                                    {subject}
-                                </label>
-                            </div>
-                        ))}
+                    <button 
+                        className="section-title-button" 
+                        onClick={() => toggleSection('subjects')}
+                    >
+                        <h3 className="section-title">SUBJECTS</h3>
+                        <i className={`ri-arrow-down-s-line section-arrow ${collapsedSections.subjects ? '' : 'rotate-180'}`}></i>
+                    </button>
+                    <div className={`section-content ${collapsedSections.subjects ? 'collapsed' : 'expanded'}`}>
+                        <div className="checkbox-group">
+                            {subjects.map(subject => (
+                                <div key={subject} className="checkbox-item">
+                                    <input 
+                                        type="checkbox" 
+                                        className="custom-checkbox"
+                                        id={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`}
+                                        checked={filters.subjects.includes(subject)}
+                                        onChange={() => handleFilterChange('subjects', subject)}
+                                    />
+                                    <label htmlFor={`subject-${subject.toLowerCase().replace(/\s+/g, '-')}`} className="checkbox-label">
+                                        {subject}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 <div className="task-types-section">
-                    <h3 className="section-title">TASK TYPES</h3>
-                    <div className="checkbox-group">
-                        {['Assignment', 'Exam', 'Study Block', 'Event', 'Reminder'].map(type => (
-                            <div key={type} className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    className="custom-checkbox"
-                                    id={`type-${type.toLowerCase()}`}
-                                    checked={filters.types.includes(type)}
-                                    onChange={() => handleFilterChange('types', type)}
-                                />
-                                <label htmlFor={`type-${type.toLowerCase()}`} className="checkbox-label">
-                                    {type}
-                                </label>
-                            </div>
-                        ))}
+                    <button 
+                        className="section-title-button" 
+                        onClick={() => toggleSection('taskTypes')}
+                    >
+                        <h3 className="section-title">TASK TYPES</h3>
+                        <i className={`ri-arrow-down-s-line section-arrow ${collapsedSections.taskTypes ? '' : 'rotate-180'}`}></i>
+                    </button>
+                    <div className={`section-content ${collapsedSections.taskTypes ? 'collapsed' : 'expanded'}`}>
+                        <div className="checkbox-group">
+                            {['Assignment', 'Exam', 'Study Block', 'Event', 'Reminder'].map(type => (
+                                <div key={type} className="checkbox-item">
+                                    <input 
+                                        type="checkbox" 
+                                        className="custom-checkbox"
+                                        id={`type-${type.toLowerCase()}`}
+                                        checked={filters.types.includes(type)}
+                                        onChange={() => handleFilterChange('types', type)}
+                                    />
+                                    <label htmlFor={`type-${type.toLowerCase()}`} className="checkbox-label">
+                                        {type}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 <div className="priority-section">
-                    <h3 className="section-title">PRIORITY</h3>
-                    <div className="checkbox-group">
-                        {['High', 'Medium', 'Low'].map(priority => (
-                            <div key={priority} className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    className="custom-checkbox"
-                                    id={`priority-${priority.toLowerCase()}`}
-                                    checked={filters.priorities.includes(priority)}
-                                    onChange={() => handleFilterChange('priorities', priority)}
-                                />
-                                <label htmlFor={`priority-${priority.toLowerCase()}`} className="checkbox-label priority-label">
-                                    <span className={`priority-dot priority-${priority.toLowerCase()}`}></span>
-                                    {priority}
-                                </label>
-                            </div>
-                        ))}
+                    <button 
+                        className="section-title-button" 
+                        onClick={() => toggleSection('priority')}
+                    >
+                        <h3 className="section-title">PRIORITY</h3>
+                        <i className={`ri-arrow-down-s-line section-arrow ${collapsedSections.priority ? '' : 'rotate-180'}`}></i>
+                    </button>
+                    <div className={`section-content ${collapsedSections.priority ? 'collapsed' : 'expanded'}`}>
+                        <div className="checkbox-group">
+                            {['High', 'Medium', 'Low'].map(priority => (
+                                <div key={priority} className="checkbox-item">
+                                    <input 
+                                        type="checkbox" 
+                                        className="custom-checkbox"
+                                        id={`priority-${priority.toLowerCase()}`}
+                                        checked={filters.priorities.includes(priority)}
+                                        onChange={() => handleFilterChange('priorities', priority)}
+                                    />
+                                    <label htmlFor={`priority-${priority.toLowerCase()}`} className="checkbox-label priority-label">
+                                        <span className={`priority-dot priority-${priority.toLowerCase()}`}></span>
+                                        {priority}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

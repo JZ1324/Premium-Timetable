@@ -412,3 +412,76 @@
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
 }
+
+/* Collapsible Section Styles */
+.section-title-button {
+    width: 100%;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+
+.section-title-button:hover .section-title {
+    color: #4f46e5;
+}
+
+.section-arrow {
+    font-size: 1rem;
+    color: #6b7280;
+    transition: transform 0.2s ease;
+}
+
+.section-arrow.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.section-content.expanded {
+    max-height: 500px; /* Adjust as needed */
+    opacity: 1;
+    padding-top: 0.5rem;
+}
+
+/* Filter Subsection Styles */
+.filter-subsection {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.filter-subsection:first-of-type {
+    margin-top: 1rem;
+}
+
+.subsection-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-subsection .checkbox-group {
+    margin-left: 0;
+}
+
+.filter-subsection .checkbox-item {
+    margin-bottom: 0.5rem;
+}

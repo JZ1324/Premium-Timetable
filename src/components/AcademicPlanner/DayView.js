@@ -112,18 +112,6 @@ const DayView = ({
     return (
         <div className="day-view">
             <div className="view-content">
-                <div className="quote-section">
-                    <h3 className="section-header">Today's Quote</h3>
-                    <div className="quote-card">
-                        <p className="quote-text">
-                            "The secret of getting ahead is getting started. The secret of 
-                            getting started is breaking your complex overwhelming tasks 
-                            into small manageable tasks, and then starting on the first one."
-                        </p>
-                        <p className="quote-author">— Mark Twain</p>
-                    </div>
-                </div>
-                
                 {/* Assignments Section */}
                 {assignments.length > 0 && (
                     <div className="assignments-section">

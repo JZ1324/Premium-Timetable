@@ -30,14 +30,6 @@ const WeekView = ({
     return (
         <div className="flex-1 overflow-y-auto p-6">
             <div className="w-full">
-                <div className="mb-6">
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                        <p className="text-gray-600 italic">
-                            "Success is the sum of small efforts, repeated day in and day out."
-                        </p>
-                        <p className="text-gray-500 text-sm mt-1">— Robert Collier</p>
-                    </div>
-                </div>
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <div className="grid grid-cols-7 border-b border-gray-200">
                         {weekDays.map((day, index) => (

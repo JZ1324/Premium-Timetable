@@ -29,10 +29,10 @@ const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 async function parseTimetableWithModel(timetableText, model, apiKey) {
   console.log(`Attempting to parse timetable with model: ${model}`);
   
-  // Basic prompt for timetable formatting
-  const prompt = `You are an expert at extracting structured timetable data.
+  // Enhanced prompt for timetable formatting with improved robustness
+  const prompt = `You are an expert at extracting structured timetable data from various formats.
 
-I will give you a school timetable in grid format (each column is a day, each row is a period). Convert it into this exact JSON format:
+I will provide a school timetable that may be in grid format, tabular text, or another layout. Convert it into this exact JSON format:
 
 {
   "days": [
@@ -49,7 +49,16 @@ I will give you a school timetable in grid format (each column is a day, each ro
   ],
   "classes": {
     "Day 1": {
-      "Period 1": [],
+      "Period 1": [
+        {
+          "subject": "Specialist Mathematics",
+          "code": "10SPE251101",
+          "room": "M 07",
+          "teacher": "Mr Paul Jefimenko",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
       "Period 2": [],
       "Tutorial": [],
       "Period 3": [],
@@ -60,7 +69,21 @@ I will give you a school timetable in grid format (each column is a day, each ro
   }
 }
 
-Include Tutorial periods in each day. If a period has no class, just leave it as an empty array.
+⚠️ IMPORTANT FORMAT RULES:
+1. DO NOT group all Period 1 classes from all days under "Period 1" in one place.
+2. Each day should have its own complete structure with all periods.
+3. Always include Tutorial periods (typically between Period 2 and Period 3).
+4. Standard Tutorial times are 10:45am-11:20am unless specified differently.
+5. If a period has no class, use an empty array: "Period 3": []
+6. Standardize time formats to "h:mmam" or "h:mmpm" (e.g., "8:35am", "2:25pm").
+7. If any field is missing (subject, code, room, teacher), include the field with an empty string value.
+8. For special periods like Recess, Lunch, or Break, include them as subjects.
+
+⚠️ SPECIAL HANDLING:
+- If you're uncertain about any entry, make your best guess and continue.
+- If days are not labeled as "Day X", convert them to that format (e.g., "Monday" → "Day 1").
+- If you see abbreviated subject names, expand them to full names where possible.
+- Handle classes that span multiple periods by creating duplicate entries in each period.
 
 Return only valid JSON. No markdown. No explanation.`;
 

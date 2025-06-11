@@ -70,9 +70,9 @@ async function parseTimetableWithChuteAI(timetableText) {
     }
   }
   
-  const prompt = `You are an expert at extracting structured timetable data.
+  const prompt = `You are an expert at extracting structured timetable data from various formats.
 
-I will give you a school timetable in grid format (each column is a day, each row is a period). Convert it into this exact JSON format:
+I will provide a school timetable that may be in grid format, tabular text, or another layout. Convert it into this exact JSON format:
 
 {
   "days": [
@@ -116,16 +116,21 @@ I will give you a school timetable in grid format (each column is a day, each ro
   }
 }
 
-⚠️ DO NOT group all Period 1 classes from all days under "Period 1" in one place. That is incorrect.
+⚠️ IMPORTANT FORMAT RULES:
+1. DO NOT group all Period 1 classes from all days under "Period 1" in one place. That is incorrect.
+2. Each day should have its own complete structure with all periods.
+3. Always include Tutorial periods (typically between Period 2 and Period 3).
+4. Standard Tutorial times are 10:45am-11:20am unless specified differently.
+5. If a period has no class, use an empty array: "Period 3": []
+6. Standardize time formats to "h:mmam" or "h:mmpm" (e.g., "8:35am", "2:25pm").
+7. If any field is missing (subject, code, room, teacher), include the field with an empty string value.
+8. For special periods like Recess, Lunch, or Break, include them as subjects.
 
-⚠️ IMPORTANT: Make sure to include Tutorial classes in each day (typically between Period 2 and Period 3).
-Tutorial times are typically 10:45am-11:20am. Include Tutorial exactly like other periods.
-
-✅ Instead, for each day, create a separate structure like:
-"Day 1" → contains "Period 1" to "Period 5"
-"Day 2" → contains "Period 1" to "Period 5"
-...
-"Day 10" → contains "Period 1" to "Period 5"
+⚠️ SPECIAL HANDLING:
+- If you're uncertain about any entry, make your best guess and continue.
+- If days are not labeled as "Day X", convert them to that format (e.g., "Monday" → "Day 1").
+- If you see abbreviated subject names, expand them to full names where possible.
+- Handle classes that span multiple periods by creating duplicate entries in each period.
 
 Each "Period" entry must include:
 - "subject"
@@ -134,8 +139,6 @@ Each "Period" entry must include:
 - "teacher"
 - "startTime"
 - "endTime"
-
-If any period has no class, just leave it as an empty array (e.g., "Period 3": []).
 
 Return only valid JSON. No markdown. No explanation.`;
 

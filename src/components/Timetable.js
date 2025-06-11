@@ -5,6 +5,7 @@ import ImportTimetable from './ImportTimetable';
 import TemplateNamePopup from './TemplateNamePopup';
 import NotificationPopup from './NotificationPopup';
 import ConfirmDialog from './ConfirmDialog';
+import ColorsPopup from './ColorsPopup';
 import timetableService from '../services/timetableService';
 import parseTimetable from '../utils/timetableParser';
 import convertStructuredDataToTimeSlots from '../utils/convertStructuredDataToTimeSlots';
@@ -22,6 +23,7 @@ import '../styles/components/DefaultButton.css';
 import '../styles/components/TemplateNamePopup.css';
 import '../styles/components/NotificationPopup.css';
 import '../styles/components/ConfirmDialog.css';
+import '../styles/components/ColorsPopup.css';
 
 const Timetable = () => {
     const { user } = useAuth();
@@ -65,6 +67,7 @@ const Timetable = () => {
         Recess: false,
         Lunch: false
     });
+    const [showColorLegend, setShowColorLegend] = useState(false);
     const [editingRowHeight, setEditingRowHeight] = useState(null);
     
     /**
@@ -795,6 +798,23 @@ const Timetable = () => {
         return labelRefs.current[period];
     };
 
+    // Listen for color changes
+    useEffect(() => {
+        const handleColorChange = () => {
+            // Force a re-render of the timetable by updating the timeSlots array
+            // This will cause all TimeSlot components to re-render with new colors
+            setTimeSlots([...timeSlots]);
+        };
+        
+        // Add event listener for color changes
+        window.addEventListener('timetable-colors-changed', handleColorChange);
+        
+        // Clean up event listener
+        return () => {
+            window.removeEventListener('timetable-colors-changed', handleColorChange);
+        };
+    }, [timeSlots]);
+
     return (
         <div className="timetable-container">
             <div className="timetable-header">
@@ -849,6 +869,13 @@ const Timetable = () => {
                         {editMode ? 'View Mode' : 'Edit Mode'}
                     </button>
                     
+                    <button 
+                        className="color-legend-btn"
+                        onClick={() => setShowColorLegend(!showColorLegend)}
+                    >
+                        Colours
+                    </button>
+                    
                     {isAdminUser && (
                         <button 
                             className="admin-button" 
@@ -875,6 +902,7 @@ const Timetable = () => {
                         
                         // Check if it's a weekend
                         const today = new Date();
+                        
                         const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
                         const isSaturday = dayOfWeek === 6;
                         const isSunday = dayOfWeek === 0;
@@ -908,6 +936,12 @@ const Timetable = () => {
                         );
                     })}
                 </div>
+                
+                {/* ColorsPopup Component */}
+                <ColorsPopup 
+                    isVisible={showColorLegend}
+                    onClose={() => setShowColorLegend(false)}
+                />
             </div>
 
             <div className="timetable">

@@ -1,0 +1,64 @@
+/* Fix for overlapping filters and search bar */
+
+/* Ensure filter container has proper spacing and layout */
+.filters {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 30px; /* Increased space between search form and filters */
+    width: 100%;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+    clear: both;
+}
+
+/* Make filter items properly wrap and space out */
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    flex-basis: auto;
+}
+
+/* Fix search form display on smaller screens */
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
+    
+    /* Improve filters display on mobile */
+    .filters {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 25px;
+    }
+    
+    .filter-item {
+        margin-bottom: 12px;
+    }
+}
+
+/* Fix specifically for the search container padding */
+.search-container {
+    padding: 25px;
+}
+
+/* Ensure there's proper spacing between form elements */
+.search-input-container {
+    margin-bottom: 15px;
+}
+
+/* Add additional space between form and filters */
+.search-form {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 20px;
+}

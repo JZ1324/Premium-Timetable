@@ -11,14 +11,10 @@ const API_KEYS = [
   "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"  // Fourth backup key (added May 18, 2025)
 ];
 
-// Available models in priority order - ONLY USING GEMINI 2.0 MODELS
+// Available models in priority order - USING MULTIPLE MODEL PROVIDERS FOR FALLBACK
 const MODELS = [
-  // Only Gemini 2.0 models (removed 2.5 models)
-  "google/gemini-2.0-flash-exp:free",  // Our primary free Gemini 2.0 model
-  // "google/gemini-2.5-flash-preview",   // Removed: Alternative Gemini 2.5 flash model
-  // "google/gemini-2.5-pro-preview",     // Removed: More powerful Gemini 2.5 pro model
-  "google/gemini-2.0-flash-001",       // Standard Gemini 2.0 model (may have higher quota)
-  "google/gemini-2.0-flash-lite-001"   // Lighter Gemini 2.0 model with smaller context
+  "deepseek/deepseek-r1-0528-qwen3-8b:free",
+  "deepseek/deepseek-r1-0528:free"
 ];
 
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -214,7 +210,21 @@ async function parseWithModelFallback(timetableText) {
         if (result.diagnosis && 
             (result.diagnosis.errorType === 'rate_limiting' || 
              result.diagnosis.errorType === 'provider_error' ||
-             result.diagnosis.errorType === 'provider_rate_limit')) {
+             result.diagnosis.errorType === 'provider_rate_limit' ||
+             result.diagnosis.errorType === 'authorization' ||
+             result.diagnosis.errorType === 'network_restriction')) {
+          
+          // Check if this is a DeepSeek model and there's an auth/network error
+          const isDeepSeekModel = model.includes('deepseek');
+          const isNetworkOrAuthError = result.diagnosis.errorType === 'authorization' || 
+                                       result.diagnosis.errorType === 'network_restriction';
+          
+          if (isDeepSeekModel && isNetworkOrAuthError) {
+            console.log(`DeepSeek model ${model} appears to be blocked by network restrictions. Trying different model provider...`);
+            // Skip all DeepSeek models if one is blocked
+            continue;
+          }
+          
           console.log(`Rate limit or provider error with model ${model}, trying next model...`);
           continue;
         }
@@ -224,8 +234,23 @@ async function parseWithModelFallback(timetableText) {
       } catch (error) {
         console.error(`Error with model ${model} and API key #${keyIndex + 1}:`, error);
         
-        // Continue to next model only for network/connection errors
-        if (error.name === 'TypeError' || error.name === 'NetworkError') {
+        // Check if this is a DeepSeek model with potential network issues
+        const isDeepSeekModel = model.includes('deepseek');
+        const isNetworkError = error.name === 'TypeError' || 
+                               error.name === 'NetworkError' || 
+                               error.message.includes('fetch') ||
+                               error.message.includes('network') ||
+                               error.message.includes('connection');
+        
+        if (isDeepSeekModel && isNetworkError) {
+          console.log(`DeepSeek model ${model} might be blocked by network restrictions. Trying different model provider...`);
+          // Continue to next model to try a different provider
+          continue;
+        }
+        
+        // Continue to next model for any network/connection errors
+        if (error.name === 'TypeError' || error.name === 'NetworkError' || error.message.includes('fetch')) {
+          console.log(`Network error detected, trying next model...`);
           continue;
         }
         
@@ -244,12 +269,14 @@ async function parseWithModelFallback(timetableText) {
       possibleCauses: [
         "Free tier usage limits exceeded for all models",
         "Provider services may be experiencing outages",
-        "All API keys may have exhausted their quota"
+        "All API keys may have exhausted their quota",
+        "Your network (e.g., school) may be blocking access to AI services"
       ],
       recommendations: [
         "Try again tomorrow when quotas typically reset",
         "Consider adding credits to your OpenRouter account",
-        "Try parsing a smaller section of the timetable"
+        "Try parsing a smaller section of the timetable",
+        "If on a school network, try using the app on a different network (home WiFi or mobile data)"
       ],
       severity: "critical"
     }

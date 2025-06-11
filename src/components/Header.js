@@ -9,7 +9,7 @@ import HelpPage from './HelpPage';
 import { useAuth } from './AuthProvider';
 import '../styles/components/Header.css';
 
-const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPlannerActive }) => {
+const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPlannerActive, toggleSmartStudySearch, smartStudySearchActive }) => {
     const [scrolled, setScrolled] = useState(false);
     const [expanding, setExpanding] = useState(false);
     const [headerClass, setHeaderClass] = useState('enlarged');
@@ -96,6 +96,22 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
         };
     }, []);
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Ctrl+S for Smart Study Search
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                toggleSmartStudySearch();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
     // Handle successful logout
     const handleLogoutSuccess = () => {
         // Close the user menu
@@ -174,6 +190,13 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
                             title={academicPlannerActive ? "View Timetable" : "Academic Planner"}
                         >
                             <span className="toggle-icon">📅</span>
+                        </button>
+                        <button 
+                            className={`calendar-toggle ${smartStudySearchActive ? 'active' : ''}`}
+                            onClick={toggleSmartStudySearch}
+                            title="Smart Study Search (Ctrl+S)"
+                        >
+                            <span className="toggle-icon">🔍</span>
                         </button>
                         <button 
                             className={`sidebar-toggle ${!sidebarOpen ? 'collapsed' : ''}`}

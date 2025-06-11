@@ -42,6 +42,7 @@ const AcademicPlanner = () => {
     const [editingAssignment, setEditingAssignment] = useState(null);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [showTaskTemplates, setShowTaskTemplates] = useState(false);
+    const [showSmartStudySearch, setShowSmartStudySearch] = useState(false);
     const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState(false);
     const [showSidebar, setShowSidebar] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -213,6 +214,11 @@ const AcademicPlanner = () => {
                 setTimeout(() => {
                     centerModalWithSmoothScroll(analyticsDashboardRef);
                 }, 150);
+            }
+            // Ctrl/Cmd + S: Smart Study Search
+            else if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                window.open('./Searcher stuff.html', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
             }
             // Escape: Close modals
             else if (event.key === 'Escape') {
@@ -444,8 +450,12 @@ const AcademicPlanner = () => {
         }, 150);
     };
     
+    const handleOpenSmartStudySearchModal = () => {
+        setShowSmartStudySearch(true);
+    };
+    
     const handleOpenAnalyticsDashboard = () => {
-        setShowDataVisualization(true);
+        setShowAnalyticsDashboard(true);
         // Use setTimeout to ensure modal state is updated and modal is rendered before scrolling
         setTimeout(() => {
             centerModalWithSmoothScroll(analyticsDashboardRef);
@@ -1930,6 +1940,7 @@ const AcademicPlanner = () => {
                     setSearchQuery={setSearchQuery}
                     openTemplates={handleOpenTemplatesModal}
                     openAdvancedSearch={handleOpenAdvancedSearchModal}
+                    openSmartStudySearch={handleOpenSmartStudySearchModal}
                     openDataVisualization={handleOpenAnalyticsDashboard}
                     setShowNotifications={setShowNotifications}
                     showNotifications={showNotifications}

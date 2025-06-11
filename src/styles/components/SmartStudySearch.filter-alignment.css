@@ -1,0 +1,44 @@
+/* Fix for checkbox alignment and filter layout */
+
+/* Additional fixes to ensure filters appear below the search bar */
+.search-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-form {
+    width: 100%;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 25px;
+}
+
+/* Fix checkbox and label alignment */
+.filter-item {
+    display: flex;
+    align-items: center;
+}
+
+.filter-item input[type="checkbox"] {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+}
+
+.filter-item label {
+    font-size: 14px;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Fix for mobile layout */
+@media (max-width: 768px) {
+    .search-container {
+        padding: 15px;
+    }
+    
+    .filters {
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+}

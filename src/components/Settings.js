@@ -134,8 +134,8 @@ const Settings = ({ sidebarOpen }) => {
         e.stopPropagation();
         setShowSettings(!showSettings);
     };
-
-    return (
+        
+        return (
         <div className="settings-container">
             <button 
                 className={`settings-toggle ${showSettings ? 'active' : ''}`}

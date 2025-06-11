@@ -193,28 +193,28 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
             },
             { 
                 day: 1, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
             { 
                 day: 1, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
@@ -226,27 +226,28 @@ class TimetableService {
                 subject: 'Recess', 
                 code: '', 
                 room: '', 
-                teacher: '' 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 1, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
             },
             { 
                 day: 1, 
                 period: 4, 
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             { 
                 day: 1, 
@@ -256,7 +257,8 @@ class TimetableService {
                 subject: 'Lunch', 
                 code: '', 
                 room: '', 
-                teacher: '' 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 1, 
@@ -264,9 +266,9 @@ class TimetableService {
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'M 07', 
+                teacher: 'Mr Will Harper' 
             },
 
             // Day 2
@@ -275,38 +277,49 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             { 
                 day: 2, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
             },
             { 
                 day: 2, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 2, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 2, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
                 subject: 'Active and Able', 
-                code: '10AAA251109', 
+                code: '10AAA252109', 
                 room: 'M 08', 
                 teacher: 'Mr James Beattie' 
             },
@@ -315,10 +328,21 @@ class TimetableService {
                 period: 4, 
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
+            },
+            { 
+                day: 2, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 2, 
@@ -326,7 +350,7 @@ class TimetableService {
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
@@ -337,38 +361,49 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             { 
                 day: 3, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             { 
                 day: 3, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 3, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 3, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
                 subject: 'Active and Able', 
-                code: '10AAA251109', 
+                code: '10AAA252109', 
                 room: 'C 07', 
                 teacher: 'Mr James Beattie' 
             },
@@ -378,19 +413,30 @@ class TimetableService {
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'C 04', 
+                teacher: 'Mr Will Harper' 
+            },
+            { 
+                day: 3, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 3, 
                 period: 5, 
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
             },
 
             // Day 4
@@ -400,39 +446,50 @@ class TimetableService {
                 startTime: '8:35am', 
                 endTime: '9:35am', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
             { 
                 day: 4, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
             },
             { 
                 day: 4, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 4, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 4, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             { 
                 day: 4, 
@@ -440,9 +497,20 @@ class TimetableService {
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
                 subject: 'Active and Able', 
-                code: '10AAA251109', 
+                code: '10AAA252109', 
                 room: 'M 08', 
                 teacher: 'Mr James Beattie' 
+            },
+            { 
+                day: 4, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 4, 
@@ -461,40 +529,51 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'L 10', 
+                teacher: 'Ms Ashanie Perera' 
             },
             { 
                 day: 5, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
             { 
                 day: 5, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 5, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 5, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             { 
                 day: 5, 
@@ -502,19 +581,30 @@ class TimetableService {
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'L 07', 
+                teacher: 'Mr Will Harper' 
+            },
+            { 
+                day: 5, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 5, 
                 period: 5, 
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             
             // Day 6
@@ -523,28 +613,28 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
             },
             { 
                 day: 6, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'C 04', 
+                teacher: 'Mr Will Harper' 
             },
             { 
                 day: 6, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
@@ -556,27 +646,28 @@ class TimetableService {
                 subject: 'Recess', 
                 code: '', 
                 room: '', 
-                teacher: '' 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 6, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
             },
             { 
                 day: 6, 
                 period: 4, 
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             { 
                 day: 6, 
@@ -586,17 +677,18 @@ class TimetableService {
                 subject: 'Lunch', 
                 code: '', 
                 room: '', 
-                teacher: '' 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 6, 
                 period: 5, 
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             
             // Day 7
@@ -606,37 +698,48 @@ class TimetableService {
                 startTime: '8:35am', 
                 endTime: '9:35am', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'C 04', 
+                teacher: 'Mr Will Harper' 
             },
             { 
                 day: 7, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
             },
             { 
                 day: 7, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 7, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 7, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
                 subject: 'Active and Able', 
-                code: '10AAA251109', 
+                code: '10AAA252109', 
                 room: 'I 05', 
                 teacher: 'Mr James Beattie' 
             },
@@ -645,10 +748,21 @@ class TimetableService {
                 period: 4, 
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
+            },
+            { 
+                day: 7, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 7, 
@@ -656,7 +770,7 @@ class TimetableService {
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
@@ -667,46 +781,47 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             { 
                 day: 8, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'C 04', 
+                teacher: 'Mr Will Harper' 
             },
             { 
                 day: 8, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 8, 
-                period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 8, 
-                period: 4, 
-                startTime: '12:30pm', 
-                endTime: '1:30pm', 
+                period: 3, 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
                 subject: 'Private Study', 
                 code: '10PST251009', 
                 room: 'S 04', 
@@ -714,13 +829,34 @@ class TimetableService {
             },
             { 
                 day: 8, 
+                period: 4, 
+                startTime: '12:30pm', 
+                endTime: '1:30pm', 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
+            },
+            { 
+                day: 8, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 8, 
                 period: 5, 
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
-                subject: 'War Boom and Bust', 
-                code: '10WBB251102', 
-                room: 'C 07', 
-                teacher: 'Ms Dianne McKenzie' 
+                subject: 'Chemistry', 
+                code: '10CHM252105', 
+                room: 'S 03', 
+                teacher: 'Ms Ashanie Perera' 
             },
             
             // Day 9
@@ -729,38 +865,49 @@ class TimetableService {
                 period: 1, 
                 startTime: '8:35am', 
                 endTime: '9:35am', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'C 07', 
+                teacher: 'Ms Dianne McKenzie' 
             },
             { 
                 day: 9, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             },
             { 
                 day: 9, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 9, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 9, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
@@ -770,9 +917,20 @@ class TimetableService {
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
                 subject: 'Active and Able', 
-                code: '10AAA251109', 
+                code: '10AAA252109', 
                 room: 'C 06', 
                 teacher: 'Mr James Beattie' 
+            },
+            { 
+                day: 9, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 9, 
@@ -792,59 +950,81 @@ class TimetableService {
                 startTime: '8:35am', 
                 endTime: '9:35am', 
                 subject: 'Biology Units 1 & 2', 
-                code: '11BIO251101', 
+                code: '11BIO252101', 
                 room: 'S 06', 
                 teacher: 'Mr Andrew Savage' 
             },
             { 
                 day: 10, 
                 period: 2, 
-                startTime: '9:35am', 
-                endTime: '10:35am', 
+                startTime: '9:40am', 
+                endTime: '10:40am', 
                 subject: 'English', 
-                code: '10ENG251108', 
-                room: 'A 08', 
-                teacher: 'Mr Robert Hassell' 
+                code: '10ENG252107', 
+                room: 'C 04', 
+                teacher: 'Mr Will Harper' 
             },
             { 
                 day: 10, 
                 period: 'Tutorial', 
-                startTime: '10:35am', 
-                endTime: '11:05am', 
+                startTime: '10:45am', 
+                endTime: '10:55am', 
                 subject: 'Tutorial', 
-                code: '10TUT251009', 
+                code: '10TUT252009', 
                 room: 'S 01', 
                 teacher: 'Mrs Sula Tyndall' 
             },
             { 
                 day: 10, 
+                period: 'Recess', 
+                startTime: '10:55am', 
+                endTime: '11:25am', 
+                subject: 'Recess', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
+            },
+            { 
+                day: 10, 
                 period: 3, 
-                startTime: '11:30am', 
-                endTime: '12:30pm', 
-                subject: 'Mathematics - Advanced', 
-                code: '10MAA251105', 
-                room: 'M 05', 
-                teacher: 'Mr Scott Kertes' 
+                startTime: '11:25am', 
+                endTime: '12:25pm', 
+                subject: 'Literature', 
+                code: '10LIT252101', 
+                room: 'I 03', 
+                teacher: 'Miss Olivia Berry' 
             },
             { 
                 day: 10, 
                 period: 4, 
                 startTime: '12:30pm', 
                 endTime: '1:30pm', 
-                subject: 'Specialist Mathematics', 
-                code: '10SPE251101', 
-                room: 'M 07', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Psychology', 
+                code: '10PSY252103', 
+                room: 'L 10', 
+                teacher: 'Ms Dianne McKenzie' 
+            },
+            { 
+                day: 10, 
+                period: 'Lunch', 
+                startTime: '1:30pm', 
+                endTime: '2:25pm', 
+                subject: 'Lunch', 
+                code: '', 
+                room: '', 
+                teacher: '',
+                isBreakPeriod: true
             },
             { 
                 day: 10, 
                 period: 5, 
                 startTime: '2:25pm', 
                 endTime: '3:25pm', 
-                subject: 'Physics', 
-                code: '10PHY251102', 
-                room: 'S 01', 
-                teacher: 'Mr Paul Jefimenko' 
+                subject: 'Mathematics - Advanced', 
+                code: '10MAA252103', 
+                room: 'M 06', 
+                teacher: 'Mrs Leah Manning' 
             }
         ];
     }

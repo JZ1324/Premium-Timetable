@@ -1034,6 +1034,49 @@
     border: 1px dashed rgba(78, 67, 118, 0.5);
 }
 
+/* Color Legend Button */
+.color-legend-btn {
+    background: linear-gradient(45deg, var(--accent-color-lighter, #f0f4ff) 0%, var(--bg-primary) 100%);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color-lighter, #dadada);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    min-height: 32px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.color-legend-btn:hover {
+    background: linear-gradient(45deg, var(--accent-color-rgb, 100, 120, 200, 0.1) 0%, var(--accent-color-rgb, 100, 120, 200, 0.2) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.color-legend-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme styling for color legend button */
+.theme-dark .color-legend-btn,
+[data-theme="dark"] .color-legend-btn {
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    color: var(--accent-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .color-legend-btn:hover,
+[data-theme="dark"] .color-legend-btn:hover {
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .day-selector {

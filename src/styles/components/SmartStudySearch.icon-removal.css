@@ -1,0 +1,9 @@
+/* Adjustments for search input without icon */
+.search-input {
+    padding-left: 20px !important; /* Reduce left padding since there's no icon */
+}
+
+/* Update any other styles that may reference the search icon */
+.clear-search-button {
+    right: 20px; /* Adjust position since we don't have the icon on the left */
+}

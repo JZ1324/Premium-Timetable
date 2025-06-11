@@ -4,9 +4,11 @@ import Timetable from './Timetable';
 import Settings from './Settings';
 import ThemeSwitcher from './ThemeSwitcher';
 import AcademicPlanner from './AcademicPlanner';
+import SmartStudySearch from './SmartStudySearch';
 import Login from './Login';
 import ThemeInitializer from './ThemeInitializer';
 import { useAuth } from './AuthProvider';
+import '../styles/components/SmartStudySearchContainer.css';
 
 const AppContent = () => {
   // Get saved theme or default to light
@@ -23,6 +25,7 @@ const AppContent = () => {
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showAcademicPlanner, setShowAcademicPlanner] = useState(false);
+  const [showSmartStudySearch, setShowSmartStudySearch] = useState(false);
   
   // Get authentication state from context
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -56,6 +59,18 @@ const AppContent = () => {
 
   const toggleAcademicPlanner = () => {
     setShowAcademicPlanner(!showAcademicPlanner);
+    // Close Smart Study Search if open
+    if (showSmartStudySearch) {
+      setShowSmartStudySearch(false);
+    }
+  };
+
+  const toggleSmartStudySearch = () => {
+    setShowSmartStudySearch(!showSmartStudySearch);
+    // Close Academic Planner if open
+    if (showAcademicPlanner) {
+      setShowAcademicPlanner(false);
+    }
   };
 
   // Double-check theme is applied after component is mounted
@@ -132,19 +147,27 @@ const AppContent = () => {
         isAuthenticated ? (
           // Main app when authenticated
           <>
-            <Header 
-              toggleSidebar={toggleSidebar} 
-              sidebarOpen={sidebarOpen} 
-              toggleAcademicPlanner={toggleAcademicPlanner}
-              academicPlannerActive={showAcademicPlanner}
-              user={user}
-            />
+            {!showSmartStudySearch && (
+              <Header 
+                toggleSidebar={toggleSidebar} 
+                sidebarOpen={sidebarOpen} 
+                toggleAcademicPlanner={toggleAcademicPlanner}
+                academicPlannerActive={showAcademicPlanner}
+                toggleSmartStudySearch={toggleSmartStudySearch}
+                smartStudySearchActive={showSmartStudySearch}
+                user={user}
+              />
+            )}
             <main className="main-content">
               {showAcademicPlanner ? (
                 <div className="planner-full-width">
                   <div className="animated-container fade-in-up">
                     <AcademicPlanner />
                   </div>
+                </div>
+              ) : showSmartStudySearch ? (
+                <div className="smart-study-search-full-width">
+                  <SmartStudySearch onClose={toggleSmartStudySearch} />
                 </div>
               ) : (
                 <div className={`main-container ${!sidebarOpen ? 'sidebar-collapsed' : ''}`}>

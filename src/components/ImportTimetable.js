@@ -188,6 +188,7 @@ const ImportTimetable = ({ onImport, onCancel }) => {
                 return;
             }
             
+            // Clear any previous errors and start the loading animation
             setIsAiProcessing(true);
             setParseError(null);
             
@@ -258,6 +259,14 @@ const ImportTimetable = ({ onImport, onCancel }) => {
                     if (response.model || response.usedModel) {
                         const modelAttempted = response.model || response.usedModel;
                         errorDisplay += `\nModel attempted: ${modelAttempted}`;
+                    }
+                    
+                    // Add special notice for school network issues if it might be a network restriction
+                    if (diagnosisType === 'authorization' || 
+                        diagnosisType === 'network_restriction' || 
+                        (errorMessage && errorMessage.includes('deepseek'))) {
+                        errorDisplay += '\n\n⚠️ NETWORK RESTRICTION NOTICE: Your school network may be blocking access to certain AI services. ' +
+                                       'If you need to use this feature, try using the app on a different network (home WiFi or mobile data).';
                     }
                     
                     setParseError(errorDisplay);
@@ -978,8 +987,8 @@ ${importText}`}
                             {isAiProcessing && (
                                 <LoadingUI 
                                     message="Parsing" 
-                                    words={["timetable", "classes", "subjects", "periods", "days"]} 
-                                    status="This may take a moment. We're analyzing your timetable data with AI."
+                                    words={["timetable", "classes", "subjects", "periods", "days", "rooms", "teachers"]} 
+                                    status="This may take up to 30 seconds. Our AI is analyzing your timetable structure and extracting information about classes, periods, and days."
                                 />
                             )}
                         </div>

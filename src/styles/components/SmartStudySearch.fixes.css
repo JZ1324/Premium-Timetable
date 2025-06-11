@@ -1,0 +1,156 @@
+/* SmartStudySearch UI Fixes */
+
+/* Fix for z-index conflicts */
+.smart-study-search {
+    z-index: 2000; /* Ensure this is higher than all other UI elements */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    background-color: #f8fafc;
+}
+
+/* Fix header position and z-index */
+.search-header {
+    z-index: 2001; /* Make sure header stays above other content */
+    position: sticky;
+    top: 0;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Prevent overflow issues in content */
+.smart-study-search-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Fix container issues */
+.search-container {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* Improve search form responsiveness */
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .search-button {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .smart-study-search-content {
+        padding: 20px 15px;
+    }
+    
+    .search-header-content {
+        padding: 0 15px;
+    }
+}
+
+/* Fix for subject categories grid on smaller screens */
+@media (max-width: 640px) {
+    .subject-categories {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+/* Fix search results container */
+.search-results {
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Fix search result item width */
+.search-result-item {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix loading spinner positioning */
+.search-results-loader {
+    position: relative;
+    margin: 30px auto;
+    overflow: hidden;
+}
+
+/* Fix for no results display */
+.no-results {
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 40px 20px;
+}
+
+/* Fix animations to prevent overlaps */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ensure proper animation timing */
+.result-card {
+    animation: fadeInUp 0.4s ease forwards;
+    animation-fill-mode: both;
+}
+
+/* Ensure suggestion tags don't overflow */
+.suggestion-tags {
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix suggestion tag spacing */
+.suggestion-tag {
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+/* Fix error message display */
+.error-message {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 20px 0;
+}
+
+/* Fix for search placeholder */
+.search-placeholder {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix search icon positioning */
+.search-icon {
+    z-index: 1;
+}
+
+/* Fix focus issues with search input */
+.search-input:focus {
+    position: relative;
+    z-index: 1;
+}
+
+/* Fix clear search button positioning */
+.clear-search-button {
+    z-index: 2;
+}

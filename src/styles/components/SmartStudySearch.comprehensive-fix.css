@@ -1,0 +1,85 @@
+/* Comprehensive fix for Smart Study Search UI overlapping issues */
+
+/* Fix search layout issues */
+.search-form {
+    display: flex;
+    flex-direction: column !important; /* Force column layout on all screens */
+    margin-bottom: 25px !important;
+}
+
+/* Fix search input container */
+.search-input-container {
+    width: 100% !important;
+    margin-bottom: 15px !important;
+    position: relative !important;
+}
+
+/* Style the search button */
+.search-button {
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+/* Fix filter container overlapping */
+.filters {
+    display: flex !important;
+    flex-direction: column !important; /* Stack filters vertically */
+    width: 100% !important;
+    margin-top: 20px !important;
+    padding-top: 15px !important;
+    border-top: 1px solid #e5e7eb !important;
+}
+
+/* Give more space to each filter item */
+.filter-item {
+    margin-bottom: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Make labels more readable */
+.filter-item label {
+    font-size: 14px !important;
+    margin-left: 8px !important;
+}
+
+/* Fix search container layout */
+.search-container {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 20px !important;
+}
+
+/* Ensure the clear button doesn't overlap with text */
+.clear-search-button {
+    right: 15px !important;
+}
+
+/* Media query for larger screens - allow horizontal layout if enough space */
+@media (min-width: 992px) {
+    .search-form {
+        flex-direction: row !important;
+    }
+    
+    .search-input-container {
+        flex: 1 !important;
+        margin-right: 15px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .search-button {
+        width: auto !important;
+        min-width: 120px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* On larger screens, we can use horizontal layout for filters */
+    .filters {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .filter-item {
+        margin-right: 20px !important;
+    }
+}

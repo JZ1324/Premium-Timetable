@@ -43,12 +43,14 @@ function diagnoseApiError(errorResponse) {
     errorResponse : JSON.stringify(errorResponse);
   
   // Check for authorization issues
-  if (checkErrorContains(errorString, ['unauthorized', 'authentication', 'auth', 'invalid key', 'api key'])) {
+  if (checkErrorContains(errorString, ['unauthorized', 'authentication', 'auth', 'invalid key', 'api key', 'No auth credentials', '401'])) {
     diagnosis.errorType = 'authorization';
     diagnosis.possibleCauses.push('Invalid or expired API key');
     diagnosis.possibleCauses.push('API key missing required permissions');
+    diagnosis.possibleCauses.push('School or organizational network may be blocking access to this service');
     diagnosis.recommendations.push('Check if your OpenRouter API key is valid');
-    diagnosis.recommendations.push('Generate a new API key if necessary');
+    diagnosis.recommendations.push('Try using a different AI model provider');
+    diagnosis.recommendations.push('If using a school network, try from a different network (like home WiFi or mobile data)');
     diagnosis.severity = 'critical';
   }
   // Check for rate limiting
@@ -107,6 +109,17 @@ function diagnoseApiError(errorResponse) {
     diagnosis.possibleCauses.push('Temporary outage or maintenance');
     diagnosis.recommendations.push('Wait and try again later');
     diagnosis.recommendations.push('Check OpenRouter status page for outages');
+    diagnosis.severity = 'high';
+  }
+  // Check for network restrictions (new category)
+  else if (checkErrorContains(errorString, ['network', 'connection', 'timeout', 'cannot reach', 'failed to fetch', 'CORS', 'blocked', 'firewall', 'proxy', 'access denied'])) {
+    diagnosis.errorType = 'network_restriction';
+    diagnosis.possibleCauses.push('Your network (school, organization) may be blocking access to the AI service');
+    diagnosis.possibleCauses.push('A firewall or proxy is preventing connections to external AI APIs');
+    diagnosis.possibleCauses.push('DeepSeek services may be specifically restricted on your network');
+    diagnosis.recommendations.push('Try using the app on a different network (home WiFi or mobile data)');
+    diagnosis.recommendations.push('Try using different AI models that might not be blocked');
+    diagnosis.recommendations.push('If you need to use DeepSeek models specifically, contact your network administrator');
     diagnosis.severity = 'high';
   }
   // Default case for unknown errors

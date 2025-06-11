@@ -11,6 +11,7 @@ const TopNavigation = ({
     setSearchQuery,
     openTemplates,
     openAdvancedSearch,
+    openSmartStudySearch,
     openDataVisualization,
     setShowNotifications,
     showNotifications,
@@ -144,6 +145,14 @@ const TopNavigation = ({
                             </button>
                         </div>
                     </div>
+                    
+                    <button 
+                        className="nav-icon-btn"
+                        onClick={openSmartStudySearch}
+                        title="Smart Study Search (Ctrl+S)"
+                    >
+                        🔍
+                    </button>
                     
                     <div className="dropdown">
                         <button 

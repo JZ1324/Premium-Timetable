@@ -1,0 +1,137 @@
+/* Search Results Styling Additions */
+.search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.search-result-item {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+    transform: translateY(-2px);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.search-result-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.search-result-title a {
+    color: #2563eb;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.search-result-title a:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.search-result-link {
+    font-size: 14px;
+    color: #10b981;
+    margin: 0 0 8px 0;
+}
+
+.search-result-snippet {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Loading Indicator Improvements */
+.search-results-loader {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.search-results-loader p {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+    .search-header {
+        padding: 15px 20px;
+    }
+    
+    .search-title h1 {
+        font-size: 22px;
+    }
+    
+    .search-icon {
+        font-size: 24px;
+    }
+    
+    .smart-study-search-content {
+        padding: 20px;
+    }
+    
+    .search-container,
+    .search-results,
+    .search-placeholder,
+    .no-results {
+        padding: 20px;
+    }
+    
+    .subject-categories {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
+    
+    .search-input {
+        font-size: 14px;
+    }
+    
+    .search-placeholder h3 {
+        font-size: 20px;
+    }
+    
+    .search-placeholder p {
+        font-size: 14px;
+    }
+}

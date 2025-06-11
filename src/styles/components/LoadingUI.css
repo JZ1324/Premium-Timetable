@@ -1,4 +1,4 @@
-/* Loading UI for AI parsing */
+/* Enhanced loader container for better visibility */
 .loader-container {
   display: flex;
   flex-direction: column;
@@ -9,20 +9,32 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(3px);
+  z-index: 100; /* Increased z-index to ensure visibility */
+  background-color: rgba(255, 255, 255, 0.95); /* Slightly more opaque background */
+  backdrop-filter: blur(5px); /* Increased blur for better focus on the loader */
   border-radius: 10px;
+  animation: fadeIn 0.3s ease-in-out; /* Add fade-in animation */
 }
 
 .card {
   /* color used to softly clip top and bottom of the .words container */
   --bg-color: #212121;
   background-color: var(--bg-color);
-  padding: 1rem 2rem;
+  padding: 1.25rem 2.5rem;
   border-radius: 1.25rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
   margin-bottom: 20px;
+  transform: translateY(0);
+  animation: floatCard 3s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .loader {
@@ -66,74 +78,76 @@
   height: 100%;
   padding-left: 8px;
   color: #956afa;
-  animation: spin_4991 6s infinite; /* Slower animation for better readability */
+  animation: spin_4991 8s infinite cubic-bezier(0.3, 0, 0.7, 1); /* Smoother animation with easing */
   white-space: nowrap;
   line-height: 40px; /* Match the height for vertical centering */
+  transform: translateY(0%); /* Ensure initial position is correct */
 }
 
 @keyframes spin_4991 {
-  8% {
-    -webkit-transform: translateY(-102%);
-    transform: translateY(-102%);
+  0%, 5% {
+    transform: translateY(0%);
   }
 
-  20% {
-    -webkit-transform: translateY(-100%);
+  16%, 21% {
     transform: translateY(-100%);
   }
 
-  28% {
-    -webkit-transform: translateY(-202%);
-    transform: translateY(-202%);
-  }
-
-  40% {
-    -webkit-transform: translateY(-200%);
+  32%, 37% {
     transform: translateY(-200%);
   }
 
-  48% {
-    -webkit-transform: translateY(-302%);
-    transform: translateY(-302%);
-  }
-
-  60% {
-    -webkit-transform: translateY(-300%);
+  48%, 53% {
     transform: translateY(-300%);
   }
 
-  68% {
-    -webkit-transform: translateY(-402%);
-    transform: translateY(-402%);
-  }
-
-  80% {
-    -webkit-transform: translateY(-400%);
+  64%, 69% {
     transform: translateY(-400%);
   }
-  
-  88% {
-    -webkit-transform: translateY(-502%);
-    transform: translateY(-502%);
-  }
 
-  100% {
-    -webkit-transform: translateY(-500%);
+  80%, 85% {
     transform: translateY(-500%);
+  }
+  
+  96%, 100% {
+    transform: translateY(0%);
   }
 }
 
+/* Status message styling */
 .loading-status {
   margin-top: 15px;
   text-align: center;
   font-size: 14px;
   color: #4a4a4a;
+  max-width: 80%;
+  line-height: 1.5;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Fade-in animation for the loader */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .loader-container {
-    background-color: rgba(30, 30, 30, 0.9);
+    background-color: rgba(30, 30, 30, 0.95);
   }
   
   .loading-status {

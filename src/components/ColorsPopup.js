@@ -26,8 +26,9 @@ const ColorsPopup = ({ isVisible, onClose }) => {
             const uniqueSubjects = {};
             
             timeSlots.forEach(slot => {
-                // Skip break periods and tutorial
+                // Skip break periods and tutorial - check both subject name and isBreakPeriod flag
                 if (slot.subject && 
+                    !slot.isBreakPeriod &&
                     !['Recess', 'Lunch', 'Break', 'Interval', 'Tutorial'].includes(slot.subject)) {
                     uniqueSubjects[slot.subject] = true;
                 }

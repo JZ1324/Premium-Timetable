@@ -6,6 +6,7 @@ import TemplateNamePopup from './TemplateNamePopup';
 import NotificationPopup from './NotificationPopup';
 import ConfirmDialog from './ConfirmDialog';
 import ColorsPopup from './ColorsPopup';
+import PracticeReminderPopup from './PracticeReminderPopup';
 import timetableService from '../services/timetableService';
 import parseTimetable from '../utils/timetableParser';
 import convertStructuredDataToTimeSlots from '../utils/convertStructuredDataToTimeSlots';
@@ -24,6 +25,7 @@ import '../styles/components/TemplateNamePopup.css';
 import '../styles/components/NotificationPopup.css';
 import '../styles/components/ConfirmDialog.css';
 import '../styles/components/ColorsPopup.css';
+import '../styles/components/PracticeReminderPopup.css';
 
 const Timetable = () => {
     const { user } = useAuth();
@@ -68,6 +70,9 @@ const Timetable = () => {
     });
     const [showColorLegend, setShowColorLegend] = useState(false);
     const [editingRowHeight, setEditingRowHeight] = useState(null);
+    const [practiceReminders, setPracticeReminders] = useState({});
+    const [activePracticePopups, setActivePracticePopups] = useState([]);
+    const [showPracticeReminderSettings, setShowPracticeReminderSettings] = useState(false);
     
     /**
      * Generate a template name for auto-saving imported timetables
@@ -443,6 +448,21 @@ const Timetable = () => {
         saveCurrentTemplate(templateName);
         // Close any open editing form when loading a template
         setCurrentEditingSlot(null);
+        
+        // Load practice reminders for this template
+        const storageKey = `practice-reminders-${templateName}`;
+        const savedReminders = localStorage.getItem(storageKey);
+        if (savedReminders) {
+            try {
+                setPracticeReminders(JSON.parse(savedReminders));
+            } catch (error) {
+                console.error('Error loading practice reminders for template:', error);
+                setPracticeReminders({});
+            }
+        } else {
+            // Clear reminders if no saved data for this template
+            setPracticeReminders({});
+        }
     };
 
     const deleteTemplate = (templateName) => {
@@ -543,6 +563,205 @@ const Timetable = () => {
             'Template saved successfully!'
         );
     };
+
+    /**
+     * Toggle practice reminder for a specific time slot
+     * @param {number} day - The day number
+     * @param {string} period - The period name
+     * @param {object} slot - The time slot object
+     */
+    const togglePracticeReminder = (day, period, slot) => {
+        const reminderKey = `${day}-${period}`;
+        
+        setPracticeReminders(prev => {
+            const newReminders = { ...prev };
+            
+            if (newReminders[reminderKey]) {
+                // Remove reminder
+                delete newReminders[reminderKey];
+            } else {
+                // Add reminder
+                newReminders[reminderKey] = {
+                    day,
+                    period,
+                    subject: slot.subject || 'Practice',
+                    time: slot.time || 'No time set',
+                    room: slot.room || '',
+                    teacher: slot.teacher || '',
+                    enabled: true,
+                    reminderDate: new Date(),
+                    lastShown: null,
+                    template: currentTemplate // Associate reminder with current template
+                };
+            }
+            
+            // Save to localStorage with template-specific key
+            const storageKey = `practice-reminders-${currentTemplate}`;
+            localStorage.setItem(storageKey, JSON.stringify(newReminders));
+            return newReminders;
+        });
+    };
+
+    /**
+     * Check if a time slot has practice reminder enabled
+     * @param {number} day - The day number
+     * @param {string} period - The period name
+     * @returns {boolean} Whether practice reminder is enabled
+     */
+    const hasPracticeReminder = (day, period) => {
+        const reminderKey = `${day}-${period}`;
+        return !!practiceReminders[reminderKey]?.enabled;
+    };
+
+    /**
+     * Show practice reminder popup
+     * @param {object} reminder - The reminder object
+     */
+    const showPracticePopup = (reminder) => {
+        const popupId = `${reminder.day}-${reminder.period}-${Date.now()}`;
+        
+        setActivePracticePopups(prev => [...prev, {
+            id: popupId,
+            ...reminder,
+            showLaterOption: true
+        }]);
+    };
+
+    /**
+     * Close practice reminder popup
+     * @param {string} popupId - The popup ID to close
+     * @param {boolean} showLater - Whether to show the popup later
+     */
+    const closePracticePopup = (popupId, showLater = false) => {
+        setActivePracticePopups(prev => prev.filter(popup => popup.id !== popupId));
+        
+        if (!showLater) {
+            // Update the reminder to mark it as shown
+            const popup = activePracticePopups.find(p => p.id === popupId);
+            if (popup) {
+                const reminderKey = `${popup.day}-${popup.period}`;
+                setPracticeReminders(prev => {
+                    const updated = { ...prev };
+                    if (updated[reminderKey]) {
+                        updated[reminderKey].lastShown = new Date();
+                        const storageKey = `practice-reminders-${currentTemplate}`;
+                        localStorage.setItem(storageKey, JSON.stringify(updated));
+                    }
+                    return updated;
+                });
+            }
+        }
+    };
+
+    /**
+     * Check for practice reminders that should be shown
+     */
+    const checkPracticeReminders = () => {
+        const today = new Date();
+        const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowDay = tomorrow.getDay();
+        
+        // Convert JavaScript day (0-6) to school day (1-10)
+        // Assuming Mon=1, Tue=2, etc. and handling 10-day cycle
+        const schoolDayMap = {
+            1: [1, 6], // Monday can be day 1 or 6
+            2: [2, 7], // Tuesday can be day 2 or 7
+            3: [3, 8], // Wednesday can be day 3 or 8
+            4: [4, 9], // Thursday can be day 4 or 9
+            5: [5, 10] // Friday can be day 5 or 10
+        };
+        
+        const possibleTomorrowDays = schoolDayMap[tomorrowDay] || [];
+        
+        Object.entries(practiceReminders).forEach(([key, reminder]) => {
+            if (!reminder.enabled) return;
+            
+            // Check if reminder is for tomorrow
+            const isForTomorrow = possibleTomorrowDays.includes(reminder.day);
+            
+            if (isForTomorrow) {
+                // Check if we haven't shown this reminder today
+                const lastShown = reminder.lastShown ? new Date(reminder.lastShown) : null;
+                const isToday = lastShown && 
+                    lastShown.toDateString() === today.toDateString();
+                
+                if (!isToday) {
+                    showPracticePopup(reminder);
+                }
+            }
+        });
+    };
+
+    // Load practice reminders from localStorage on component mount and template change
+    useEffect(() => {
+        if (currentTemplate) {
+            const storageKey = `practice-reminders-${currentTemplate}`;
+            const savedReminders = localStorage.getItem(storageKey);
+            if (savedReminders) {
+                try {
+                    setPracticeReminders(JSON.parse(savedReminders));
+                } catch (error) {
+                    console.error('Error loading practice reminders:', error);
+                    setPracticeReminders({});
+                }
+            } else {
+                // Clear reminders if no saved data for this template
+                setPracticeReminders({});
+            }
+        }
+    }, [currentTemplate]);
+
+    // One-time migration: Move old global practice reminders to template-specific storage
+    useEffect(() => {
+        const oldReminders = localStorage.getItem('practice-reminders');
+        if (oldReminders && currentTemplate) {
+            try {
+                const reminders = JSON.parse(oldReminders);
+                // Migrate to template-specific storage
+                const newStorageKey = `practice-reminders-${currentTemplate}`;
+                const existingReminders = localStorage.getItem(newStorageKey);
+                
+                if (!existingReminders) {
+                    // Only migrate if no template-specific reminders exist yet
+                    localStorage.setItem(newStorageKey, oldReminders);
+                    setPracticeReminders(reminders);
+                }
+                
+                // Remove the old global storage
+                localStorage.removeItem('practice-reminders');
+            } catch (error) {
+                console.error('Error migrating practice reminders:', error);
+                // If migration fails, just remove the old storage
+                localStorage.removeItem('practice-reminders');
+            }
+        }
+    }, [currentTemplate]);
+
+    // Check for practice reminders on component mount and daily
+    useEffect(() => {
+        checkPracticeReminders();
+        
+        // Set up daily check at midnight
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
+        const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+        
+        const timeout = setTimeout(() => {
+            checkPracticeReminders();
+            
+            // Set up daily interval
+            const interval = setInterval(checkPracticeReminders, 24 * 60 * 60 * 1000);
+            
+            return () => clearInterval(interval);
+        }, timeUntilMidnight);
+        
+        return () => clearTimeout(timeout);
+    }, [practiceReminders]);
 
     /**
      * Handle data imports from structured data (JSON/object) 
@@ -816,13 +1035,13 @@ const Timetable = () => {
         // Start with all non-break periods
         const allPeriods = ['1', '2', 'Tutorial', '3', '4', '5', 'After School'];
         
-        // Show break periods only if they should be visible based on time
-        if (visiblePeriods.Recess) {
+        // Show break periods if they should be visible based on time OR if we're in edit mode
+        if (visiblePeriods.Recess || editMode) {
             // Insert Recess after Tutorial
             allPeriods.splice(3, 0, 'Recess');
         }
         
-        if (visiblePeriods.Lunch) {
+        if (visiblePeriods.Lunch || editMode) {
             // Insert Lunch after period 4
             allPeriods.splice(allPeriods.indexOf('4') + 1, 0, 'Lunch');
         }
@@ -1039,6 +1258,9 @@ const Timetable = () => {
                                         onCancelEditing={handleCancelEditing}
                                         displaySettings={displaySettings}
                                         isCurrentPeriod={currentPeriod !== null && slot.day === getCurrentSchoolDay() && String(slot.period) === String(currentPeriod)}
+                                        editMode={editMode}
+                                        hasPracticeReminder={hasPracticeReminder(slot.day, slot.period)}
+                                        onTogglePracticeReminder={() => togglePracticeReminder(slot.day, slot.period, slot)}
                                     />
                                 ))}
                                 
@@ -1118,6 +1340,17 @@ const Timetable = () => {
                 isVisible={showColorLegend}
                 onClose={() => setShowColorLegend(false)}
             />
+            
+            {/* Practice Reminder Popups */}
+            {activePracticePopups.map(popup => (
+                <PracticeReminderPopup
+                    key={popup.id}
+                    isOpen={true}
+                    practiceData={popup}
+                    onClose={() => closePracticePopup(popup.id)}
+                    onShowLater={() => closePracticePopup(popup.id, true)}
+                />
+            ))}
         </div>
     );
 };

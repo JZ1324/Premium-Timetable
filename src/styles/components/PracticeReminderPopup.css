@@ -1,0 +1,472 @@
+/* Practice Reminder Popup Styles */
+.practice-reminder-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.practice-reminder-content {
+    background-color: var(--bg-primary, white);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.practice-reminder-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 24px 24px 16px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    text-align: center;
+}
+
+.reminder-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    animation: bounce 2s infinite;
+}
+
+.practice-reminder-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.practice-reminder-body {
+    padding: 24px;
+}
+
+.reminder-subject {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.reminder-subject h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+.reminder-period {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-secondary, #666);
+    font-weight: 500;
+    background-color: var(--bg-secondary, #f5f5f5);
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.reminder-details {
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.detail-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.05));
+}
+
+.detail-label {
+    font-weight: 500;
+    color: var(--text-secondary, #666);
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    font-size: 0.95rem;
+}
+
+.reminder-message {
+    background-color: var(--bg-secondary, #f8f9ff);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+}
+
+.reminder-message p {
+    margin: 0 0 8px 0;
+    color: var(--text-primary, #333);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.reminder-message p:last-child {
+    margin-bottom: 0;
+}
+
+.reminder-note {
+    font-size: 0.85rem !important;
+    color: var(--text-secondary, #666) !important;
+    font-style: italic;
+}
+
+.practice-reminder-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px 20px 24px;
+    justify-content: center;
+}
+
+.reminder-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.reminder-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.reminder-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.reminder-btn.secondary {
+    background-color: var(--bg-secondary, #f5f5f5);
+    color: var(--text-secondary, #666);
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.reminder-btn.secondary:hover {
+    background-color: var(--bg-hover, #e8e8e8);
+    color: var(--text-primary, #333);
+    transform: translateY(-1px);
+}
+
+.reminder-btn:active {
+    transform: translateY(0);
+}
+
+.reminder-footer {
+    padding: 0 24px 20px 24px;
+    text-align: center;
+}
+
+.reminder-footer p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-tertiary, #999);
+    font-style: italic;
+}
+
+/* Practice Button in TimeSlot */
+.practice-button {
+    background-color: var(--bg-secondary, #f5f5f5);
+    color: var(--text-secondary, #666);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 42px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    /* Make it more prominent since it's always visible */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.practice-button:hover {
+    background-color: var(--accent-color-light, #e3f2fd);
+    color: var(--accent-color, #4a90e2);
+    border-color: var(--accent-color, #4a90e2);
+    box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3);
+}
+
+.practice-button.active {
+    background: linear-gradient(135deg, var(--accent-color, #4a90e2) 0%, var(--accent-color-dark, #3a7bc8) 100%);
+    color: white;
+    border-color: var(--accent-color, #4a90e2);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+    animation: practice-active-pulse 2s infinite ease-in-out;
+}
+
+.practice-button.active::before {
+    content: '✓';
+    position: absolute;
+    left: 2px;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.practice-button.active::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    background: #4caf50;
+    border-radius: 50%;
+    border: 1px solid white;
+    animation: practice-indicator-pulse 1.5s infinite ease-in-out;
+}
+
+.practice-button.active:hover {
+    background: linear-gradient(135deg, var(--accent-color-dark, #3a7bc8) 0%, var(--accent-color, #4a90e2) 100%);
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.5);
+}
+
+/* Time slot enhancement when practice reminder is active */
+.time-slot.has-practice-reminder {
+    position: relative;
+    border: 2px solid #4a90e2 !important;
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.4);
+    animation: practice-glow 3s ease-in-out infinite;
+    transition: all 0.3s ease;
+    margin: -1px; /* Compensate for the 2px border to maintain original size */
+}
+
+.time-slot.has-practice-reminder::before {
+    content: '⏰';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #4a90e2, #667eea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.5);
+    animation: practice-indicator-pulse 2s ease-in-out infinite;
+    z-index: 10;
+}
+
+.time-slot.has-practice-reminder::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    border-radius: inherit;
+    background: linear-gradient(45deg, 
+        rgba(74, 144, 226, 0.05) 0%, 
+        rgba(102, 126, 234, 0.1) 50%, 
+        rgba(74, 144, 226, 0.05) 100%
+    );
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.8;
+}
+
+.time-slot.has-practice-reminder .subject-title {
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot.has-practice-reminder:hover {
+    box-shadow: 0 0 25px rgba(74, 144, 226, 0.6);
+    border-color: #667eea !important;
+}
+
+@keyframes practice-glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(74, 144, 226, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(74, 144, 226, 0.7);
+    }
+}
+
+@keyframes practice-active-pulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 3px 12px rgba(74, 144, 226, 0.6);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes practice-indicator-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .practice-reminder-content {
+        max-width: 95%;
+        margin: 0 auto;
+    }
+    
+    .practice-reminder-header {
+        padding: 20px 20px 12px 20px;
+    }
+    
+    .reminder-icon {
+        font-size: 2.5rem;
+    }
+    
+    .practice-reminder-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .practice-reminder-body {
+        padding: 20px;
+    }
+    
+    .practice-reminder-actions {
+        flex-direction: column;
+        padding: 0 20px 16px 20px;
+    }
+    
+    .reminder-btn {
+        width: 100%;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .detail-label {
+        font-size: 0.8rem;
+    }
+    
+    .detail-value {
+        font-size: 0.9rem;
+    }
+}
+
+/* Dark Mode Support */
+.theme-dark .practice-reminder-content,
+[data-theme="dark"] .practice-reminder-content {
+    background-color: #2d2d2d;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .reminder-subject,
+[data-theme="dark"] .reminder-subject {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .detail-item:not(:last-child),
+[data-theme="dark"] .detail-item:not(:last-child) {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .reminder-message,
+[data-theme="dark"] .reminder-message {
+    background-color: rgba(102, 126, 234, 0.1);
+    border-left-color: #667eea;
+}
+
+.theme-dark .reminder-period,
+[data-theme="dark"] .reminder-period {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Accessibility */
+.practice-reminder-overlay:focus-within {
+    outline: none;
+}
+
+.reminder-btn:focus {
+    outline: 2px solid var(--accent-color, #4a90e2);
+    outline-offset: 2px;
+}
+
+.practice-button:focus {
+    outline: 2px solid var(--accent-color, #4a90e2);
+    outline-offset: 1px;
+}

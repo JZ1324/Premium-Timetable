@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import colorService from '../services/colorService';
 
-const TimeSlot = ({ slot, onUpdate, onRemove, displaySettings, isEditing, onStartEditing, onCancelEditing, isCurrentPeriod }) => {
+const TimeSlot = ({ 
+    slot, 
+    onUpdate, 
+    onRemove, 
+    displaySettings, 
+    isEditing, 
+    onStartEditing, 
+    onCancelEditing, 
+    isCurrentPeriod, 
+    editMode, 
+    hasPracticeReminder, 
+    onTogglePracticeReminder 
+}) => {
     const [editedSlot, setEditedSlot] = useState({ ...slot });
     const timeSlotRef = useRef(null);
     
@@ -265,7 +277,7 @@ const TimeSlot = ({ slot, onUpdate, onRemove, displaySettings, isEditing, onStar
             subjectName = 'Private Study';
         }                return (
             <div 
-                className={`time-slot ${isCurrentPeriod ? 'current-period' : ''}`}
+                className={`time-slot ${isCurrentPeriod ? 'current-period' : ''} ${hasPracticeReminder ? 'has-practice-reminder' : ''}`}
                 style={{
                     backgroundColor: getSubjectColor(),
                     color: getTextColor(),
@@ -285,6 +297,20 @@ const TimeSlot = ({ slot, onUpdate, onRemove, displaySettings, isEditing, onStar
                 <div className="time-slot-header">
                     <span className="time">{slot.startTime} - {slot.endTime}</span>
                     <div className="time-slot-actions">
+                        {onTogglePracticeReminder && (
+                            <button 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onTogglePracticeReminder();
+                                }} 
+                                className={`practice-button ${hasPracticeReminder ? 'active' : ''}`}
+                                type="button"
+                                title={hasPracticeReminder ? 'Practice reminder enabled - Click to disable' : 'Click to enable practice reminder'}
+                            >
+                                Prac
+                            </button>
+                        )}
                         <button 
                             onClick={(e) => {
                                 e.preventDefault(); 

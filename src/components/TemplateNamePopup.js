@@ -98,7 +98,7 @@ const TemplateNamePopup = ({
             className="template-name-input"
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
-            placeholder="Template name"
+            placeholder="Name"
           />
         </div>
         

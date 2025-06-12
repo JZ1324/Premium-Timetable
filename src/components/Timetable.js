@@ -32,7 +32,6 @@ const Timetable = () => {
     const [currentTemplate, setCurrentTemplate] = useState('');
     const [currentDay, setCurrentDay] = useState(1);
     const [editMode, setEditMode] = useState(false);
-    const [newTemplateName, setNewTemplateName] = useState('');
     const [currentEditingSlot, setCurrentEditingSlot] = useState(null);
     const [currentPeriod, setCurrentPeriod] = useState('');
     const [isAdminUser, setIsAdminUser] = useState(false);
@@ -69,6 +68,7 @@ const Timetable = () => {
     });
     const [showColorLegend, setShowColorLegend] = useState(false);
     const [editingRowHeight, setEditingRowHeight] = useState(null);
+    const [templateName, setTemplateName] = useState('');
     
     /**
      * Generate a template name for auto-saving imported timetables
@@ -446,17 +446,6 @@ const Timetable = () => {
         setCurrentEditingSlot(null);
     };
 
-    const saveTemplate = () => {
-        if (newTemplateName.trim()) {
-            timetableService.saveAsTemplate(newTemplateName);
-            setTemplates(timetableService.getTemplateNames());
-            setNewTemplateName('');
-            setCurrentTemplate(newTemplateName);
-            // Save current template to localStorage
-            saveCurrentTemplate(newTemplateName);
-        }
-    };
-    
     const deleteTemplate = (templateName) => {
         // Don't delete built-in templates
         if (templateName === 'school') {
@@ -499,6 +488,52 @@ const Timetable = () => {
                 }
             }
         });
+    };
+
+    /**
+     * Save the current timetable as a template
+     */
+    const saveTemplate = () => {
+        if (!templateName.trim()) {
+            setNotification({
+                isOpen: true,
+                message: 'Please enter a name.',
+                type: 'warning',
+                title: 'Name Required'
+            });
+            return;
+        }
+        
+        try {
+            // Save the current timetable as a template
+            timetableService.saveAsTemplate(templateName.trim());
+            
+            // Update the templates list
+            setTemplates(timetableService.getTemplateNames());
+            
+            // Set the new template as current
+            setCurrentTemplate(templateName.trim());
+            saveCurrentTemplate(templateName.trim());
+            
+            // Clear the name input
+            setTemplateName('');
+            
+            // Show success notification
+            setNotification({
+                isOpen: true,
+                message: `Template "${templateName.trim()}" has been saved successfully.`,
+                type: 'success',
+                title: 'Template Saved'
+            });
+        } catch (error) {
+            console.error('Error saving template:', error);
+            setNotification({
+                isOpen: true,
+                message: 'Failed to save template. Please try again.',
+                type: 'error',
+                title: 'Save Error'
+            });
+        }
     };
 
     /**
@@ -773,13 +808,13 @@ const Timetable = () => {
         // Start with all non-break periods
         const allPeriods = ['1', '2', 'Tutorial', '3', '4', '5', 'After School'];
         
-        // Show break periods only if they should be visible (time-based) OR we're in edit mode
-        if (visiblePeriods.Recess || editMode) {
+        // Show break periods only if they should be visible based on time
+        if (visiblePeriods.Recess) {
             // Insert Recess after Tutorial
             allPeriods.splice(3, 0, 'Recess');
         }
         
-        if (visiblePeriods.Lunch || editMode) {
+        if (visiblePeriods.Lunch) {
             // Insert Lunch after period 4
             allPeriods.splice(allPeriods.indexOf('4') + 1, 0, 'Lunch');
         }
@@ -844,16 +879,6 @@ const Timetable = () => {
                         </select>
                     </div>
                     
-                    <div className="save-template">
-                        <input 
-                            type="text" 
-                            placeholder="Template Name" 
-                            value={newTemplateName}
-                            onChange={(e) => setNewTemplateName(e.target.value)}
-                        />
-                        <button onClick={saveTemplate}>Save</button>
-                    </div>
-                    
                     {currentTemplate && currentTemplate !== 'school' && (
                         <button 
                             className="delete-template-btn" 
@@ -862,6 +887,28 @@ const Timetable = () => {
                             Delete
                         </button>
                     )}
+                    
+                    <div className="save-template">
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    saveTemplate();
+                                }
+                            }}
+                            className="template-name-input"
+                        />
+                        <button 
+                            className="save-template-btn" 
+                            onClick={saveTemplate}
+                            disabled={!templateName.trim()}
+                        >
+                            Save
+                        </button>
+                    </div>
                     
                     <button 
                         className={`edit-mode-toggle ${editMode ? 'active' : ''}`}

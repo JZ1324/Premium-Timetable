@@ -177,6 +177,11 @@ const Timetable = () => {
         setCurrentEditingSlot(null);
     };
 
+    // Open colors customization popup
+    const openColorsWindow = () => {
+        setShowColorLegend(true);
+    };
+
     useEffect(() => {
         // Load templates on component mount
         const templateNames = timetableService.getTemplateNames();
@@ -876,7 +881,7 @@ const Timetable = () => {
                     
                     <button 
                         className="color-legend-btn"
-                        onClick={() => setShowColorLegend(!showColorLegend)}
+                        onClick={() => openColorsWindow()}
                     >
                         Colours
                     </button>
@@ -941,12 +946,6 @@ const Timetable = () => {
                         );
                     })}
                 </div>
-                
-                {/* ColorsPopup Component */}
-                <ColorsPopup 
-                    isVisible={showColorLegend}
-                    onClose={() => setShowColorLegend(false)}
-                />
             </div>
 
             <div className="timetable">
@@ -1075,6 +1074,12 @@ const Timetable = () => {
                 type={confirmDialog.type}
                 onConfirm={confirmDialog.onConfirm}
                 onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            />
+            
+            {/* Colors Popup - fullscreen color customization */}
+            <ColorsPopup 
+                isVisible={showColorLegend}
+                onClose={() => setShowColorLegend(false)}
             />
         </div>
     );

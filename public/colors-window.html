@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize Subject Colours - Timetable</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #4a90e2;
+            --accent-color-dark: #3a7bc8;
+            --error-color: #f44336;
+            --error-color-dark: #d32f2f;
+            --error-color-light: #ffebee;
+            --bg-hover: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #404040;
+            --bg-hover: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .colors-window-container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .colors-window-header {
+            padding: 24px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .colors-window-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .close-window-button {
+            background: var(--error-color);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .close-window-button:hover {
+            background-color: var(--error-color-dark);
+            transform: translateY(-1px);
+        }
+
+        .colors-window-body {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: var(--bg-primary);
+        }
+
+        .setting-help-text {
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .color-palette-preview {
+            margin-bottom: 24px;
+            background-color: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .color-palette-preview h4 {
+            margin: 0 0 12px 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .color-palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 12px;
+        }
+
+        .palette-color-item {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .palette-color-item:hover {
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        .no-subjects-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .subject-color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .subject-color-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .subject-color-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .subject-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .subject-color-sample {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 12px;
+        }
+
+        .color-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            background-color: var(--bg-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-dropdown:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .action-buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .auto-assign-button, .reset-all-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 160px;
+        }
+
+        .auto-assign-button:hover {
+            background-color: var(--accent-color-dark);
+            transform: translateY(-2px);
+        }
+
+        .reset-all-button {
+            background-color: var(--error-color);
+        }
+
+        .reset-all-button:hover {
+            background-color: var(--error-color-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2d2d2d;
+                --text-primary: #ffffff;
+                --text-secondary: #cccccc;
+                --border-color: #404040;
+                --bg-hover: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            .colors-window-header {
+                padding: 16px 20px;
+            }
+            
+            .colors-window-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .colors-window-body {
+                padding: 20px;
+            }
+            
+            .subject-color-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .subject-color-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="colors-window-container">
+        <div class="colors-window-header">
+            <h1>Customize Subject Colours</h1>
+            <button class="close-window-button" onclick="window.close()">Close Window</button>
+        </div>
+        
+        <div class="colors-window-body">
+            <div id="loading" class="loading">
+                <p>Loading your timetable data...</p>
+            </div>
+            
+            <div id="content" style="display: none;">
+                <p class="setting-help-text">
+                    Customize the colours of your subjects. Each subject must have a unique colour.
+                </p>
+                
+                <div class="color-palette-preview">
+                    <h4>Available Colours</h4>
+                    <div class="color-palette-grid" id="colorPalette">
+                        <!-- Colors will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="action-buttons-container">
+                    <button class="auto-assign-button" onclick="autoAssignColors()">
+                        Auto-Assign Colours
+                    </button>
+                    <button class="reset-all-button" onclick="resetAllColors()">
+                        Reset All Colours
+                    </button>
+                </div>
+                
+                <div id="noSubjects" class="no-subjects-message" style="display: none;">
+                    No subjects found in your timetable.
+                </div>
+                
+                <div class="subject-color-grid" id="subjectGrid">
+                    <!-- Subject color controls will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get data from parent window or localStorage
+        let subjects = [];
+        let customColors = {};
+        let availableColors = [];
+
+        // Initialize the colors window
+        function initializeColorsWindow() {
+            try {
+                // Try to get data from localStorage (shared between windows)
+                const timetableData = localStorage.getItem('timetable-data');
+                const customColorsData = localStorage.getItem('custom-colors');
+                
+                if (timetableData) {
+                    const timeSlots = JSON.parse(timetableData);
+                    const uniqueSubjects = {};
+                    
+                    // Extract subjects from timetable data
+                    timeSlots.forEach(slot => {
+                        if (slot.subject && 
+                            !['Recess', 'Lunch', 'Break', 'Interval', 'Tutorial'].includes(slot.subject)) {
+                            uniqueSubjects[slot.subject] = true;
+                        }
+                    });
+                    
+                    subjects = Object.keys(uniqueSubjects).sort();
+                }
+                
+                if (customColorsData) {
+                    customColors = JSON.parse(customColorsData);
+                }
+                
+                // Default available colors
+                availableColors = [
+                    { name: 'Red', value: '#ff4444', darkValue: '#ff6666' },
+                    { name: 'Blue', value: '#4285f4', darkValue: '#5b9df9' },
+                    { name: 'Green', value: '#34a853', darkValue: '#46c264' },
+                    { name: 'Orange', value: '#ff9800', darkValue: '#ffad33' },
+                    { name: 'Purple', value: '#9c27b0', darkValue: '#ba68c8' },
+                    { name: 'Teal', value: '#20b2aa', darkValue: '#4db6ac' },
+                    { name: 'Pink', value: '#e91e63', darkValue: '#f06292' },
+                    { name: 'Indigo', value: '#3f51b5', darkValue: '#7986cb' },
+                    { name: 'Brown', value: '#795548', darkValue: '#a1887f' },
+                    { name: 'Cyan', value: '#00bcd4', darkValue: '#4dd0e1' }
+                ];
+                
+                renderContent();
+                
+            } catch (error) {
+                console.error('Error initializing colors window:', error);
+                document.getElementById('loading').innerHTML = '<p>Error loading timetable data. Please close and try again.</p>';
+            }
+        }
+
+        function renderContent() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            
+            if (subjects.length === 0) {
+                document.getElementById('noSubjects').style.display = 'block';
+                return;
+            }
+            
+            renderColorPalette();
+            renderSubjectGrid();
+        }
+
+        function renderColorPalette() {
+            const palette = document.getElementById('colorPalette');
+            palette.innerHTML = '';
+            
+            availableColors.forEach(color => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'palette-color-item';
+                colorItem.style.backgroundColor = color.value;
+                colorItem.title = color.name;
+                palette.appendChild(colorItem);
+            });
+        }
+
+        function renderSubjectGrid() {
+            const grid = document.getElementById('subjectGrid');
+            grid.innerHTML = '';
+            
+            subjects.forEach(subject => {
+                const item = document.createElement('div');
+                item.className = 'subject-color-item';
+                
+                const currentColor = customColors[subject];
+                const colorValue = currentColor ? currentColor.value : getDefaultColorForSubject(subject);
+                
+                item.innerHTML = `
+                    <div>
+                        <div class="subject-name">${subject}</div>
+                        <div class="subject-color-sample" style="background-color: ${colorValue}; color: ${getTextColor(colorValue)}">
+                            ${currentColor ? currentColor.name : 'Default'}
+                        </div>
+                    </div>
+                    <div>
+                        <select class="color-dropdown" onchange="updateSubjectColor('${subject}', this.value)">
+                            <option value="">Default Color</option>
+                            ${availableColors.map(color => 
+                                `<option value="${color.value}" data-name="${color.name}" ${currentColor && currentColor.value === color.value ? 'selected' : ''}>
+                                    ${color.name}
+                                </option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+                
+                grid.appendChild(item);
+            });
+        }
+
+        function updateSubjectColor(subject, colorValue) {
+            if (colorValue === '') {
+                // Remove custom color
+                delete customColors[subject];
+            } else {
+                const color = availableColors.find(c => c.value === colorValue);
+                if (color) {
+                    customColors[subject] = {
+                        name: color.name,
+                        value: color.value,
+                        darkValue: color.darkValue
+                    };
+                }
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('custom-colors', JSON.stringify(customColors));
+            
+            // Re-render to update display
+            renderSubjectGrid();
+            
+            // Notify parent window if possible
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({
+                        type: 'COLOR_UPDATED',
+                        subject: subject,
+                        color: customColors[subject] || null
+                    }, '*');
+                }
+            } catch (e) {
+                console.log('Could not notify parent window');
+            }
+        }
+
+        function autoAssignColors() {
+            subjects.forEach((subject, index) => {
+                if (index < availableColors.length) {
+                    const color = availableColors[index];
+                    customColors[subject] = {
+                        name: color.name,
+                        value: color.value,
+                        darkValue: color.darkValue
+                    };
+                }
+            });
+            
+            localStorage.setItem('custom-colors', JSON.stringify(customColors));
+            renderSubjectGrid();
+            notifyParentWindow();
+        }
+
+        function resetAllColors() {
+            if (confirm('Are you sure you want to reset all custom colors?')) {
+                customColors = {};
+                localStorage.setItem('custom-colors', JSON.stringify(customColors));
+                renderSubjectGrid();
+                notifyParentWindow();
+            }
+        }
+
+        function notifyParentWindow() {
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({
+                        type: 'COLORS_UPDATED',
+                        colors: customColors
+                    }, '*');
+                }
+            } catch (e) {
+                console.log('Could not notify parent window');
+            }
+        }
+
+        function getDefaultColorForSubject(subject) {
+            // Simple hash-based color assignment
+            let hash = 0;
+            for (let i = 0; i < subject.length; i++) {
+                hash = subject.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const colorIndex = Math.abs(hash) % availableColors.length;
+            return availableColors[colorIndex].value;
+        }
+
+        function getTextColor(backgroundColor) {
+            // Simple contrast calculation
+            const rgb = parseInt(backgroundColor.slice(1), 16);
+            const r = (rgb >> 16) & 0xff;
+            const g = (rgb >> 8) & 0xff;
+            const b = (rgb >> 0) & 0xff;
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            return brightness > 128 ? '#000000' : '#ffffff';
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initializeColorsWindow);
+        
+        // Handle messages from parent window
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'TIMETABLE_DATA') {
+                // Update with fresh data from parent
+                subjects = event.data.subjects || [];
+                customColors = event.data.customColors || {};
+                renderContent();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import colorService from '../services/colorService';
 import timetableService from '../services/timetableService';
 import { notifyColorChanged } from '../utils/colorEvents';
@@ -48,6 +49,29 @@ const ColorsPopup = ({ isVisible, onClose }) => {
         }
     }, [isVisible]);
 
+    // Prevent background scrolling when modal is open - same as other modal components
+    useEffect(() => {
+        if (isVisible) {
+            // Add modal-open class to body to prevent scrolling and interaction with background
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            document.body.style.overflowY = 'hidden';
+            document.body.style.height = 'auto';
+            document.body.style.minHeight = '100vh';
+            document.body.style.position = 'relative';
+            
+            // Re-enable scrolling when component unmounts or closes
+            return () => {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.overflowY = '';
+                document.body.style.height = '';
+                document.body.style.minHeight = '';
+                document.body.style.position = '';
+            };
+        }
+    }, [isVisible]);
+
     // Check for window resize to update mobile state
     useEffect(() => {
         const handleResize = () => {
@@ -57,7 +81,7 @@ const ColorsPopup = ({ isVisible, onClose }) => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-    
+
     // Update the list of available colors (excluding ones already in use)
     const updateAvailableColors = () => {
         const allColors = colorService.getAvailableColors();
@@ -292,7 +316,7 @@ const ColorsPopup = ({ isVisible, onClose }) => {
         return null;
     }
     
-    return (
+    return createPortal(
         <div className="colors-popup-overlay" onClick={onClose}>
             <div className="colors-popup-content" onClick={(e) => e.stopPropagation()}>
                 <div className="colors-popup-header">
@@ -603,7 +627,8 @@ const ColorsPopup = ({ isVisible, onClose }) => {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body // Render the portal at the end of the body
     );
 };
 

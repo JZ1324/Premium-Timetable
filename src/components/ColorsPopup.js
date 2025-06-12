@@ -7,6 +7,84 @@ import { shouldShowBreakPeriod } from '../utils/dateUtils';
 import '../styles/components/ColorsPopup.css';
 
 /**
+ * Service to manage color scheme templates
+ */
+class ColorSchemeService {
+    constructor() {
+        this.loadColorSchemes();
+    }
+
+    loadColorSchemes() {
+        try {
+            const saved = localStorage.getItem('timetable-color-schemes');
+            this.colorSchemes = saved ? JSON.parse(saved) : {};
+        } catch (error) {
+            console.error('Error loading color schemes:', error);
+            this.colorSchemes = {};
+        }
+    }
+
+    saveColorSchemes() {
+        try {
+            localStorage.setItem('timetable-color-schemes', JSON.stringify(this.colorSchemes));
+        } catch (error) {
+            console.error('Error saving color schemes:', error);
+        }
+    }
+
+    saveColorScheme(name, colorAssignments) {
+        this.colorSchemes[name] = {
+            name,
+            colors: { ...colorAssignments },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        this.saveColorSchemes();
+    }
+
+    getColorSchemes() {
+        return Object.keys(this.colorSchemes).map(key => this.colorSchemes[key]);
+    }
+
+    getColorScheme(name) {
+        return this.colorSchemes[name];
+    }
+
+    deleteColorScheme(name) {
+        if (this.colorSchemes[name]) {
+            delete this.colorSchemes[name];
+            this.saveColorSchemes();
+            return true;
+        }
+        return false;
+    }
+
+    exportColorScheme(name) {
+        const scheme = this.colorSchemes[name];
+        if (scheme) {
+            return JSON.stringify(scheme, null, 2);
+        }
+        return null;
+    }
+
+    importColorScheme(jsonData) {
+        try {
+            const scheme = JSON.parse(jsonData);
+            if (scheme.name && scheme.colors) {
+                this.colorSchemes[scheme.name] = scheme;
+                this.saveColorSchemes();
+                return { success: true, name: scheme.name };
+            }
+            return { success: false, error: 'Invalid color scheme format' };
+        } catch (error) {
+            return { success: false, error: 'Invalid JSON format' };
+        }
+    }
+}
+
+const colorSchemeService = new ColorSchemeService();
+
+/**
  * Color customization popup component
  * @param {object} props Component props
  * @param {boolean} props.isVisible Whether the popup is visible
@@ -19,6 +97,15 @@ const ColorsPopup = ({ isVisible, onClose }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeGroup, setActiveGroup] = useState('all');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    
+    // Save functionality state
+    const [showSaveSection, setShowSaveSection] = useState(false);
+    const [schemeName, setSchemeName] = useState('');
+    const [colorSchemes, setColorSchemes] = useState([]);
+    const [showImportSection, setShowImportSection] = useState(false);
+    const [importData, setImportData] = useState('');
+    const [saveMessage, setSaveMessage] = useState('');
+    const [importMessage, setImportMessage] = useState('');
     
     // Function to update subjects list based on current time
     const updateSubjectsList = () => {
@@ -107,6 +194,139 @@ const ColorsPopup = ({ isVisible, onClose }) => {
     const updateAvailableColors = () => {
         const allColors = colorService.getAvailableColors();
         setAvailableColors(allColors);
+    };
+    
+    // Load color schemes on popup open
+    useEffect(() => {
+        if (isVisible) {
+            const schemes = colorSchemeService.getColorSchemes();
+            setColorSchemes(schemes);
+        }
+    }, [isVisible]);
+    
+    // Save current color configuration as a template
+    const saveColorScheme = () => {
+        if (!schemeName.trim()) {
+            setSaveMessage('Please enter a name for the color scheme');
+            setTimeout(() => setSaveMessage(''), 3000);
+            return;
+        }
+
+        try {
+            colorSchemeService.saveColorScheme(schemeName.trim(), customColors);
+            const schemes = colorSchemeService.getColorSchemes();
+            setColorSchemes(schemes);
+            setSchemeName('');
+            setShowSaveSection(false);
+            setSaveMessage('Color scheme saved successfully!');
+            setTimeout(() => setSaveMessage(''), 3000);
+        } catch (error) {
+            setSaveMessage('Error saving color scheme');
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
+
+    // Load a color scheme template
+    const loadColorScheme = (schemeName) => {
+        const scheme = colorSchemeService.getColorScheme(schemeName);
+        if (scheme && scheme.colors) {
+            // Apply each color from the scheme
+            Object.entries(scheme.colors).forEach(([subject, colorInfo]) => {
+                if (colorInfo && colorInfo.value) {
+                    colorService.setSubjectColor(subject, colorInfo.value);
+                }
+            });
+
+            // Update local state
+            setCustomColors(colorService.getAllCustomColors());
+            updateAvailableColors();
+
+            // Notify other components
+            notifyColorChanged({ action: 'scheme-loaded', scheme: schemeName });
+
+            setSaveMessage(`Color scheme "${schemeName}" loaded successfully!`);
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
+
+    // Delete a color scheme
+    const deleteColorScheme = (schemeName) => {
+        if (window.confirm(`Are you sure you want to delete the color scheme "${schemeName}"?`)) {
+            colorSchemeService.deleteColorScheme(schemeName);
+            const schemes = colorSchemeService.getColorSchemes();
+            setColorSchemes(schemes);
+            setSaveMessage(`Color scheme "${schemeName}" deleted`);
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
+
+    // Export color scheme to clipboard
+    const exportColorScheme = (schemeName) => {
+        const exportData = colorSchemeService.exportColorScheme(schemeName);
+        if (exportData) {
+            navigator.clipboard.writeText(exportData).then(() => {
+                setSaveMessage(`Color scheme "${schemeName}" copied to clipboard!`);
+                setTimeout(() => setSaveMessage(''), 3000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = exportData;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                setSaveMessage(`Color scheme "${schemeName}" copied to clipboard!`);
+                setTimeout(() => setSaveMessage(''), 3000);
+            });
+        }
+    };
+
+    // Import color scheme from JSON
+    const importColorScheme = () => {
+        if (!importData.trim()) {
+            setImportMessage('Please paste color scheme data');
+            setTimeout(() => setImportMessage(''), 3000);
+            return;
+        }
+
+        const result = colorSchemeService.importColorScheme(importData.trim());
+        if (result.success) {
+            const schemes = colorSchemeService.getColorSchemes();
+            setColorSchemes(schemes);
+            setImportData('');
+            setShowImportSection(false);
+            setImportMessage(`Color scheme "${result.name}" imported successfully!`);
+            setTimeout(() => setImportMessage(''), 3000);
+        } else {
+            setImportMessage(`Import failed: ${result.error}`);
+            setTimeout(() => setImportMessage(''), 3000);
+        }
+    };
+
+    // Export current colors as a new scheme
+    const exportCurrentColors = () => {
+        const currentScheme = {
+            name: `My Colors ${new Date().toLocaleDateString()}`,
+            colors: customColors,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        const exportData = JSON.stringify(currentScheme, null, 2);
+        navigator.clipboard.writeText(exportData).then(() => {
+            setSaveMessage('Current color scheme copied to clipboard!');
+            setTimeout(() => setSaveMessage(''), 3000);
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = exportData;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setSaveMessage('Current color scheme copied to clipboard!');
+            setTimeout(() => setSaveMessage(''), 3000);
+        });
     };
     
     // Handle color selection for a subject
@@ -379,6 +599,151 @@ const ColorsPopup = ({ isVisible, onClose }) => {
                                 </div>
                             </div>
                             
+                            {/* Save/Load Color Schemes Section */}
+                            <div className="color-schemes-section">
+                                <div className="color-schemes-header">
+                                    <h4>Color Schemes</h4>
+                                    <div className="scheme-action-buttons">
+                                        <button 
+                                            className="scheme-action-btn save-btn"
+                                            onClick={() => setShowSaveSection(!showSaveSection)}
+                                        >
+                                            💾 Save Scheme
+                                        </button>
+                                        <button 
+                                            className="scheme-action-btn export-btn"
+                                            onClick={exportCurrentColors}
+                                            title="Export current colors to clipboard"
+                                        >
+                                            📤 Export Current
+                                        </button>
+                                        <button 
+                                            className="scheme-action-btn import-btn"
+                                            onClick={() => setShowImportSection(!showImportSection)}
+                                        >
+                                            📥 Import Scheme
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Save Section */}
+                                {showSaveSection && (
+                                    <div className="save-scheme-section">
+                                        <div className="save-scheme-form">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter scheme name..."
+                                                value={schemeName}
+                                                onChange={(e) => setSchemeName(e.target.value)}
+                                                className="scheme-name-input"
+                                                onKeyPress={(e) => e.key === 'Enter' && saveColorScheme()}
+                                            />
+                                            <button 
+                                                className="save-scheme-btn"
+                                                onClick={saveColorScheme}
+                                                disabled={!schemeName.trim()}
+                                            >
+                                                Save
+                                            </button>
+                                            <button 
+                                                className="cancel-save-btn"
+                                                onClick={() => {
+                                                    setShowSaveSection(false);
+                                                    setSchemeName('');
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Import Section */}
+                                {showImportSection && (
+                                    <div className="import-scheme-section">
+                                        <textarea
+                                            placeholder="Paste color scheme JSON data here..."
+                                            value={importData}
+                                            onChange={(e) => setImportData(e.target.value)}
+                                            className="import-scheme-textarea"
+                                            rows={6}
+                                        />
+                                        <div className="import-scheme-actions">
+                                            <button 
+                                                className="import-scheme-btn"
+                                                onClick={importColorScheme}
+                                                disabled={!importData.trim()}
+                                            >
+                                                Import
+                                            </button>
+                                            <button 
+                                                className="cancel-import-btn"
+                                                onClick={() => {
+                                                    setShowImportSection(false);
+                                                    setImportData('');
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Saved Schemes List */}
+                                {colorSchemes.length > 0 && (
+                                    <div className="saved-schemes-list">
+                                        <h5>Saved Color Schemes</h5>
+                                        <div className="schemes-grid">
+                                            {colorSchemes.map(scheme => (
+                                                <div key={scheme.name} className="scheme-item">
+                                                    <div className="scheme-info">
+                                                        <span className="scheme-name">{scheme.name}</span>
+                                                        <span className="scheme-date">
+                                                            {new Date(scheme.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <div className="scheme-actions">
+                                                        <button 
+                                                            className="load-scheme-btn"
+                                                            onClick={() => loadColorScheme(scheme.name)}
+                                                            title="Load this color scheme"
+                                                        >
+                                                            Load
+                                                        </button>
+                                                        <button 
+                                                            className="export-scheme-btn"
+                                                            onClick={() => exportColorScheme(scheme.name)}
+                                                            title="Export this scheme to clipboard"
+                                                        >
+                                                            📤
+                                                        </button>
+                                                        <button 
+                                                            className="delete-scheme-btn"
+                                                            onClick={() => deleteColorScheme(scheme.name)}
+                                                            title="Delete this color scheme"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Messages */}
+                                {saveMessage && (
+                                    <div className="scheme-message save-message">
+                                        {saveMessage}
+                                    </div>
+                                )}
+                                {importMessage && (
+                                    <div className="scheme-message import-message">
+                                        {importMessage}
+                                    </div>
+                                )}
+                            </div>
+                            
                             <div className="action-buttons-container">
                                 <button 
                                     className="auto-assign-button"
@@ -514,54 +879,56 @@ const ColorsPopup = ({ isVisible, onClose }) => {
                                                     </div>
                                                     <div className="color-controls">
                                                         <div className="color-selector-wrapper">
-                                                            <select 
-                                                                value={currentColor} 
-                                                                onChange={(e) => handleColorChange(subject, e.target.value)}
-                                                                className="color-dropdown"
-                                                                style={{
-                                                                    backgroundColor: currentColor || 'transparent',
-                                                                    color: getTextColor(currentColor)
-                                                                }}
-                                                            >
-                                                                <option value="">Default Colour</option>
-                                                                {colorService.getAvailableColors().map(color => {
-                                                                    const isUsed = customColors[subject]?.value === color.value || 
-                                                                                Object.values(customColors).some(c => 
-                                                                                    c.value === color.value && !customColors[subject]);
-                                                                    
-                                                                    // Either show all colors, or only show colors that aren't already assigned
-                                                                    // (except the one currently assigned to this subject)
-                                                                    const shouldShow = !isUsed || (customColors[subject]?.value === color.value);
-                                                                    
-                                                                    if (shouldShow) {
-                                                                        return (
-                                                                            <option 
-                                                                                key={color.value} 
-                                                                                value={color.value}
-                                                                                style={{
-                                                                                    backgroundColor: color.value,
-                                                                                    color: getTextColor(color.value)
-                                                                                }}
-                                                                            >
-                                                                                <span className="color-preview" style={{ backgroundColor: color.value }}></span>
-                                                                                {color.label}
-                                                                            </option>
-                                                                        );
-                                                                    }
-                                                                    return null;
-                                                                })}
-                                                            </select>
-                                                            
-                                                            {currentColor && (
-                                                                <button 
-                                                                    className="reset-color-button" 
-                                                                    onClick={() => handleColorChange(subject, '')}
-                                                                    title="Reset to default colour"
-                                                                    aria-label={`Reset ${subject} to default colour`}
+                                                            <div className="color-dropdown-row">
+                                                                <select 
+                                                                    value={currentColor} 
+                                                                    onChange={(e) => handleColorChange(subject, e.target.value)}
+                                                                    className="color-dropdown"
+                                                                    style={{
+                                                                        backgroundColor: currentColor || 'transparent',
+                                                                        color: getTextColor(currentColor)
+                                                                    }}
                                                                 >
-                                                                    ×
-                                                                </button>
-                                                            )}
+                                                                    <option value="">Default Colour</option>
+                                                                    {colorService.getAvailableColors().map(color => {
+                                                                        const isUsed = customColors[subject]?.value === color.value || 
+                                                                                    Object.values(customColors).some(c => 
+                                                                                        c.value === color.value && !customColors[subject]);
+                                                                        
+                                                                        // Either show all colors, or only show colors that aren't already assigned
+                                                                        // (except the one currently assigned to this subject)
+                                                                        const shouldShow = !isUsed || (customColors[subject]?.value === color.value);
+                                                                        
+                                                                        if (shouldShow) {
+                                                                            return (
+                                                                                <option 
+                                                                                    key={color.value} 
+                                                                                    value={color.value}
+                                                                                    style={{
+                                                                                        backgroundColor: color.value,
+                                                                                        color: getTextColor(color.value)
+                                                                                    }}
+                                                                                >
+                                                                                    <span className="color-preview" style={{ backgroundColor: color.value }}></span>
+                                                                                    {color.label}
+                                                                                </option>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    })}
+                                                                </select>
+                                                                
+                                                                {currentColor && (
+                                                                    <button 
+                                                                        className="reset-color-button" 
+                                                                        onClick={() => handleColorChange(subject, '')}
+                                                                        title="Reset to default colour"
+                                                                        aria-label={`Reset ${subject} to default colour`}
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         
                                                         {/* Color swatches for easier selection */}

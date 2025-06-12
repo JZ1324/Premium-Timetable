@@ -80,15 +80,15 @@
 
 .template-controls select,
 .template-controls input {
-    padding: 5px 7px;
+    padding: 6px 8px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     width: auto;
-    min-width: 100px;
-    max-width: 130px;
+    min-width: 120px;
+    max-width: 150px;
 }
 
 .default-timetable-btn {
@@ -195,59 +195,9 @@
     align-items: center;
 }
 
-.save-template input {
-    height: 30px;
-    box-sizing: border-box;
-    padding: 5px 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color, #e0e0e0);
-    font-size: 0.8rem;
-    background-color: var(--bg-primary, white);
-    color: var(--text-primary, #333);
-    transition: all 0.2s ease;
-    min-width: 100px;
-    max-width: 120px;
-}
-
-.save-template input:focus {
-    outline: none;
-    border-color: var(--accent-color, #4a90e2);
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}
-
-.save-template input::placeholder {
-    color: var(--text-secondary, #666);
-}
-
 .save-template button {
     min-width: auto;
     white-space: nowrap;
-    background-color: var(--accent-color, #4a90e2);
-    color: white;
-    border: 1px solid var(--accent-color, #4a90e2);
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    height: 30px;
-}
-
-.save-template button:hover:not(:disabled) {
-    background-color: var(--accent-color-dark, #3a7bc8);
-    border-color: var(--accent-color-dark, #3a7bc8);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
-}
-
-.save-template button:disabled {
-    background-color: var(--bg-secondary, #f5f5f5);
-    color: var(--text-secondary, #666);
-    border-color: var(--border-color, #e0e0e0);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
 }
 
 .delete-template-btn {
@@ -295,25 +245,25 @@
 }
 
 .default-timetable-dropdown {
-    padding: 5px 8px;
+    padding: 6px 10px;
     border-radius: 8px;
     background: linear-gradient(to bottom, var(--button-bg) 0%, var(--button-bg-darker, #e8e8e8) 100%);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    min-height: 30px;
-    min-width: 120px;
+    min-height: 32px;
+    min-width: 150px;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 6px center;
-    padding-right: 26px;
+    background-position: right 8px center;
+    padding-right: 28px;
 }
 
 .default-timetable-dropdown:hover {
@@ -1156,10 +1106,6 @@
         padding: 4px 8px;
         font-size: 0.8rem;
         min-height: 28px;
-    }
-    
-    .save-template {
-        flex-direction: column;
     }
     
     .timetable {

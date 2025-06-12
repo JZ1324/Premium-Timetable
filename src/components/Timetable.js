@@ -68,7 +68,6 @@ const Timetable = () => {
     });
     const [showColorLegend, setShowColorLegend] = useState(false);
     const [editingRowHeight, setEditingRowHeight] = useState(null);
-    const [templateName, setTemplateName] = useState('');
     
     /**
      * Generate a template name for auto-saving imported timetables
@@ -491,49 +490,58 @@ const Timetable = () => {
     };
 
     /**
-     * Save the current timetable as a template
+     * Check if the current timetable is effectively empty (only contains break periods)
+     * @returns {boolean} True if timetable is empty (only break periods), false otherwise
+     */
+    const isTimetableEmpty = () => {
+        // Filter out break periods (Recess, Lunch, Tutorial) and periods with no actual classes
+        const nonBreakSlots = timeSlots.filter(slot => {
+            const isBreakPeriod = slot.isBreakPeriod || 
+                                  ['Recess', 'Lunch', 'Tutorial'].includes(slot.subject) ||
+                                  !slot.subject || 
+                                  slot.subject.trim() === '';
+            return !isBreakPeriod;
+        });
+        
+        return nonBreakSlots.length === 0;
+    };
+
+    /**
+     * Generate a suggested name for empty timetables
+     * @returns {string} Suggested template name
+     */
+    const generateEmptyTemplateName = () => {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString().replace(/\//g, '-');
+        return `Empty Template ${dateStr}`;
+    };
+
+    /**
+     * Save the current timetable as a template using popup prompt
      */
     const saveTemplate = () => {
-        if (!templateName.trim()) {
-            setNotification({
-                isOpen: true,
-                message: 'Please enter a name.',
-                type: 'warning',
-                title: 'Name Required'
-            });
+        // Check if the timetable is empty
+        if (isTimetableEmpty()) {
+            // Auto-prompt for name when timetable is empty
+            const suggestedName = generateEmptyTemplateName();
+            
+            // Use the popup mechanism for empty timetables
+            saveAutoTemplate(
+                suggestedName,
+                `Empty template saved successfully as "${suggestedName}"!`,
+                'Empty template saved successfully!'
+            );
             return;
         }
         
-        try {
-            // Save the current timetable as a template
-            timetableService.saveAsTemplate(templateName.trim());
-            
-            // Update the templates list
-            setTemplates(timetableService.getTemplateNames());
-            
-            // Set the new template as current
-            setCurrentTemplate(templateName.trim());
-            saveCurrentTemplate(templateName.trim());
-            
-            // Clear the name input
-            setTemplateName('');
-            
-            // Show success notification
-            setNotification({
-                isOpen: true,
-                message: `Template "${templateName.trim()}" has been saved successfully.`,
-                type: 'success',
-                title: 'Template Saved'
-            });
-        } catch (error) {
-            console.error('Error saving template:', error);
-            setNotification({
-                isOpen: true,
-                message: 'Failed to save template. Please try again.',
-                type: 'error',
-                title: 'Save Error'
-            });
-        }
+        // For non-empty timetables, generate a suggested name and use popup
+        const suggestedName = generateImportTemplateName(timeSlots);
+        
+        saveAutoTemplate(
+            suggestedName,
+            `Template saved successfully!`,
+            'Template saved successfully!'
+        );
     };
 
     /**
@@ -889,24 +897,11 @@ const Timetable = () => {
                     )}
                     
                     <div className="save-template">
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={templateName}
-                            onChange={(e) => setTemplateName(e.target.value)}
-                            onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                    saveTemplate();
-                                }
-                            }}
-                            className="template-name-input"
-                        />
                         <button 
-                            className="save-template-btn" 
+                            className="save-template-btn"
                             onClick={saveTemplate}
-                            disabled={!templateName.trim()}
                         >
-                            Save
+                            Save Template
                         </button>
                     </div>
                     

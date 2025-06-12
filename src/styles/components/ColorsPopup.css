@@ -415,25 +415,36 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0; /* Allow shrinking if needed */
 }
 
-/* Improved Color selector */
+/* Improved Color selector - Stack layout to prevent wrapping */
 .color-selector-wrapper {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 8px;
     margin-bottom: 8px;
 }
 
+.color-dropdown-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
 .color-dropdown {
     flex: 1;
-    padding: 10px 12px;
+    min-width: 0; /* Allow dropdown to shrink */
+    padding: 8px 10px;
     border-radius: 6px;
     border: 1px solid var(--border-color, #e0e0e0);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     background-color: var(--bg-primary, white);
     cursor: pointer;
     transition: all 0.2s ease;
+    height: 32px; /* Fixed height for consistency */
+    box-sizing: border-box;
 }
 
 .color-dropdown:focus {
@@ -446,12 +457,13 @@
     background-color: var(--bg-secondary, #f5f5f5);
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 6px;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0; /* Prevent button from shrinking */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -645,6 +657,27 @@
     
     .group-tab {
         padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    /* Ensure buttons stay in single row on mobile */
+    .color-selector-wrapper {
+        gap: 6px; /* Maintain gap between stacked elements */
+    }
+    
+    .color-dropdown-row {
+        gap: 4px; /* Smaller gap for mobile */
+    }
+    
+    .reset-color-button {
+        width: 28px; /* Even smaller on mobile */
+        height: 28px;
+        font-size: 1rem;
+    }
+    
+    .color-dropdown {
+        height: 28px;
+        padding: 6px 8px;
         font-size: 0.8rem;
     }
 }

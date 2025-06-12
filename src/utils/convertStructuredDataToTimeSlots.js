@@ -21,11 +21,6 @@ function convertStructuredDataToTimeSlots(structuredData) {
     // Only process if the day actually has classes
     if (structuredData.classes[day]) {
       Object.keys(structuredData.classes[day]).forEach(periodName => {
-        // Skip Recess and Lunch periods - these will be handled separately
-        if (periodName === "Recess" || periodName === "Lunch") {
-          return;
-        }
-        
         const classes = structuredData.classes[day][periodName];
         
         // Find period details
@@ -35,6 +30,12 @@ function convertStructuredDataToTimeSlots(structuredData) {
         let periodId = periodName;
         if (periodName.includes("Period")) {
           periodId = periodName.replace("Period ", "").trim();
+        } else if (periodName === "Tutorial") {
+          periodId = "Tutorial";
+        } else if (periodName === "Recess") {
+          periodId = "Recess";
+        } else if (periodName === "Lunch") {
+          periodId = "Lunch";
         }
         
         // Process each class in this period

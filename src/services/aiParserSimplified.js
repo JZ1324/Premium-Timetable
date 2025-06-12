@@ -6,14 +6,23 @@ const { diagnoseApiError, generateErrorReport } = require('../utils/apiErrorDiag
 
 // API keys for OpenRouter
 const API_KEYS = [
-  "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", // Primary key (previously third)
-  "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", // Second backup key
-  "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", // Third backup key
-  "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"  // Fourth backup key (added May 18, 2025)
+  "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", // Primary key
+  "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", // Backup key 1
+  "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", // Backup key 2
+  "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", // Backup key 3
+  "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", // Backup key 4
+  "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"  // Backup key 5
 ];
 
-// Use only Gemini 2.0 models
-const MODEL = "google/gemini-2.0-flash-exp:free";  // Primary Gemini 2.0 model
+// Use only Gemini 2.0 models by default
+const MODELS = {
+  "auto": "google/gemini-2.0-flash-exp:free",  // Primary Gemini 2.0 model
+  "deepseek": "deepseek/deepseek-chat-v3-0324:free",
+  "qwen": "qwen/qwen3-32b:free",
+  "anthropic": "anthropic/claude-3-haiku:free",
+  "google": "google/gemini-2.0-flash-exp:free",
+  "mistral": "mistralai/mistral-medium:free"
+};
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
@@ -21,16 +30,21 @@ const API_URL = "https://openrouter.ai/api/v1/chat/completions";
  * This version just returns the raw API response without complex error handling
  * 
  * @param {string} timetableText - The raw timetable text to parse
+ * @param {number} forceKeyIndex - Optional index to force a specific API key
+ * @param {string} preferredProvider - Optional preferred model provider (deepseek, qwen, etc.)
  * @returns {object} - The parsed JSON response or error details
  */
-async function parseTimetableSimple(timetableText, forceKeyIndex = null) {
-  console.log("Starting simple timetable parsing with OpenRouter API");
+async function parseTimetableSimple(timetableText, forceKeyIndex = null, preferredProvider = 'auto') {
+  console.log(`Starting simple timetable parsing with OpenRouter API. Preferred provider: ${preferredProvider}`);
   
   // Allow overriding the API key selection
   const keyIndex = forceKeyIndex !== null ? forceKeyIndex : 0;
   apiKey = API_KEYS[keyIndex];
   
-  console.log(`Using API key #${keyIndex + 1}`);
+  // Select the model based on preferred provider
+  const model = MODELS[preferredProvider] || MODELS['auto'];
+  
+  console.log(`Using API key #${keyIndex + 1} with model: ${model}`);
   
   // Basic prompt for timetable formatting
   const prompt = `You are an expert at extracting structured timetable data.
@@ -80,7 +94,7 @@ Return only valid JSON. No markdown. No explanation.`;
   try {
     // Prepare the request
     const requestBody = {
-      "model": MODEL,
+      "model": model,
       "messages": [
         {
           "role": "system",
@@ -96,15 +110,15 @@ Return only valid JSON. No markdown. No explanation.`;
       "temperature": 0.1
     };
 
-    console.log(`Sending request to OpenRouter API using ${MODEL}`);
+    console.log(`Sending request to OpenRouter API using ${model}`);
     
     // Make the API request
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": window.location.origin || "https://premium-timetable-git-main-jzs-projects-88f4a016.vercel.app", 
-        "X-Title": "Premium Timetable App", 
+        "HTTP-Referer": "https://premium-timetable.vercel.app",
+        "X-Title": "Premium Timetable App",
         "Content-Type": "application/json"
       },
       body: JSON.stringify(requestBody)
@@ -175,8 +189,8 @@ Return only valid JSON. No markdown. No explanation.`;
 }
 
 // Try with multiple API keys if the first one fails
-async function parseTimetableWithFallback(timetableText) {
-  console.log("Starting timetable parsing with fallback keys");
+async function parseTimetableWithFallback(timetableText, preferredProvider = 'auto') {
+  console.log(`Starting timetable parsing with fallback keys. Preferred provider: ${preferredProvider}`);
   
   // Try each API key in sequence
   for (let i = 0; i < API_KEYS.length; i++) {
@@ -184,7 +198,7 @@ async function parseTimetableWithFallback(timetableText) {
       console.log(`Trying with API key #${i + 1}`);
       
       // Override the default API key selection in parseTimetableSimple
-      const result = await parseTimetableSimple(timetableText, i);
+      const result = await parseTimetableSimple(timetableText, i, preferredProvider);
       
       if (result.success) {
         console.log(`Successfully parsed timetable with API key #${i + 1}`);

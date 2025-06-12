@@ -9,108 +9,107 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 100; /* Increased z-index to ensure visibility */
-  background-color: rgba(255, 255, 255, 0.95); /* Slightly more opaque background */
-  backdrop-filter: blur(5px); /* Increased blur for better focus on the loader */
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
   border-radius: 10px;
-  animation: fadeIn 0.3s ease-in-out; /* Add fade-in animation */
+  /* NO ANIMATION - completely static */
 }
 
 .card {
-  /* color used to softly clip top and bottom of the .words container */
   --bg-color: #212121;
   background-color: var(--bg-color);
   padding: 1.25rem 2.5rem;
   border-radius: 1.25rem;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
   margin-bottom: 20px;
-  transform: translateY(0);
-  animation: floatCard 3s ease-in-out infinite;
-}
-
-@keyframes floatCard {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  /* FORCE NO ANIMATION */
+  animation: none !important;
+  transform: none !important;
 }
 
 .loader {
   color: rgb(124, 124, 124);
   font-family: "Poppins", sans-serif;
   font-weight: 500;
-  font-size: 22px; /* Slightly smaller font size */
-  -webkit-box-sizing: content-box;
+  font-size: 22px;
   box-sizing: content-box;
-  height: 40px;
-  padding: 10px 15px; /* Added more horizontal padding */
-  display: -webkit-box;
-  display: -ms-flexbox;
+  padding: 20px 15px;
   display: flex;
-  align-items: center; /* Center items vertically */
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
   border-radius: 8px;
+  /* FORCE NO ANIMATION */
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Simple spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #956afa;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .words {
   overflow: hidden;
+  min-width: 120px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   position: relative;
-  min-width: 120px; /* Ensure enough width for the longest word */
-  margin-left: 8px; /* Add some spacing between "Parsing" and the animated words */
-}
-
-.words::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    var(--bg-color) 10%,
-    transparent 30%,
-    transparent 70%,
-    var(--bg-color) 90%
-  );
-  z-index: 20;
 }
 
 .word {
-  display: block;
-  height: 100%;
-  padding-left: 8px;
+  position: absolute;
+  width: 100%;
+  height: 40px;
   color: #956afa;
-  animation: spin_4991 8s infinite cubic-bezier(0.3, 0, 0.7, 1); /* Smoother animation with easing */
   white-space: nowrap;
-  line-height: 40px; /* Match the height for vertical centering */
-  transform: translateY(0%); /* Ensure initial position is correct */
+  line-height: 40px;
+  text-align: center;
+  opacity: 0;
+  animation: wordCycle 6s infinite ease-in-out;
 }
 
-@keyframes spin_4991 {
-  0%, 5% {
-    transform: translateY(0%);
-  }
+.word:nth-child(1) {
+  animation-delay: 0s;
+}
 
-  16%, 21% {
-    transform: translateY(-100%);
-  }
+.word:nth-child(2) {
+  animation-delay: 2s;
+}
 
-  32%, 37% {
-    transform: translateY(-200%);
-  }
+.word:nth-child(3) {
+  animation-delay: 4s;
+}
 
-  48%, 53% {
-    transform: translateY(-300%);
-  }
-
-  64%, 69% {
-    transform: translateY(-400%);
-  }
-
-  80%, 85% {
-    transform: translateY(-500%);
+/* Smooth word cycling animation with fade */
+@keyframes wordCycle {
+  0%, 16.67% {
+    opacity: 1;
+    transform: translateY(0);
   }
   
-  96%, 100% {
-    transform: translateY(0%);
+  33.33%, 83.33% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  
+  100% {
+    opacity: 0;
+    transform: translateY(0);
   }
 }
 
@@ -122,26 +121,7 @@
   color: #4a4a4a;
   max-width: 80%;
   line-height: 1.5;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Fade-in animation for the loader */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  /* NO ANIMATION - completely static */
 }
 
 /* Dark mode support */

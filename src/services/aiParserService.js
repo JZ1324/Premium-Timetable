@@ -31,12 +31,12 @@ if (typeof window !== 'undefined' && window.EnglishTruncationFix) {
 
 // Multiple API keys for token limit management
 const API_KEYS = [
-  "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", // Primary key
-  "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", // Second backup key
-  "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", // Third backup key for additional reliability
-  "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", // Fourth backup key
-  "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", // Fifth backup key
-  "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"  // Sixth backup key
+  "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", // Primary key
+  "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", // Backup key 1
+  "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", // Backup key 2
+  "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", // Backup key 3
+  "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", // Backup key 4
+  "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"  // Backup key 5
 ];
 let currentKeyIndex = 0; // Start with the first key
 // Track which keys have been exhausted in this session to prevent useless retries
@@ -44,8 +44,14 @@ const exhaustedKeys = new Set();
 
 // Using DeepSeek R1 models exclusively for improved consistency
 const MODELS = [
+  "deepseek/deepseek-chat-v3-0324:free", // Latest DeepSeek model
   "deepseek/deepseek-r1-0528:free", // Primary model - DeepSeek R1
-  "deepseek/deepseek-r1-0528-qwen3-8b:free" // Secondary model - DeepSeek R1 Qwen3-8B
+  "deepseek/deepseek-r1-0528-qwen3-8b:free", // Secondary model - DeepSeek R1 Qwen3-8B
+  "qwen/qwen3-32b:free", // Qwen fallback
+  "qwen/qwen3-14b:free", // Smaller Qwen fallback
+  "anthropic/claude-3-haiku:free", // Claude fallback
+  "google/gemini-2.0-flash-exp:free", // Gemini fallback
+  "mistralai/mistral-medium:free" // Mistral fallback
 ];
 let currentModelIndex = 0; // Start with the primary model
 // Track which models have failed in the current parsing attempt (kept for compatibility)
@@ -54,9 +60,41 @@ const failedModels = new Set();
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Provider: chute (using DeepSeek R1 models via OpenRouter)
-async function parseTimetableWithChuteAI(timetableText) {
+async function parseTimetableWithChuteAI(timetableText, preferredProvider = 'auto') {
   // Reset failed models set at the start of each new parsing attempt
   failedModels.clear();
+  
+  // Filter models based on the preferred provider if specified
+  let modelsToUse = [...MODELS]; // Start with a copy of all models
+  
+  if (preferredProvider !== 'auto') {
+    // Filter models to try based on user preference
+    switch (preferredProvider) {
+      case 'deepseek':
+        modelsToUse = MODELS.filter(model => model.includes('deepseek'));
+        break;
+      case 'qwen':
+        modelsToUse = MODELS.filter(model => model.includes('qwen'));
+        break;
+      case 'anthropic':
+        modelsToUse = MODELS.filter(model => model.includes('claude') || model.includes('anthropic'));
+        break;
+      case 'google':
+        modelsToUse = MODELS.filter(model => model.includes('gemini') || model.includes('google'));
+        break;
+      case 'mistral':
+        modelsToUse = MODELS.filter(model => model.includes('mistral'));
+        break;
+    }
+    
+    // If no models match the preference, fall back to all models
+    if (modelsToUse.length === 0) {
+      console.log(`No models found for preferred provider ${preferredProvider}. Using all available models.`);
+      modelsToUse = [...MODELS];
+    } else {
+      console.log(`Using ${modelsToUse.length} models from preferred provider ${preferredProvider}`);
+    }
+  }
   
   // Select the best available API key (non-exhausted if possible)
   if (exhaustedKeys.size > 0 && exhaustedKeys.size < API_KEYS.length) {
@@ -146,7 +184,7 @@ Return only valid JSON. No markdown. No explanation.`;
     // Function to make a request with a specific API key and model
     async function makeRequest(keyIndex, modelIndex) {
       const apiKey = API_KEYS[keyIndex];
-      const model = MODELS[modelIndex];
+      const model = modelsToUse[modelIndex] || MODELS[modelIndex]; // Use filtered models if available
       console.log(`Sending request to OpenRouter API using model: ${model} (API Key ${keyIndex + 1})`);
 
       // Format request body based on model requirements
@@ -174,8 +212,8 @@ Return only valid JSON. No markdown. No explanation.`;
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": window.location.origin || "https://premium-timetable-git-main-jzs-projects-88f4a016.vercel.app", 
-          "X-Title": "Premium Timetable App", 
+          "HTTP-Referer": "https://premium-timetable.vercel.app",
+          "X-Title": "Premium Timetable App",
           "Content-Type": "application/json"
         },
         body: JSON.stringify(requestBody)
@@ -308,7 +346,7 @@ Return only valid JSON. No markdown. No explanation.`;
           console.log(`Provider error detected with DeepSeek R1. Trying with API key #${currentKeyIndex + 1}`);
           
           // Recursive call with the same model but different key
-          return parseTimetableWithChuteAI(timetableText);
+          return parseTimetableWithChuteAI(timetableText, preferredProvider);
         } else {
           console.log("All API keys tried with DeepSeek R1, but provider errors persist.");
         }
@@ -321,7 +359,7 @@ Return only valid JSON. No markdown. No explanation.`;
         currentKeyIndex++;
         
         // Recursive call with the next key
-        return parseTimetableWithChuteAI(timetableText);
+        return parseTimetableWithChuteAI(timetableText, preferredProvider);
       }
       
       throw new Error(`OpenRouter API error: ${errorMessage}`);

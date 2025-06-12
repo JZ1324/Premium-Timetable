@@ -1,0 +1,668 @@
+{
+  "days": [
+    "Day 1",
+    "Day 2", 
+    "Day 3",
+    "Day 4",
+    "Day 5",
+    "Day 6",
+    "Day 7",
+    "Day 8",
+    "Day 9",
+    "Day 10"
+  ],
+  "periods": [
+    {
+      "name": "Period 1",
+      "startTime": "8:35am",
+      "endTime": "9:35am"
+    },
+    {
+      "name": "Period 2", 
+      "startTime": "9:40am",
+      "endTime": "10:40am"
+    },
+    {
+      "name": "Tutorial",
+      "startTime": "10:45am",
+      "endTime": "10:55am"
+    },
+    {
+      "name": "Period 3",
+      "startTime": "11:25am",
+      "endTime": "12:25pm"
+    },
+    {
+      "name": "Period 4",
+      "startTime": "12:30pm",
+      "endTime": "1:30pm"
+    },
+    {
+      "name": "Period 5",
+      "startTime": "2:25pm",
+      "endTime": "3:25pm"
+    }
+  ],
+  "classes": {
+    "Day 1": {
+      "Period 1": [
+        {
+          "subject": "Psychology",
+          "code": "10PSY252103",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Biology Units 1 & 2",
+          "code": "11BIO252101", 
+          "room": "S 06",
+          "teacher": "Mr Andrew Savage",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Tutorial Time",
+          "code": "",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Mathematics Methods Units 1 & 2",
+          "code": "11MAM252101",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "English Units 1 & 2",
+          "code": "11ENG252101",
+          "room": "E 04",
+          "teacher": "Miss Sarah Wilson",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Chemistry Units 1 & 2",
+          "code": "11CHE252101",
+          "room": "L 02",
+          "teacher": "Dr Emma Clarke",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 2": {
+      "Period 1": [
+        {
+          "subject": "Literature Units 1 & 2",
+          "code": "11LIT252101",
+          "room": "I 03",
+          "teacher": "Miss Olivia Berry",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Physics Units 1 & 2",
+          "code": "11PHY252101",
+          "room": "P 08",
+          "teacher": "Mr David Lee",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Study Hall",
+          "code": "",
+          "room": "Library",
+          "teacher": "Ms Janet Brown",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "History Units 1 & 2",
+          "code": "11HIS252101",
+          "room": "H 12",
+          "teacher": "Mrs Lisa Green",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Art Creative Practice",
+          "code": "10ART252103",
+          "room": "A 05",
+          "teacher": "Ms Rachel White",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Physical Education",
+          "code": "10PE252104",
+          "room": "Gymnasium",
+          "teacher": "Mr Mike Strong",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 3": {
+      "Period 1": [
+        {
+          "subject": "Biology Units 1 & 2",
+          "code": "11BIO252101",
+          "room": "S 06", 
+          "teacher": "Mr Andrew Savage",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Mathematics Methods Units 1 & 2",
+          "code": "11MAM252101",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Free Study",
+          "code": "",
+          "room": "Study Hall",
+          "teacher": "",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Chemistry Units 1 & 2",
+          "code": "11CHE252101",
+          "room": "L 02",
+          "teacher": "Dr Emma Clarke",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Psychology",
+          "code": "10PSY252103",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Music Performance",
+          "code": "10MUS252105",
+          "room": "M 01",
+          "teacher": "Mr Tom Davis",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 4": {
+      "Period 1": [
+        {
+          "subject": "English Units 1 & 2",
+          "code": "11ENG252101",
+          "room": "E 04",
+          "teacher": "Miss Sarah Wilson",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Chemistry Units 1 & 2",
+          "code": "11CHE252101",
+          "room": "L 02",
+          "teacher": "Dr Emma Clarke",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Peer Tutoring",
+          "code": "",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Literature Units 1 & 2",
+          "code": "11LIT252101",
+          "room": "I 03",
+          "teacher": "Miss Olivia Berry",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Physics Units 1 & 2",
+          "code": "11PHY252101",
+          "room": "P 08",
+          "teacher": "Mr David Lee",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "History Units 1 & 2",
+          "code": "11HIS252101",
+          "room": "H 12",
+          "teacher": "Mrs Lisa Green",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 5": {
+      "Period 1": [
+        {
+          "subject": "Mathematics Methods Units 1 & 2",
+          "code": "11MAM252101",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Psychology",
+          "code": "10PSY252103",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Career Counseling",
+          "code": "",
+          "room": "Counselor Office",
+          "teacher": "Ms Janet Brown",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Art Creative Practice",
+          "code": "10ART252103",
+          "room": "A 05",
+          "teacher": "Ms Rachel White",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Biology Units 1 & 2",
+          "code": "11BIO252101",
+          "room": "S 06",
+          "teacher": "Mr Andrew Savage",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Physical Education",
+          "code": "10PE252104",
+          "room": "Sports Field",
+          "teacher": "Mr Mike Strong",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 6": {
+      "Period 1": [
+        {
+          "subject": "Physics Units 1 & 2",
+          "code": "11PHY252101",
+          "room": "P 08",
+          "teacher": "Mr David Lee",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "History Units 1 & 2",
+          "code": "11HIS252101",
+          "room": "H 12",
+          "teacher": "Mrs Lisa Green",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Computer Lab",
+          "code": "",
+          "room": "IT Lab",
+          "teacher": "Mr Tech Support",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "English Units 1 & 2",
+          "code": "11ENG252101",
+          "room": "E 04",
+          "teacher": "Miss Sarah Wilson",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Music Performance",
+          "code": "10MUS252105",
+          "room": "M 01",
+          "teacher": "Mr Tom Davis",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Mathematics Methods Units 1 & 2",
+          "code": "11MAM252101",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 7": {
+      "Period 1": [
+        {
+          "subject": "Art Creative Practice",
+          "code": "10ART252103",
+          "room": "A 05",
+          "teacher": "Ms Rachel White",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Literature Units 1 & 2",
+          "code": "11LIT252101",
+          "room": "I 03",
+          "teacher": "Miss Olivia Berry",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Study Group",
+          "code": "",
+          "room": "Library",
+          "teacher": "Various",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Physical Education",
+          "code": "10PE252104",
+          "room": "Gymnasium",
+          "teacher": "Mr Mike Strong",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Chemistry Units 1 & 2",
+          "code": "11CHE252101",
+          "room": "L 02",
+          "teacher": "Dr Emma Clarke",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Psychology",
+          "code": "10PSY252103",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 8": {
+      "Period 1": [
+        {
+          "subject": "History Units 1 & 2",
+          "code": "11HIS252101",
+          "room": "H 12",
+          "teacher": "Mrs Lisa Green",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Music Performance",
+          "code": "10MUS252105",
+          "room": "M 01",
+          "teacher": "Mr Tom Davis",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Assembly",
+          "code": "",
+          "room": "Main Hall",
+          "teacher": "Principal",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Biology Units 1 & 2",
+          "code": "11BIO252101",
+          "room": "S 06",
+          "teacher": "Mr Andrew Savage",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Literature Units 1 & 2",
+          "code": "11LIT252101",
+          "room": "I 03",
+          "teacher": "Miss Olivia Berry",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Physics Units 1 & 2",
+          "code": "11PHY252101",
+          "room": "P 08",
+          "teacher": "Mr David Lee",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 9": {
+      "Period 1": [
+        {
+          "subject": "Chemistry Units 1 & 2",
+          "code": "11CHE252101",
+          "room": "L 02",
+          "teacher": "Dr Emma Clarke",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "Physical Education",
+          "code": "10PE252104",
+          "room": "Sports Field",
+          "teacher": "Mr Mike Strong",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Extra Help Session",
+          "code": "",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Psychology",
+          "code": "10PSY252103",
+          "room": "C 07",
+          "teacher": "Ms Dianne McKenzie",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "Art Creative Practice",
+          "code": "10ART252103",
+          "room": "A 05",
+          "teacher": "Ms Rachel White",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "English Units 1 & 2",
+          "code": "11ENG252101",
+          "room": "E 04",
+          "teacher": "Miss Sarah Wilson",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    },
+    "Day 10": {
+      "Period 1": [
+        {
+          "subject": "Music Performance",
+          "code": "10MUS252105",
+          "room": "M 01",
+          "teacher": "Mr Tom Davis",
+          "startTime": "8:35am",
+          "endTime": "9:35am"
+        }
+      ],
+      "Period 2": [
+        {
+          "subject": "English Units 1 & 2",
+          "code": "11ENG252101",
+          "room": "E 04",
+          "teacher": "Miss Sarah Wilson",
+          "startTime": "9:40am",
+          "endTime": "10:40am"
+        }
+      ],
+      "Tutorial": [
+        {
+          "subject": "Club Activities",
+          "code": "",
+          "room": "Various Rooms",
+          "teacher": "Club Advisors",
+          "startTime": "10:45am",
+          "endTime": "10:55am"
+        }
+      ],
+      "Period 3": [
+        {
+          "subject": "Mathematics Methods Units 1 & 2",
+          "code": "11MAM252101",
+          "room": "B 15",
+          "teacher": "Mr John Thompson",
+          "startTime": "11:25am",
+          "endTime": "12:25pm"
+        }
+      ],
+      "Period 4": [
+        {
+          "subject": "History Units 1 & 2",
+          "code": "11HIS252101",
+          "room": "H 12",
+          "teacher": "Mrs Lisa Green",
+          "startTime": "12:30pm",
+          "endTime": "1:30pm"
+        }
+      ],
+      "Period 5": [
+        {
+          "subject": "Free Study Period",
+          "code": "",
+          "room": "Library",
+          "teacher": "Librarian",
+          "startTime": "2:25pm",
+          "endTime": "3:25pm"
+        }
+      ]
+    }
+  }
+}

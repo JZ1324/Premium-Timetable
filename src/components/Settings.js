@@ -15,7 +15,8 @@ const Settings = ({ sidebarOpen }) => {
         enableNotifications: false,
         notificationTime: 15,
         weekStartsOn: 'monday',
-        startWithWeek: 'B' // Default to Week B
+        startWithWeek: 'B', // Default to Week B
+        preferredAIModel: 'auto' // Auto select the best model
     });
 
     // Save settings to localStorage
@@ -274,6 +275,31 @@ const Settings = ({ sidebarOpen }) => {
                                     <option value="B">Week B</option>
                                 </select>
                             </label>
+                        </div>
+                    </div>
+                    
+                    <div className="settings-section">
+                        <h3>AI Parser Settings</h3>
+                        
+                        <div className="setting-item">
+                            <label>
+                                Preferred AI model:
+                                <select 
+                                    name="preferredAIModel" 
+                                    value={settings.preferredAIModel} 
+                                    onChange={handleChange}
+                                >
+                                    <option value="auto">Auto (try multiple models)</option>
+                                    <option value="deepseek">DeepSeek models</option>
+                                    <option value="qwen">Qwen models</option>
+                                    <option value="anthropic">Claude (Anthropic)</option>
+                                    <option value="google">Gemini (Google)</option>
+                                    <option value="mistral">Mistral AI</option>
+                                </select>
+                            </label>
+                            <small className="setting-help-text">
+                                If timetable imports are failing, try a different model provider.
+                            </small>
                         </div>
                     </div>
                     

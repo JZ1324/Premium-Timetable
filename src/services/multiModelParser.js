@@ -1,23 +1,104 @@
 // multiModelParser.js - An enhanced parser with multi-model fallback capability
 // This service tries different models when one fails, providing better reliability
 
-const { diagnoseApiError, generateErrorReport } = require('../utils/apiErrorDiagnostics');
+import { diagnoseApiError, generateErrorReport } from '../utils/apiErrorDiagnostics.js';
 
 // API keys for OpenRouter
 const API_KEYS = [
-  "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", // Primary key (previously third)
-  "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", // Second backup key
-  "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", // Third backup key
-  "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"  // Fourth backup key (added May 18, 2025)
+  "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", // Primary key
+  "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", // Backup key 1
+  "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", // Backup key 2
+  "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", // Backup key 3
+  "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", // Backup key 4
+  "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"  // Backup key 5
 ];
 
 // Available models in priority order - USING MULTIPLE MODEL PROVIDERS FOR FALLBACK
 const MODELS = [
-  "deepseek/deepseek-r1-0528-qwen3-8b:free",
-  "deepseek/deepseek-r1-0528:free"
+ 
+"google/gemma-3n-e4b-it:free"
 ];
 
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+/**
+ * Validates that the parsed data contains real information, not placeholder values
+ * @param {object} data - The parsed timetable data
+ * @returns {boolean} - True if data contains real information
+ */
+function validateParsedData(data) {
+  if (!data || !data.classes) {
+    return false;
+  }
+  
+  // Check if any class has real data (not "Unknown" or empty strings)
+  for (const day in data.classes) {
+    for (const period in data.classes[day]) {
+      const classes = data.classes[day][period];
+      if (Array.isArray(classes)) {
+        for (const classInfo of classes) {
+          if (classInfo.subject && 
+              classInfo.subject !== "Unknown" && 
+              classInfo.subject !== "" &&
+              classInfo.subject.length > 1) {
+            return true; // Found at least one real class
+          }
+        }
+      }
+    }
+  }
+  
+  return false; // No real class data found
+}
+
+/**
+ * Attempts to repair truncated JSON by adding missing closing brackets and braces
+ * @param {string} jsonString - The potentially truncated JSON string
+ * @returns {object|null} - Parsed JSON object or null if repair fails
+ */
+function repairTruncatedJson(jsonString) {
+  try {
+    // First, try to parse as-is
+    return JSON.parse(jsonString);
+  } catch (error) {
+    // If that fails, try to repair truncated JSON
+    let repaired = jsonString.trim();
+    
+    // Remove any trailing incomplete text after the last valid character
+    const lastBrace = Math.max(repaired.lastIndexOf('}'), repaired.lastIndexOf(']'));
+    const lastQuote = repaired.lastIndexOf('"');
+    
+    if (lastBrace > lastQuote) {
+      // Truncate after the last complete brace/bracket
+      repaired = repaired.substring(0, lastBrace + 1);
+    } else if (lastQuote > lastBrace) {
+      // We have an unterminated string, try to close it
+      repaired = repaired.substring(0, lastQuote + 1);
+    }
+    
+    // Count opening and closing braces/brackets to balance them
+    let openBraces = (repaired.match(/\{/g) || []).length;
+    let closeBraces = (repaired.match(/\}/g) || []).length;
+    let openBrackets = (repaired.match(/\[/g) || []).length;
+    let closeBrackets = (repaired.match(/\]/g) || []).length;
+    
+    // Add missing closing brackets and braces
+    for (let i = 0; i < openBrackets - closeBrackets; i++) {
+      repaired += ']';
+    }
+    for (let i = 0; i < openBraces - closeBraces; i++) {
+      repaired += '}';
+    }
+    
+    // Try to parse the repaired JSON
+    try {
+      return JSON.parse(repaired);
+    } catch (repairError) {
+      console.log('JSON repair failed:', repairError.message);
+      return null;
+    }
+  }
+}
 
 /**
  * Attempts to parse timetable data with a specific model and API key
@@ -28,64 +109,80 @@ const API_URL = "https://openrouter.ai/api/v1/chat/completions";
  */
 async function parseTimetableWithModel(timetableText, model, apiKey) {
   console.log(`Attempting to parse timetable with model: ${model}`);
+  console.log(`Input timetable data length: ${timetableText ? timetableText.length : 0} characters`);
+  console.log(`First 1000 characters of input:`, timetableText ? timetableText.substring(0, 1000) : 'NO INPUT DATA');
+  console.log(`Last 500 characters of input:`, timetableText ? timetableText.substring(Math.max(0, timetableText.length - 500)) : 'NO INPUT DATA');
   
-  // Enhanced prompt for timetable formatting with improved robustness
-  const prompt = `You are an expert at extracting structured timetable data from various formats.
+  // Save the full input to console for debugging
+  console.log('FULL TIMETABLE INPUT DATA:');
+  console.log('========================');
+  console.log(timetableText);
+  console.log('========================');
+  
+  // Use the exact user prompt format for consistency
+  const prompt = `Please convert my school timetable data into a structured JSON format and return it as copypastable JSON.
 
-I will provide a school timetable that may be in grid format, tabular text, or another layout. Convert it into this exact JSON format:
+Timetable format explanation:
+Each subject block in the timetable consists of 3 lines:
 
-{
-  "days": [
-    "Day 1", "Day 2", "Day 3", "Day 4", "Day 5",
-    "Day 6", "Day 7", "Day 8", "Day 9", "Day 10"
-  ],
-  "periods": [
-    { "name": "Period 1", "startTime": "8:35am", "endTime": "9:35am" },
-    { "name": "Period 2", "startTime": "9:40am", "endTime": "10:40am" },
-    { "name": "Tutorial", "startTime": "10:45am", "endTime": "11:20am" },
-    { "name": "Period 3", "startTime": "11:25am", "endTime": "12:25pm" },
-    { "name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm" },
-    { "name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm" }
-  ],
-  "classes": {
-    "Day 1": {
-      "Period 1": [
-        {
-          "subject": "Specialist Mathematics",
-          "code": "10SPE251101",
-          "room": "M 07",
-          "teacher": "Mr Paul Jefimenko",
-          "startTime": "8:35am",
-          "endTime": "9:35am"
-        }
-      ],
-      "Period 2": [],
-      "Tutorial": [],
-      "Period 3": [],
-      "Period 4": [],
-      "Period 5": []
-    }
-    // ...and so on for all 10 days
-  }
-}
+The subject name (e.g., "Mathematics - Advanced")
 
-⚠️ IMPORTANT FORMAT RULES:
-1. DO NOT group all Period 1 classes from all days under "Period 1" in one place.
-2. Each day should have its own complete structure with all periods.
-3. Always include Tutorial periods (typically between Period 2 and Period 3).
-4. Standard Tutorial times are 10:45am-11:20am unless specified differently.
-5. If a period has no class, use an empty array: "Period 3": []
-6. Standardize time formats to "h:mmam" or "h:mmpm" (e.g., "8:35am", "2:25pm").
-7. If any field is missing (subject, code, room, teacher), include the field with an empty string value.
-8. For special periods like Recess, Lunch, or Break, include them as subjects.
+The subject code in parentheses on the next line (e.g., "(10MAA252103)")
 
-⚠️ SPECIAL HANDLING:
-- If you're uncertain about any entry, make your best guess and continue.
-- If days are not labeled as "Day X", convert them to that format (e.g., "Monday" → "Day 1").
-- If you see abbreviated subject names, expand them to full names where possible.
-- Handle classes that span multiple periods by creating duplicate entries in each period.
+The room and teacher, with the room listed first (e.g., "M 06 Mrs Leah Manning")
 
-Return only valid JSON. No markdown. No explanation.`;
+There are 10 days total, from "Day 1" to "Day 10". For each period, Day 1's class appears first, then Day 2, and so on up to Day 10.
+
+Required output format:
+Return a JSON object with:
+
+"days": list of strings from "Day 1" to "Day 10"
+
+"periods": each with "name", "startTime", and "endTime" (format: "8:35am")
+
+"classes": an object where each day (e.g. "Day 1") maps to a dictionary of all periods
+
+Each period has an array of classes (or an empty array [] if no class)
+
+Each class must include:
+
+"subject" (string)
+
+"code" (string)
+
+"room" (string)
+
+"teacher" (string)
+
+"startTime" and "endTime" from the period
+
+Important Notes:
+
+Do not guess. If any field is missing, leave it as an empty string "".
+
+Always include all periods and all 10 days, even if a period has no classes.
+
+Tutorial must be treated like a normal period and shown with its time: "10:45am–10:55am"
+
+If the subject name and code are on different lines, still link them correctly.
+
+The subject code is always wrapped in brackets (e.g. "(10MAA252103)")
+
+Room format is typically one letter and two digits (e.g. "M 06"), followed by teacher's name.
+
+Keep the times exactly as they appear (e.g. "8:35am", not "08:35")
+
+Output rules:
+Return a single valid JSON object only — no extra commentary or explanation
+
+Ensure it is copy-paste ready
+
+Make sure all days and periods are present
+
+If a value is missing, set it to "" but never omit the field
+Return only valid raw JSON, not a stringified JSON. Do not wrap the JSON object in quotes or escape any characters.
+
+Here's my timetable data:`;
 
   let result = {
     success: false,
@@ -103,7 +200,7 @@ Return only valid JSON. No markdown. No explanation.`;
       "messages": [
         {
           "role": "system", 
-          "content": "You are a timetable parsing expert that always returns valid JSON data."
+          "content": "You are a timetable parsing expert. Extract REAL data from the user's input. Do NOT use 'Unknown' or placeholder values - only return actual class information found in the data. Always return ONLY valid, complete JSON with no extra text, explanations, or markdown formatting. If you cannot find real class data for a period, return an empty array [] for that period."
         },
         {
           "role": "user",
@@ -111,7 +208,7 @@ Return only valid JSON. No markdown. No explanation.`;
         }
       ],
       "response_format": { "type": "json_object" },
-      "max_tokens": 4000,
+      "max_tokens": 8000,
       "temperature": 0.1
     };
 
@@ -166,14 +263,42 @@ Return only valid JSON. No markdown. No explanation.`;
         const choice = jsonResponse.choices[0];
         if (choice.message && choice.message.content) {
           try {
-            // If the content is valid JSON, parse it
-            const contentJson = JSON.parse(choice.message.content);
+            // Clean the content before parsing
+            let cleanContent = choice.message.content.trim();
+            
+            // Remove any leading/trailing whitespace and markdown formatting
+            cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            
+            // Try to parse the cleaned content
+            const contentJson = JSON.parse(cleanContent);
+            
+            // Validate that we got real data, not just "Unknown" placeholders
+            if (!validateParsedData(contentJson)) {
+              console.log(`Model ${model} returned placeholder data with "Unknown" values. Treating as failure.`);
+              result.error = `Model ${model} could not extract real class data from input - returned only placeholder values`;
+              return result;
+            }
+            
             result.success = true;
             result.data = contentJson;
           } catch (parseError) {
-            // If not valid JSON, just store the raw content
-            result.data = choice.message.content;
-            result.error = `Content from ${model} is not valid JSON: ${parseError.message}`;
+            // Try to repair truncated JSON
+            try {
+              const repairedJson = repairTruncatedJson(choice.message.content);
+              if (repairedJson && validateParsedData(repairedJson)) {
+                result.success = true;
+                result.data = repairedJson;
+                console.log(`Successfully repaired truncated JSON from ${model}`);
+              } else {
+                console.log(`Repaired JSON from ${model} contains no real data, treating as failure`);
+                throw parseError; // Fall back to original error
+              }
+            } catch (repairError) {
+              // If repair fails, store the raw content and error
+              result.data = choice.message.content;
+              result.error = `Content from ${model} is not valid JSON: ${parseError.message}`;
+            }
           }
         } else {
           result.error = `No content found in API response from ${model}`;
@@ -307,7 +432,7 @@ async function parseWithModelFallback(timetableText) {
 }
 
 // For use in browser environments
-module.exports = { 
+export { 
   parseWithModelFallback,
   parseTimetableWithModel,
   MODELS

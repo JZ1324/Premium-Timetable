@@ -15,7 +15,7 @@ const ImportTimetable = ({ onImport, onCancel }) => {
     const [parseSuccess, setParseSuccess] = useState(null);
     const [parsedData, setParsedData] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [activeTab, setActiveTab] = useState('ai');
+    const [activeTab, setActiveTab] = useState('paste');
     const [aiParserResult, setAiParserResult] = useState(null);
     const [isAiProcessing, setIsAiProcessing] = useState(false);
     const modalRef = useRef(null);
@@ -185,15 +185,33 @@ const ImportTimetable = ({ onImport, onCancel }) => {
         try {
             if (!importText.trim()) {
                 setParseError('Please enter timetable data to parse.');
+                setIsAiProcessing(false); // Clear loading state
                 return;
             }
             
             // Clear any previous errors and start the loading animation
             setIsAiProcessing(true);
             setParseError(null);
+            setParseSuccess(null); // Clear any previous success messages
             
-            // Call the advanced multi-model parser service with automatic fallback
-            const response = await parseWithModelFallback(importText.trim());
+            // Get the preferred AI model from localStorage settings
+            let preferredAIModel = 'auto'; // Default to auto
+            try {
+                const savedSettings = localStorage.getItem('timetable-settings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    if (settings.preferredAIModel) {
+                        preferredAIModel = settings.preferredAIModel;
+                    }
+                }
+            } catch (err) {
+                console.error('Error retrieving AI model settings:', err);
+            }
+            
+            console.log(`Using preferred AI model provider: ${preferredAIModel}`);
+            
+            // Call the advanced multi-model parser service with automatic fallback and preferred provider
+            const response = await parseWithModelFallback(importText.trim(), preferredAIModel);
             
             console.log("API Response:", response);
             
@@ -261,8 +279,20 @@ const ImportTimetable = ({ onImport, onCancel }) => {
                         errorDisplay += `\nModel attempted: ${modelAttempted}`;
                     }
                     
+                    // Add special notice for authentication issues
+                    if (diagnosisType === 'authentication') {
+                        errorDisplay += '\n\n🔑 API KEY SETUP REQUIRED:\n';
+                        errorDisplay += 'The AI parsing feature requires a valid OpenRouter API key.\n\n';
+                        errorDisplay += 'Quick Setup:\n';
+                        errorDisplay += '1. Visit https://openrouter.ai/ and create a free account\n';
+                        errorDisplay += '2. Generate an API key in your dashboard\n';
+                        errorDisplay += '3. Contact the app developer to update the API key\n';
+                        errorDisplay += '4. Free tier includes access to multiple AI models\n\n';
+                        errorDisplay += 'Alternative: You can manually format your timetable as JSON using the "Manual JSON" tab.\n\n';
+                        errorDisplay += 'See AI_SETUP_GUIDE.md for detailed instructions.';
+                    }
                     // Add special notice for school network issues if it might be a network restriction
-                    if (diagnosisType === 'authorization' || 
+                    else if (diagnosisType === 'authorization' || 
                         diagnosisType === 'network_restriction' || 
                         (errorMessage && errorMessage.includes('deepseek'))) {
                         errorDisplay += '\n\n⚠️ NETWORK RESTRICTION NOTICE: Your school network may be blocking access to certain AI services. ' +
@@ -307,33 +337,39 @@ const ImportTimetable = ({ onImport, onCancel }) => {
                 return null;
             }
             
-            // First line contains the days
+            // First line contains the days (tab-separated)
             const dayHeaderRow = lines[0];
             
-            // Try different delimiters to detect day columns
-            let days = [];
+            // Extract days from tab-delimited header
+            const days = dayHeaderRow.split('\t').map(day => day.trim()).filter(day => day);
             
-            // Try tab delimiter first
-            const tabDelimitedDays = dayHeaderRow.split('\t').map(day => day.trim()).filter(day => day);
-            if (tabDelimitedDays.length >= 2) {
-                days = tabDelimitedDays;
-            } else {
-                // Try multiple spaces
-                const spaceDelimitedDays = dayHeaderRow.split(/\s{2,}/).map(day => day.trim()).filter(day => day);
-                if (spaceDelimitedDays.length >= 2) {
-                    days = spaceDelimitedDays;
-                } else {
-                    // Last resort - try single spaces (less reliable)
-                    const singleSpaceDelimitedDays = dayHeaderRow.split(' ').map(day => day.trim()).filter(day => day);
-                    if (singleSpaceDelimitedDays.length >= 2) {
-                        days = singleSpaceDelimitedDays;
-                    } else {
-                        setParseError('Could not detect day columns. Please ensure your data has tab or space separated columns.');
-                        setIsProcessing(false);
-                        return null;
-                    }
-                }
+            if (days.length < 2) {
+                setParseError('Could not detect day columns. Please ensure your data has tab-separated day headers (Day 1, Day 2, etc.).');
+                setIsProcessing(false);
+                return null;
             }
+            
+            console.log(`Found ${days.length} days:`, days);
+            
+            // Validate that we have at least one period in the data
+            const periodCount = lines.filter(line => line.match(/^(Period\s+\d+|Tutorial)$/i)).length;
+            if (periodCount === 0) {
+                setParseError('No periods found in the data. Please ensure your timetable includes period headers like "Period 1", "Period 2", "Tutorial", etc.');
+                setIsProcessing(false);
+                return null;
+            }
+            
+            console.log(`Found ${periodCount} periods in the input data`);
+            
+            // DEBUG: Show all lines that match period patterns
+            console.log('\n=== ALL PERIOD LINES DETECTED ===');
+            lines.forEach((line, index) => {
+                const periodMatch = line.match(/^(Period\s+\d+|Tutorial)$/i);
+                if (periodMatch) {
+                    console.log(`Line ${index}: "${line}" - MATCHED as period`);
+                }
+            });
+            console.log('=== END PERIOD LINES ===\n');
             
             // Initialize timetable data structure
             const timetableData = {
@@ -347,201 +383,532 @@ const ImportTimetable = ({ onImport, onCancel }) => {
                 timetableData.classes[day] = {};
             });
             
-            // Process remaining rows to extract periods and classes
-            let currentPeriod = null;
+            // Process remaining lines to extract periods and classes
             let rowIndex = 1;
+            
+            console.log(`\n=== STARTING MAIN PARSING LOOP ===`);
+            console.log(`Total lines to process: ${lines.length}`);
+            console.log(`Starting at rowIndex: ${rowIndex}`);
             
             while (rowIndex < lines.length) {
                 const line = lines[rowIndex].trim();
                 
                 // Skip empty lines
                 if (!line) {
+                    console.log(`Skipping empty line at ${rowIndex}`);
                     rowIndex++;
                     continue;
                 }
                 
-                // Check if this is a period header
-                const isPeriodHeader = line.match(/^(Period|Tutorial|After School)/i);
+                console.log(`\n--- Processing line ${rowIndex}/${lines.length - 1}: "${line}" ---`);
                 
-                if (isPeriodHeader) {
-                    // This is a period header
+                // Check if this is a period header (Period 1, Period 2, Tutorial, etc.)
+                const periodMatch = line.match(/^(Period\s+\d+|Tutorial)$/i);
+                
+                // DEBUG: Log every line check for period detection
+                if (line.toLowerCase().includes('period') || line.toLowerCase().includes('tutorial')) {
+                    console.log(`DEBUG: Checking potential period line ${rowIndex}: "${line}" - Match: ${!!periodMatch}`);
+                    // Additional debug for Tutorial specifically
+                    if (line.toLowerCase().includes('tutorial')) {
+                        console.log(`🔍 TUTORIAL DEBUG: Line "${line}" - Exact match test: ${/^Tutorial$/i.test(line)}`);
+                        console.log(`🔍 TUTORIAL DEBUG: Line length: ${line.length}, trimmed: "${line.trim()}"`);
+                    }
+                }
+                
+                if (periodMatch) {
                     const periodName = line;
+                    console.log(`✅ FOUND PERIOD: ${periodName} at line ${rowIndex}`);
                     
-                    // Check if next line has time information
+                    // Special handling for Tutorial periods to ensure they're detected
+                    if (periodName.toLowerCase().includes('tutorial')) {
+                        console.log(`🎯 TUTORIAL PERIOD CONFIRMED: "${periodName}"`);
+                    }
+                    
+                    // Skip duplicate Tutorial periods - only process the first one
+                    const existingPeriod = timetableData.periods.find(p => p.name === periodName);
+                    if (existingPeriod) {
+                        console.log(`⚠️ Duplicate period detected: ${periodName} already exists, skipping...`);
+                        rowIndex++;
+                        continue;
+                    }
+                    
+                    // Next line should contain the time range
                     let startTime = null;
                     let endTime = null;
                     
                     if (rowIndex + 1 < lines.length) {
                         const timeLine = lines[rowIndex + 1].trim();
-                        // Look for time format like 8:35am–9:35am or 8:35am-9:35am
+                        console.log(`Checking time line: "${timeLine}"`);
+                        // Look for time format like 8:35am–9:35am
                         const timeMatch = timeLine.match(/(\d+:\d+[ap]m)[–\-](\d+:\d+[ap]m)/i);
                         
                         if (timeMatch) {
                             startTime = timeMatch[1];
                             endTime = timeMatch[2];
                             rowIndex++; // Skip the time line
+                            console.log(`Found time range: ${startTime} - ${endTime}`);
+                        } else {
+                            console.log(`No time range found in "${timeLine}", checking if next line might be time...`);
+                            // Special handling for Period 3: check if line after next is time
+                            if (periodName === 'Period 3' && rowIndex + 2 < lines.length) {
+                                const nextTimeLine = lines[rowIndex + 2]?.trim();
+                                const nextTimeMatch = nextTimeLine?.match(/(\d+:\d+[ap]m)[–\-](\d+:\d+[ap]m)/i);
+                                if (nextTimeMatch) {
+                                    console.log(`Found Period 3 time on line ${rowIndex + 2}: "${nextTimeLine}"`);
+                                    startTime = nextTimeMatch[1];
+                                    endTime = nextTimeMatch[2];
+                                    rowIndex += 2; // Skip both lines
+                                } else {
+                                    // Fallback to default times
+                                    startTime = '11:25am';
+                                    endTime = '12:25pm';
+                                    console.log(`Using default time range for Period 3: ${startTime} - ${endTime}`);
+                                }
+                            }
                         }
                     }
                     
-                    currentPeriod = {
+                    // Create period object
+                    const currentPeriod = {
                         name: periodName,
-                        startTime,
-                        endTime
+                        startTime: startTime || '',
+                        endTime: endTime || ''
                     };
                     
                     timetableData.periods.push(currentPeriod);
                     
-                    // Initialize this period in each day
+                    // Initialize this period in each day's classes
                     timetableData.days.forEach(day => {
-                        if (!timetableData.classes[day][currentPeriod.name]) {
-                            timetableData.classes[day][currentPeriod.name] = [];
-                        }
+                        timetableData.classes[day][currentPeriod.name] = [];
                     });
                     
-                    rowIndex++;
+                    rowIndex++; // Move to the line after period/time
+                    console.log(`Starting class data processing at line ${rowIndex} for ${periodName}`);
                     
-                    // After a period header, we expect class data for each day
-                    // Each day's data can span multiple lines
-                    let currentDay = 0;
-                    let classDataByDay = {};
+                    // Now process class data for each day sequentially
+                    // Each day has a 3-line cycle: subject, code, room/teacher
+                    // Process all days for this period
                     
-                    // Initialize class data storage for each day
-                    for (const day of timetableData.days) {
-                        classDataByDay[day] = [];
-                    }
+                    let dayIndex = 0;
                     
-                    // Process class data for this period
-                    while (rowIndex < lines.length) {
-                        const classLine = lines[rowIndex].trim();
+                    console.log(`📚 STARTING CLASS PROCESSING for ${periodName}`);
+                    console.log(`  Expected days: ${days.length}`);
+                    console.log(`  Current rowIndex: ${rowIndex}`);
+                    console.log(`  Next few lines:`, lines.slice(rowIndex, rowIndex + 6));
+                    
+                    while (dayIndex < days.length && rowIndex + 2 < lines.length) {
+                        // Check if we've hit the next period
+                        // BUT: Don't treat "Tutorial" as a period header when we're already processing Tutorial period
+                        const currentLine = lines[rowIndex];
+                        const nextPeriodCheck = currentLine.match(/^(Period\s+\d+|Tutorial)$/i);
                         
-                        // Stop if we hit a new period header
-                        if (classLine.match(/^(Period|Tutorial|After School)/i)) {
+                        // Special logic: If we're processing Tutorial period and see "Tutorial" subject line, that's normal
+                        const isValidTutorialSubject = (
+                            periodName.toLowerCase() === 'tutorial' && 
+                            currentLine.toLowerCase() === 'tutorial'
+                        );
+                        
+                        if (nextPeriodCheck && !isValidTutorialSubject) {
+                            console.log(`  Hit next period at line ${rowIndex}: "${lines[rowIndex]}"`);
                             break;
                         }
                         
-                        // Process sequential lines per day
-                        for (let i = 0; i < timetableData.days.length && rowIndex < lines.length; i++) {
-                            const dayClassLine = lines[rowIndex].trim();
-                            
-                            // Stop if we hit a new period header
-                            if (dayClassLine.match(/^(Period|Tutorial|After School)/i)) {
-                                break;
-                            }
-                            
-                            // Add this line to the current day's class data
-                            if (dayClassLine) {
-                                const day = timetableData.days[i];
-                                classDataByDay[day].push(dayClassLine);
-                            }
-                            
-                            rowIndex++;
+                        // Ensure we have enough lines for a complete 3-line entry
+                        if (rowIndex + 2 >= lines.length) {
+                            console.warn(`  Not enough lines remaining for day ${dayIndex + 1} (${days[dayIndex]}). Breaking.`);
+                            break;
                         }
                         
-                        // Check if we've processed enough class data for each day
-                        let allDaysHaveData = true;
-                        for (const day of timetableData.days) {
-                            if (classDataByDay[day].length === 0) {
-                                allDaysHaveData = false;
-                            }
+                        const dayName = days[dayIndex];
+                        const subjectLine = lines[rowIndex]?.trim() || '';
+                        const codeLine = lines[rowIndex + 1]?.trim() || '';
+                        const roomTeacherLine = lines[rowIndex + 2]?.trim() || '';
+                        
+                        console.log(`Processing ${periodName} for ${dayName}: (lines ${rowIndex}-${rowIndex + 2})`);
+                        console.log(`Subject: "${subjectLine}"`);
+                        console.log(`Code: "${codeLine}"`);
+                        console.log(`Room/Teacher: "${roomTeacherLine}"`);
+                        
+                        // CRITICAL DEBUG: Check if we're accidentally hitting a period name in the subject line
+                        // BUT allow "Tutorial" as subject name when we're processing a Tutorial period
+                        if (subjectLine.match(/^(Period\s+\d+)$/i) || 
+                           (subjectLine.match(/^Tutorial$/i) && periodName.toLowerCase() !== 'tutorial')) {
+                            console.error(`🚨 CRITICAL: Found period name "${subjectLine}" in subject line at position ${rowIndex}! This should not happen during class processing.`);
+                            console.error(`Current context: Processing ${periodName}, Day ${dayIndex + 1} (${dayName})`);
+                            console.error(`This suggests the parser is out of sync. Breaking to prevent infinite loop.`);
+                            break;
                         }
                         
-                        // If we've collected data for all days or hit the end of input, process it
-                        if (allDaysHaveData || rowIndex >= lines.length || 
-                            (rowIndex < lines.length && lines[rowIndex].match(/^(Period|Tutorial|After School)/i))) {
+                        // SPECIAL HANDLING FOR TUTORIAL PERIODS
+                        if (periodName.toLowerCase() === 'tutorial') {
+                            console.log(`🎯 Processing Tutorial period for ${dayName} (Day ${dayIndex + 1})`);
+                            console.log(`  Current rowIndex: ${rowIndex}`);
+                            console.log(`  SubjectLine: "${subjectLine}"`);
+                            console.log(`  CodeLine: "${codeLine}"`);
+                            console.log(`  RoomTeacherLine: "${roomTeacherLine}"`);
                             
-                            // Process the collected class data for each day
-                            for (const day of timetableData.days) {
-                                const dayLines = classDataByDay[day];
+                            // Check if we have malformed Tutorial data where course code appears first
+                            if (subjectLine.match(/^\([^)]+\)$/)) {
+                                // This looks like course code format - treat it as subject "Tutorial" with this code
+                                console.log(`🔧 TUTORIAL FIX: Converting malformed "${subjectLine}" format to proper Tutorial entry`);
+                                const tutorialSubject = 'Tutorial';
+                                const tutorialCode = subjectLine.match(/\(([^)]+)\)/)?.[1] || '';
+                                const tutorialRoomTeacher = codeLine; // The "code" line is actually room/teacher for tutorials
                                 
-                                if (dayLines.length > 0) {
-                                    // Extract class information
-                                    let subject = dayLines[0];
-                                    let code = null;
-                                    let room = null;
-                                    let teacher = null;
-                                    
-                                    // Look for code in parentheses
-                                    const codeMatch = dayLines.join(' ').match(/\(([\w\d]+)\)/);
-                                    if (codeMatch) {
-                                        code = codeMatch[1];
-                                        subject = subject.replace(/\([\w\d]+\)/, '').trim();
-                                    }
-                                    
-                                    // Enhance code detection - check for alphanumeric patterns that look like course codes
-                                    if (!code) {
-                                        const codePatterns = [
-                                            /\b([A-Z0-9]{5,10})\b/, // Alphanumeric code like "10MAT101"
-                                            /\b(\d{1,2}[A-Z]{2,4}\d{1,6})\b/, // Numeric-alpha-numeric like "10MAT101"
-                                            /\b([A-Z]{2,4}\d{3,6})\b/ // Alpha-numeric like "MAT101"
-                                        ];
-                                        
-                                        for (const pattern of codePatterns) {
-                                            const match = dayLines.join(' ').match(pattern);
-                                            if (match) {
-                                                code = match[1];
-                                                // Don't remove the code from the subject as it might be mentioned elsewhere
-                                                break;
-                                            }
+                                // Parse room and teacher
+                                let room = '';
+                                let teacher = '';
+                                if (tutorialRoomTeacher) {
+                                    const roomMatch = tutorialRoomTeacher.match(/^([A-Z]\s+\d+)/);
+                                    if (roomMatch) {
+                                        room = roomMatch[1];
+                                        const teacherText = tutorialRoomTeacher.replace(roomMatch[0], '').trim();
+                                        const teacherMatch = teacherText.match(/(Mr|Mrs|Ms|Miss|Dr|Prof)\s+[A-Za-z\s\.]+/);
+                                        if (teacherMatch) {
+                                            teacher = teacherMatch[0].trim();
+                                        } else if (teacherText.length > 0) {
+                                            teacher = teacherText;
                                         }
+                                    } else {
+                                        teacher = tutorialRoomTeacher;
                                     }
-                                    
-                                    // Enhance room detection - more patterns for different formats
-                                    if (!room) {
-                                        const roomPatterns = [
-                                            /\bRoom\s+([A-Z]\s*\d+)\b/i, // "Room A12" format
-                                            /\b([A-Z][\-\s]?\d+)\b/ // "A-12" or "A12" format
-                                        ];
-                                        
-                                        for (const pattern of roomPatterns) {
-                                            const match = dayLines.join(' ').match(pattern);
-                                            if (match) {
-                                                room = match[1];
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Look for teacher (Mr, Ms, Mrs, Dr, Miss)
-                                    const teacherPattern = /(Mr|Ms|Mrs|Dr|Miss)\s+[A-Za-z\s]+/;
-                                    const teacherMatch = dayLines.join(' ').match(teacherPattern);
-                                    if (teacherMatch) {
-                                        teacher = teacherMatch[0];
-                                    }
-                                    
-                                    // Add the class to the timetable
-                                    timetableData.classes[day][currentPeriod.name].push({
-                                        subject,
-                                        code,
-                                        room, 
-                                        teacher,
-                                        startTime: currentPeriod.startTime,
-                                        endTime: currentPeriod.endTime
-                                    });
+                                }
+                                
+                                const classEntry = {
+                                    subject: tutorialSubject,
+                                    code: tutorialCode,
+                                    room: room,
+                                    teacher: teacher,
+                                    startTime: currentPeriod.startTime,
+                                    endTime: currentPeriod.endTime
+                                };
+                                
+                                timetableData.classes[dayName][currentPeriod.name].push(classEntry);
+                                console.log(`Added FIXED Tutorial class for ${dayName}: ${tutorialSubject} (${tutorialCode}) - ${room} ${teacher}`);
+                                
+                                // Move to next day (only advance 2 lines since we used subjectLine and codeLine)
+                                dayIndex++;
+                                rowIndex += 2;
+                                continue;
+                            } else if (subjectLine.toLowerCase() === 'tutorial') {
+                                // Normal Tutorial format: "Tutorial" subject, "(10TUT252009)" code, "S 01 Mrs Sula Tyndall" room/teacher
+                                console.log(`✅ TUTORIAL NORMAL FORMAT: Processing standard Tutorial entry for ${dayName}`);
+                                console.log(`  Subject: "${subjectLine}" (will be kept as "Tutorial")`);
+                                console.log(`  Code: "${codeLine}"`);
+                                console.log(`  Room/Teacher: "${roomTeacherLine}"`);
+                                
+                                // Continue with normal processing - don't skip or special-case this
+                            } else {
+                                // Other tutorial format: subject name, then code, then room/teacher
+                                console.log(`📝 TUTORIAL CUSTOM FORMAT: Processing Tutorial with subject "${subjectLine}" for ${dayName}`);
+                            }
+                        }
+                        
+                        // Skip if no subject data for this day
+                        if (!subjectLine) {
+                            console.log(`No subject for ${dayName}, skipping...`);
+                            dayIndex++;
+                            rowIndex += 3;
+                            continue;
+                        }
+                        
+                        // Extract course code from parentheses like "(10PSY252103)"
+                        let code = '';
+                        const codeMatch = codeLine.match(/\(([^)]+)\)/);
+                        if (codeMatch) {
+                            code = codeMatch[1];
+                            console.log(`  Extracted code: "${code}" from "${codeLine}"`);
+                        } else {
+                            console.log(`  No code found in: "${codeLine}"`);
+                        }
+                        
+                        // Parse room and teacher from format like "C 07 Ms Dianne McKenzie" or "S 01 Mrs Sula Tyndall"
+                        let room = '';
+                        let teacher = '';
+                        
+                        if (roomTeacherLine) {
+                            // Look for room pattern at the start (letter + number like "C 07", "S 01", "L 10", "M 06")
+                            const roomMatch = roomTeacherLine.match(/^([A-Z]\s+\d+)/);
+                            if (roomMatch) {
+                                room = roomMatch[1];
+                                // Extract teacher from the remainder
+                                const teacherText = roomTeacherLine.replace(roomMatch[0], '').trim();
+                                // More flexible teacher matching to handle variations
+                                const teacherMatch = teacherText.match(/(Mr|Mrs|Ms|Miss|Dr|Prof)\s+[A-Za-z\s\.]+/);
+                                if (teacherMatch) {
+                                    teacher = teacherMatch[0].trim();
+                                } else if (teacherText.length > 0) {
+                                    // Fallback: if there's text after room but no title, it might still be a teacher
+                                    teacher = teacherText;
+                                }
+                            } else {
+                                // If no room found, try to extract just the teacher
+                                const teacherMatch = roomTeacherLine.match(/(Mr|Mrs|Ms|Miss|Dr|Prof)\s+[A-Za-z\s\.]+/);
+                                if (teacherMatch) {
+                                    teacher = teacherMatch[0].trim();
+                                } else {
+                                    // If the whole line might be just a teacher name without title
+                                    teacher = roomTeacherLine;
                                 }
                             }
-                            
-                            // Clear class data for next period
-                            classDataByDay = {};
-                            for (const day of timetableData.days) {
-                                classDataByDay[day] = [];
-                            }
-                            
-                            break;
                         }
+                        
+                        // Create and add the class entry
+                        const classEntry = {
+                            subject: subjectLine,
+                            code: code,
+                            room: room,
+                            teacher: teacher,
+                            startTime: currentPeriod.startTime,
+                            endTime: currentPeriod.endTime
+                        };
+                        
+                        timetableData.classes[dayName][currentPeriod.name].push(classEntry);
+                        
+                        // Enhanced logging with period type indication
+                        const logPrefix = periodName.toLowerCase() === 'tutorial' ? '🎯 TUTORIAL' : '📝';
+                        console.log(`${logPrefix} Added class for ${dayName}: ${subjectLine} (${code}) - ${room} ${teacher}`);
+                        
+                        // Special confirmation for Tutorial classes
+                        if (periodName.toLowerCase() === 'tutorial') {
+                            console.log(`✅ TUTORIAL CLASS SUCCESSFULLY ADDED to ${dayName} ${periodName}`);
+                        }
+                        
+                        // Move to next day
+                        dayIndex++;
+                        rowIndex += 3;
                     }
+                    
+                    // After processing all days for this period, log completion
+                    console.log(`Completed processing ${periodName}, processed ${dayIndex} days`);
+                    
+                    // If we didn't process all days, there might be an issue
+                    if (dayIndex < days.length) {
+                        console.warn(`Warning: Only processed ${dayIndex} out of ${days.length} days for ${periodName}`);
+                        console.warn(`Remaining line at rowIndex ${rowIndex}: "${lines[rowIndex] || 'END OF DATA'}"`);
+                    }
+                    
+                    // Debug: Show current period's classes count
+                    let periodClassCount = 0;
+                    timetableData.days.forEach(day => {
+                        periodClassCount += timetableData.classes[day][periodName].length;
+                    });
+                    console.log(`${periodName} total classes added: ${periodClassCount}`);
                 } else {
-                    // Skip lines that don't match our expected format
+                    // Skip lines that don't match expected format
                     rowIndex++;
                 }
             }
             
+            console.log(`Parsing complete. Found ${timetableData.periods.length} periods for ${timetableData.days.length} days.`);
+            console.log(`Periods found:`, timetableData.periods.map(p => p.name));
+            
+            // ADD DEFAULT RECESS AND LUNCH PERIODS IF NOT PRESENT
+            console.log('\n=== ADDING DEFAULT RECESS AND LUNCH PERIODS ===');
+            console.log(`Current periods before adding defaults:`, timetableData.periods.map(p => p.name));
+            
+            // Always add Recess if not present - positioned after Tutorial or Period 2
+            const hasRecess = timetableData.periods.some(p => p.name.toLowerCase().includes('recess'));
+            if (!hasRecess) {
+                const recessPeriod = {
+                    name: 'Recess',
+                    startTime: '10:55am',
+                    endTime: '11:25am'
+                };
+                
+                // Find the best position for Recess
+                let insertIndex = -1;
+                
+                // First try: after Tutorial
+                const tutorialIndex = timetableData.periods.findIndex(p => p.name.toLowerCase().includes('tutorial'));
+                if (tutorialIndex !== -1) {
+                    insertIndex = tutorialIndex + 1;
+                    console.log(`📍 Found Tutorial at index ${tutorialIndex}, inserting Recess at index ${insertIndex}`);
+                } else {
+                    // Second try: after Period 2
+                    const period2Index = timetableData.periods.findIndex(p => /period\s*2/i.test(p.name));
+                    if (period2Index !== -1) {
+                        insertIndex = period2Index + 1;
+                        console.log(`📍 Found Period 2 at index ${period2Index}, inserting Recess at index ${insertIndex}`);
+                    } else {
+                        // Third try: before Period 3
+                        const period3Index = timetableData.periods.findIndex(p => /period\s*3/i.test(p.name));
+                        if (period3Index !== -1) {
+                            insertIndex = period3Index;
+                            console.log(`📍 Found Period 3 at index ${period3Index}, inserting Recess before it at index ${insertIndex}`);
+                        } else {
+                            // Fallback: add at the end
+                            insertIndex = timetableData.periods.length;
+                            console.log(`📍 No specific position found, adding Recess at end (index ${insertIndex})`);
+                        }
+                    }
+                }
+                
+                // Insert the Recess period
+                timetableData.periods.splice(insertIndex, 0, recessPeriod);
+                console.log(`✅ Added default Recess period at position ${insertIndex}`);
+                
+                // Initialize Recess in each day's classes with default "Recess" entry
+                timetableData.days.forEach(day => {
+                    timetableData.classes[day]['Recess'] = [
+                        {
+                            subject: 'Recess',
+                            code: '',
+                            room: '',
+                            teacher: '',
+                            startTime: recessPeriod.startTime,
+                            endTime: recessPeriod.endTime
+                        }
+                    ];
+                });
+                console.log(`✅ Added default Recess classes for all ${timetableData.days.length} days`);
+            } else {
+                console.log(`ℹ️ Recess period already exists, skipping default creation`);
+            }
+            
+            // Always add Lunch if not present - positioned after Period 4 or Period 3
+            const hasLunch = timetableData.periods.some(p => p.name.toLowerCase().includes('lunch'));
+            if (!hasLunch) {
+                const lunchPeriod = {
+                    name: 'Lunch',
+                    startTime: '1:30pm',
+                    endTime: '2:25pm'
+                };
+                
+                // Find the best position for Lunch
+                let insertIndex = -1;
+                
+                // First try: after Period 4
+                const period4Index = timetableData.periods.findIndex(p => /period\s*4/i.test(p.name));
+                if (period4Index !== -1) {
+                    insertIndex = period4Index + 1;
+                    console.log(`📍 Found Period 4 at index ${period4Index}, inserting Lunch at index ${insertIndex}`);
+                } else {
+                    // Second try: after Period 3
+                    const period3Index = timetableData.periods.findIndex(p => /period\s*3/i.test(p.name));
+                    if (period3Index !== -1) {
+                        insertIndex = period3Index + 1;
+                        console.log(`📍 Found Period 3 at index ${period3Index}, inserting Lunch at index ${insertIndex}`);
+                    } else {
+                        // Third try: before Period 5
+                        const period5Index = timetableData.periods.findIndex(p => /period\s*5/i.test(p.name));
+                        if (period5Index !== -1) {
+                            insertIndex = period5Index;
+                            console.log(`📍 Found Period 5 at index ${period5Index}, inserting Lunch before it at index ${insertIndex}`);
+                        } else {
+                            // Fallback: add at the end
+                            insertIndex = timetableData.periods.length;
+                            console.log(`📍 No specific position found, adding Lunch at end (index ${insertIndex})`);
+                        }
+                    }
+                }
+                
+                // Insert the Lunch period
+                timetableData.periods.splice(insertIndex, 0, lunchPeriod);
+                console.log(`✅ Added default Lunch period at position ${insertIndex}`);
+                
+                // Initialize Lunch in each day's classes with default "Lunch" entry
+                timetableData.days.forEach(day => {
+                    timetableData.classes[day]['Lunch'] = [
+                        {
+                            subject: 'Lunch',
+                            code: '',
+                            room: '',
+                            teacher: '',
+                            startTime: lunchPeriod.startTime,
+                            endTime: lunchPeriod.endTime
+                        }
+                    ];
+                });
+                console.log(`✅ Added default Lunch classes for all ${timetableData.days.length} days`);
+            } else {
+                console.log(`ℹ️ Lunch period already exists, skipping default creation`);
+            }
+            
+            console.log(`Updated periods list:`, timetableData.periods.map(p => `${p.name} (${p.startTime}-${p.endTime})`));
+            
+            // SPECIAL CHECK FOR TUTORIAL PERIODS
+            const tutorialPeriods = timetableData.periods.filter(p => p.name.toLowerCase().includes('tutorial'));
+            if (tutorialPeriods.length > 0) {
+                console.log(`🎯 TUTORIAL PERIODS DETECTED: ${tutorialPeriods.length}`);
+                tutorialPeriods.forEach(period => {
+                    console.log(`  - ${period.name}: ${period.startTime} - ${period.endTime}`);
+                });
+            } else {
+                console.log(`⚠️ NO TUTORIAL PERIODS FOUND IN PARSED DATA`);
+            }
+            
+            // Debug: Show detailed class breakdown by period and day
+            console.log('\n=== DETAILED CLASS BREAKDOWN ===');
+            timetableData.periods.forEach(period => {
+                console.log(`\n${period.name} (${period.startTime} - ${period.endTime}):`);
+                
+                // Special highlighting for Tutorial periods
+                if (period.name.toLowerCase().includes('tutorial')) {
+                    console.log(`🎯 TUTORIAL PERIOD BREAKDOWN:`);
+                }
+                
+                timetableData.days.forEach(day => {
+                    const dayClasses = timetableData.classes[day][period.name];
+                    if (dayClasses.length > 0) {
+                        dayClasses.forEach(cls => {
+                            console.log(`  ${day}: ${cls.subject} (${cls.code}) - ${cls.room} ${cls.teacher}`);
+                        });
+                    } else {
+                        console.log(`  ${day}: NO CLASSES`);
+                    }
+                });
+            });
+            
+            // Count total classes
+            let totalClasses = 0;
+            timetableData.days.forEach(day => {
+                timetableData.periods.forEach(period => {
+                    const classCount = timetableData.classes[day][period.name].length;
+                    totalClasses += classCount;
+                    if (classCount > 0) {
+                        console.log(`${day} ${period.name}: ${classCount} classes`);
+                    }
+                });
+            });
+            
+            console.log(`Total classes parsed: ${totalClasses}`);
+            
+            // FINAL VALIDATION: Ensure Tutorial periods are present
+            const finalTutorialCheck = timetableData.periods.find(p => p.name.toLowerCase().includes('tutorial'));
+            if (finalTutorialCheck) {
+                console.log(`✅ FINAL CHECK: Tutorial period "${finalTutorialCheck.name}" is present in final data`);
+                
+                // Count Tutorial classes
+                let tutorialClassCount = 0;
+                timetableData.days.forEach(day => {
+                    tutorialClassCount += (timetableData.classes[day][finalTutorialCheck.name] || []).length;
+                });
+                console.log(`✅ Tutorial period has ${tutorialClassCount} total classes across all days`);
+            } else {
+                console.log(`❌ FINAL CHECK: NO Tutorial period found in final parsed data!`);
+                console.log(`Available periods:`, timetableData.periods.map(p => p.name));
+            }
+            
             setIsProcessing(false);
             setParsedData(timetableData);
+            
+            // Ensure we stay on the current tab (don't auto-switch to AI Instructions)
+            if (activeTab !== 'paste') {
+                setActiveTab('paste');
+            }
+            
             return timetableData;
             
         } catch (error) {
             console.error('Error parsing timetable data:', error);
-            setParseError('Failed to parse the timetable data: ' + error.message);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                inputLength: text?.length || 0,
+                inputPreview: text?.substring(0, 200) || 'No input'
+            });
+            setParseError(`Failed to parse the timetable data: ${error.message}\n\nPlease check the console for more details and ensure your data follows the correct format.`);
             setIsProcessing(false);
             return null;
         }
@@ -564,8 +931,10 @@ I need a copy pastable text to follow this exact structure:
     {"name": "Period 1", "startTime": "8:35am", "endTime": "9:35am"},
     {"name": "Period 2", "startTime": "9:40am", "endTime": "10:40am"},
     {"name": "Tutorial", "startTime": "10:45am", "endTime": "10:55am"},
+    {"name": "Recess", "startTime": "10:55am", "endTime": "11:25am"},
     {"name": "Period 3", "startTime": "11:25am", "endTime": "12:25pm"},
     {"name": "Period 4", "startTime": "12:30pm", "endTime": "1:30pm"},
+    {"name": "Lunch", "startTime": "1:30pm", "endTime": "2:25pm"},
     {"name": "Period 5", "startTime": "2:25pm", "endTime": "3:25pm"}
   ],
 
@@ -591,9 +960,28 @@ I need a copy pastable text to follow this exact structure:
           "endTime": "10:55am"
         }
       ],
-      "Period 2": [],
+      "Recess": [
+        {
+          "subject": "Recess",
+          "code": "",
+          "room": "",
+          "teacher": "",
+          "startTime": "10:55am",
+          "endTime": "11:25am"
+        }
+      ],
       "Period 3": [],
       "Period 4": [],
+      "Lunch": [
+        {
+          "subject": "Lunch",
+          "code": "",
+          "room": "",
+          "teacher": "",
+          "startTime": "1:30pm",
+          "endTime": "2:25pm"
+        }
+      ],
       "Period 5": []
     },
     "Day 2": {
@@ -621,6 +1009,8 @@ Important notes:
 - Maintain the exact format of times (e.g., "8:35am", "2:25pm")
 - Each period must be present, even if it has an empty array []
 - Include Tutorial periods exactly as shown above
+- ALWAYS include Recess and Lunch periods with default entries as shown above
+- Recess and Lunch should have default subject entries (not empty arrays)
 - You MUST include ALL 10 DAYS (Day 1 through Day 10) in the classes object
 - Return the result as valid JSON only
 - There are 10 days total (Day 1 through Day 10)
@@ -826,17 +1216,38 @@ ${importText}`;
                         </ul>
                         
                         <div className="import-format-note">
-                            <strong>Example format:</strong><br/>
+                            <strong>Expected format (sequential 3-line pattern):</strong><br/>
                             <pre className="format-example">
-                                Day 1       Day 2       Day 3<br/>
-                                Period 1<br/>
-                                8:35am-9:35am<br/>
-                                Mathematics  Physics     English<br/>
-                                10MAT101     11PHY303    10ENG203<br/>
-                                Room B12     Room S01     Room A08<br/>
-                                Mr Smith     Mr Jones     Mrs Brown
+Day 1	Day 2	Day 3	Day 4	Day 5	Day 6	Day 7	Day 8	Day 9	Day 10<br/>
+Period 1<br/>
+8:35am–9:35am<br/>
+Psychology<br/>
+(10PSY252103)<br/>
+C 07 Ms Dianne McKenzie<br/>
+Literature<br/>
+(10LIT252101)<br/>
+I 03 Miss Olivia Berry<br/>
+Mathematics - Advanced<br/>
+(10MAA252103)<br/>
+M 06 Mrs Leah Manning<br/>
+...continuing for all 10 days...
                             </pre>
-                            <strong>Note:</strong> Make sure to select all cells in your timetable before copying to maintain the structure.
+                            <strong>Format notes:</strong>
+                            <ul>
+                                <li>Header row: Day 1 through Day 10 separated by tabs</li>
+                                <li>Period headers: "Period 1", "Period 2", "Tutorial", etc.</li>
+                                <li>Time ranges: Format like "8:35am–9:35am"</li>
+                                <li>For each period, class data follows sequentially for each day:
+                                    <ol>
+                                        <li>Day 1: Subject name → Course code → Room and teacher</li>
+                                        <li>Day 2: Subject name → Course code → Room and teacher</li>
+                                        <li>Day 3: Subject name → Course code → Room and teacher</li>
+                                        <li>...and so on for all 10 days</li>
+                                    </ol>
+                                </li>
+                                <li>Each class uses exactly 3 lines (subject, code in parentheses, room + teacher)</li>
+                            </ul>
+                            <strong>Note:</strong> Make sure to copy the entire timetable to preserve the exact line structure.
                         </div>
                     </div>
                     
@@ -987,7 +1398,7 @@ ${importText}`}
                             {isAiProcessing && (
                                 <LoadingUI 
                                     message="Parsing" 
-                                    words={["timetable", "classes", "subjects", "periods", "days", "rooms", "teachers"]} 
+                                    words={["timetable", "classes", "periods"]} 
                                     status="This may take up to 30 seconds. Our AI is analyzing your timetable structure and extracting information about classes, periods, and days."
                                 />
                             )}

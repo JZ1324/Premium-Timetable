@@ -166,7 +166,7 @@ function generateErrorReport(diagnosis) {
   return report;
 }
 
-module.exports = {
+export {
   diagnoseApiError,
   generateErrorReport
 };

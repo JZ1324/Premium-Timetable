@@ -773,18 +773,13 @@ const Timetable = () => {
         // Start with all non-break periods
         const allPeriods = ['1', '2', 'Tutorial', '3', '4', '5', 'After School'];
         
-        // Check if we have any Recess slots in the data
-        const hasRecessSlots = timeSlots.some(slot => slot.period === 'Recess');
-        // Check if we have any Lunch slots in the data  
-        const hasLunchSlots = timeSlots.some(slot => slot.period === 'Lunch');
-        
-        // Show break periods if they should be visible OR we're in edit mode OR we have data for them
-        if (visiblePeriods.Recess || editMode || hasRecessSlots) {
+        // Show break periods only if they should be visible (time-based) OR we're in edit mode
+        if (visiblePeriods.Recess || editMode) {
             // Insert Recess after Tutorial
             allPeriods.splice(3, 0, 'Recess');
         }
         
-        if (visiblePeriods.Lunch || editMode || hasLunchSlots) {
+        if (visiblePeriods.Lunch || editMode) {
             // Insert Lunch after period 4
             allPeriods.splice(allPeriods.indexOf('4') + 1, 0, 'Lunch');
         }

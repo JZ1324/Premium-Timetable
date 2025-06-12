@@ -159,9 +159,21 @@ export const shouldShowBreakPeriod = (periodName) => {
     }
     
     const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Don't show break periods on weekends
+    if (day === 0 || day === 6) {
+        return false;
+    }
+    
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const totalMinutes = hours * 60 + minutes;
+    
+    // Don't show break periods outside of school hours
+    if (totalMinutes < 8 * 60 + 30 || totalMinutes > 16 * 60 + 30) {
+        return false;
+    }
     
     // Define break periods
     const breakPeriods = {

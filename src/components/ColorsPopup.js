@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import colorService from '../services/colorService';
 import timetableService from '../services/timetableService';
 import { notifyColorChanged } from '../utils/colorEvents';
+import { shouldShowBreakPeriod } from '../utils/dateUtils';
 import '../styles/components/ColorsPopup.css';
 
 /**
@@ -19,24 +20,36 @@ const ColorsPopup = ({ isVisible, onClose }) => {
     const [activeGroup, setActiveGroup] = useState('all');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     
-    // Extract unique subjects from the timetable (excluding breaks and tutorial)
-    useEffect(() => {
-        if (isVisible) {
-            const timeSlots = timetableService.getTimeSlots();
-            const uniqueSubjects = {};
-            
-            timeSlots.forEach(slot => {
-                // Skip break periods and tutorial - check both subject name and isBreakPeriod flag
-                if (slot.subject && 
-                    !slot.isBreakPeriod &&
-                    !['Recess', 'Lunch', 'Break', 'Interval', 'Tutorial'].includes(slot.subject)) {
+    // Function to update subjects list based on current time
+    const updateSubjectsList = () => {
+        const timeSlots = timetableService.getTimeSlots();
+        const uniqueSubjects = {};
+        
+        timeSlots.forEach(slot => {
+            // For break periods, check if they should be visible (5 minutes before or during)
+            if (slot.isBreakPeriod || ['Recess', 'Lunch'].includes(slot.subject)) {
+                // Only include break periods if they're approaching or active
+                if (shouldShowBreakPeriod(slot.subject)) {
                     uniqueSubjects[slot.subject] = true;
                 }
-            });
-            
-            // Sort subjects alphabetically
-            const sortedSubjects = Object.keys(uniqueSubjects).sort();
-            setSubjects(sortedSubjects);
+            }
+            // For regular subjects, always include unless explicitly excluded
+            else if (slot.subject && 
+                !['Break', 'Interval', 'Tutorial'].includes(slot.subject)) {
+                uniqueSubjects[slot.subject] = true;
+            }
+        });
+        
+        // Sort subjects alphabetically
+        const sortedSubjects = Object.keys(uniqueSubjects).sort();
+        setSubjects(sortedSubjects);
+    };
+    
+    // Extract unique subjects from the timetable (excluding breaks and tutorial unless approaching)
+    useEffect(() => {
+        if (isVisible) {
+            // Initial subjects list update
+            updateSubjectsList();
             
             // Load custom colors
             setCustomColors(colorService.getAllCustomColors());
@@ -47,6 +60,13 @@ const ColorsPopup = ({ isVisible, onClose }) => {
             // Reset search when opening
             setSearchTerm('');
             setActiveGroup('all');
+            
+            // Set up timer to update subjects list every minute to check for break periods
+            const subjectsUpdateInterval = setInterval(updateSubjectsList, 60000);
+            
+            return () => {
+                clearInterval(subjectsUpdateInterval);
+            };
         }
     }, [isVisible]);
 

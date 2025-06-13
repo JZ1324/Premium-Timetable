@@ -329,6 +329,148 @@ const ColorsPopup = ({ isVisible, onClose }) => {
         });
     };
     
+    // Helper function to generate hashed color (matching TimeSlot.js logic)
+    const generateHashedColor = (str, isDarkMode) => {
+        if (!str) return isDarkMode ? '#5c5c5c' : '#9e9e9e';
+        
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        
+        const colorPalettes = [
+            { h: 0, s: 75, l: 60 },     // Red family
+            { h: 30, s: 75, l: 60 },    // Orange family
+            { h: 60, s: 75, l: 60 },    // Yellow family
+            { h: 120, s: 60, l: 40 },   // Green family
+            { h: 180, s: 65, l: 45 },   // Teal family
+            { h: 210, s: 70, l: 55 },   // Blue family
+            { h: 240, s: 70, l: 60 },   // Indigo family
+            { h: 270, s: 70, l: 55 },   // Purple family
+            { h: 300, s: 70, l: 60 },   // Pink family
+            { h: 330, s: 70, l: 60 }    // Magenta family
+        ];
+        
+        const paletteIndex = Math.abs(hash) % colorPalettes.length;
+        const baseColor = colorPalettes[paletteIndex];
+        
+        const hueAdjust = ((hash >> 8) & 0xFF) % 30 - 15;
+        let h = (baseColor.h + hueAdjust) % 360;
+        if (h < 0) h += 360;
+        
+        const satAdjust = ((hash >> 16) & 0xFF) % 20 - 10;
+        let s = Math.max(50, Math.min(90, baseColor.s + satAdjust));
+        
+        let l = baseColor.l;
+        if (isDarkMode) {
+            l = Math.max(25, Math.min(50, l - 15 + ((hash >> 24) & 0xFF) % 10));
+        } else {
+            l = Math.max(40, Math.min(65, l + ((hash >> 24) & 0xFF) % 10));
+        }
+        
+        // Convert HSL to RGB to hex
+        const hslToHex = (h, s, l) => {
+            s /= 100;
+            l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const rgb = [
+                Math.round(255 * f(0)),
+                Math.round(255 * f(8)), 
+                Math.round(255 * f(4))
+            ];
+            return `#${rgb.map(v => v.toString(16).padStart(2, '0')).join('')}`;
+        };
+        
+        return hslToHex(h, s, l);
+    };
+    
+    // Get all colors currently in use (both custom and auto-generated)
+    const getAllUsedColors = useMemo(() => {
+        const usedColors = new Set();
+        
+        // Get all time slots to check what colors are actually being used
+        const timeSlots = timetableService.getTimeSlots();
+        const subjectsWithColors = new Set();
+        
+        console.log('ColorsPopup: Calculating used colors, timeSlots:', timeSlots.length);
+        
+        // Collect all unique subjects from time slots
+        timeSlots.forEach(slot => {
+            if (slot.subject && !['Break', 'Interval'].includes(slot.subject)) {
+                subjectsWithColors.add(slot.subject);
+            }
+        });
+        
+        console.log('ColorsPopup: Subjects with colors:', Array.from(subjectsWithColors));
+        
+        // For each subject, get its actual color (whether custom or auto-generated)
+        subjectsWithColors.forEach(subject => {
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark' || 
+                              document.body.classList.contains('theme-dark');
+            
+            // Get the actual color being used for this subject
+            let subjectColor = colorService.getSubjectColor(subject, isDarkMode);
+            
+            // If no custom color, we need to simulate the auto-generation logic
+            // This matches the logic from TimeSlot.js getSubjectColor()
+            if (!subjectColor) {
+                // Check predefined colors first
+                const lightSubjectColors = {
+                    'Mathematics - Advanced': '#4a90e2',
+                    'Specialist Mathematics': '#5c6bc0', 
+                    'Physics': '#43a047',
+                    'Chemistry': '#26a69a',
+                    'Biology Units 1 & 2': '#66bb6a',
+                    'English': '#ec407a',
+                    'Literature': '#e91e63',
+                    'Psychology': '#9c27b0',
+                    'War Boom and Bust': '#ff7043',
+                    'Active and Able': '#ffca28',
+                    'Tutorial': '#bdbdbd',
+                    'Private Study': '#9575cd',
+                    'PST': '#9575cd',
+                    'Recess': '#8d6e63',
+                    'Lunch': '#fb8c00'
+                };
+                
+                const darkSubjectColors = {
+                    'Mathematics - Advanced': '#2c5b9e',
+                    'Specialist Mathematics': '#3f4d8c', 
+                    'Physics': '#2d6e30',
+                    'Chemistry': '#00796b',
+                    'Biology Units 1 & 2': '#3d703f',
+                    'English': '#aa2c57',
+                    'Literature': '#ad1457',
+                    'Psychology': '#6a1b7a',
+                    'War Boom and Bust': '#c8502b',
+                    'Active and Able': '#c19412',
+                    'Tutorial': '#757575',
+                    'Private Study': '#673ab7',
+                    'PST': '#673ab7',
+                    'Recess': '#5d4037',
+                    'Lunch': '#e65100'
+                };
+                
+                const subjectColors = isDarkMode ? darkSubjectColors : lightSubjectColors;
+                subjectColor = subjectColors[subject];
+                
+                // If still no color, generate one using the same hash algorithm
+                if (!subjectColor) {
+                    subjectColor = generateHashedColor(subject, isDarkMode);
+                }
+            }
+            
+            if (subjectColor) {
+                usedColors.add(subjectColor.toLowerCase());
+            }
+        });
+        
+        console.log('ColorsPopup: Final used colors:', Array.from(usedColors));
+        return usedColors;
+    }, [customColors, subjects]);
+
     // Handle color selection for a subject
     const handleColorChange = (subject, colorValue) => {
         if (colorValue === '') {
@@ -934,11 +1076,16 @@ const ColorsPopup = ({ isVisible, onClose }) => {
                                                         {/* Color swatches for easier selection */}
                                                         <div className="color-swatch-section">
                                                             <div className="color-swatch-header">Quick Select:</div>
-                                                            <div className="color-swatch-wrapper">
-                                                                {colorService.getAvailableColors().map((color, colorIndex) => {
-                                                                    // Determine if this color is already used by another subject
-                                                                    const isUsed = customColors[subject]?.value !== color.value &&
-                                                                                Object.values(customColors).some(c => c.value === color.value);
+                                                            <div className="color-swatch-wrapper">                                                                {colorService.getAvailableColors().map((color, colorIndex) => {
+                                                                    // Determine if this color is already used by any subject (including auto-generated colors)
+                                                                    const isUsedByOtherSubject = customColors[subject]?.value !== color.value &&
+                                                                                                getAllUsedColors.has(color.value.toLowerCase());
+                                                                    
+                                                                    // Also check if it's used in custom colors (for backwards compatibility)
+                                                                    const isUsedInCustomColors = customColors[subject]?.value !== color.value &&
+                                                                                               Object.values(customColors).some(c => c.value === color.value);
+                                                                    
+                                                                    const isUsed = isUsedByOtherSubject || isUsedInCustomColors;
                                                                     
                                                                     // Determine if this is the currently selected color
                                                                     const isSelected = customColors[subject]?.value === color.value;
@@ -951,20 +1098,27 @@ const ColorsPopup = ({ isVisible, onClose }) => {
                                                                                 backgroundColor: color.value,
                                                                                 borderColor: isSelected ? (isDarkMode ? '#fff' : '#333') : 'transparent'
                                                                             }}
-                                                                            onClick={() => !isUsed && handleSwatchSelect(subject, isSelected ? '' : color.value)}
+                                                                            onClick={() => handleSwatchSelect(subject, isSelected ? '' : color.value)}
                                                                             onKeyDown={(e) => {
                                                                                 // Handle keyboard interaction
-                                                                                if (!isUsed && (e.key === 'Enter' || e.key === ' ')) {
+                                                                                if (e.key === 'Enter' || e.key === ' ') {
                                                                                     e.preventDefault();
                                                                                     handleSwatchSelect(subject, isSelected ? '' : color.value);
                                                                                 }
                                                                             }}
                                                                             role="button"
-                                                                            tabIndex={isUsed ? -1 : 0}
-                                                                            aria-label={`${color.label} colour${isUsed ? ' (already used)' : ''}`}
+                                                                            tabIndex={0}
+                                                                            aria-label={`${color.label} colour${isUsed ? ' (already used but still selectable)' : ''}`}
                                                                             aria-pressed={isSelected}
-                                                                            title={isUsed ? `${color.label} (already used)` : color.label}
-                                                                        ></div>
+                                                                            title={isUsed ? `${color.label} (already used but still selectable)` : color.label}
+                                                                        >
+                                                                            {isUsed && !isSelected && (
+                                                                                <span className="used-indicator">×</span>
+                                                                            )}
+                                                                            {isSelected && (
+                                                                                <span className="selected-indicator">✓</span>
+                                                                            )}
+                                                                        </div>
                                                                     );
                                                                 })}
                                                             </div>

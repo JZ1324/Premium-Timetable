@@ -245,28 +245,8 @@ const TimeSlot = ({
 
     // Get appropriate text color based on background
     const getTextColor = () => {
-        const bgColor = getSubjectColor();
-        
-        // Calculate the relative luminance of the background color
-        // Formula: 0.299*R + 0.587*G + 0.114*B
-        const r = parseInt(bgColor.substring(1, 3), 16);
-        const g = parseInt(bgColor.substring(3, 5), 16);
-        const b = parseInt(bgColor.substring(5, 7), 16);
-        
-        // Calculate luminance (perceived brightness)
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        
-        // For yellow-ish colors, use darker text regardless of luminance
-        const isYellowish = (r > 200 && g > 150 && b < 100) || 
-                           (r > 200 && g > 180 && b < 140);
-        
-        // For light backgrounds, use dark text; for dark backgrounds, use light text
-        // Use white text for most colors except very light ones
-        if (isYellowish || luminance > 0.75) {
-            return '#111111'; // Very dark text only for very light or yellow backgrounds
-        }
-        
-        return '#ffffff'; // White text for most backgrounds
+        // Always use white text for consistent appearance
+        return '#ffffff';
     };
 
     // View mode

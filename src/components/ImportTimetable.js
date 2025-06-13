@@ -8,6 +8,7 @@ import { getTogetherApiKey } from '../utils/apiKeyManager';
 import parseJsonTimetable from './parseJsonTimetable';
 import { enhanceTimetableData } from '../utils/classDataEnhancer';
 import LoadingUI from './LoadingUI';
+import ImportTutorialPopup from './ImportTutorialPopup';
 
 const ImportTimetable = ({ onImport, onCancel }) => {
     const [importText, setImportText] = useState('');
@@ -18,6 +19,7 @@ const ImportTimetable = ({ onImport, onCancel }) => {
     const [activeTab, setActiveTab] = useState('paste');
     const [aiParserResult, setAiParserResult] = useState(null);
     const [isAiProcessing, setIsAiProcessing] = useState(false);
+    const [showTutorial, setShowTutorial] = useState(false);
     const modalRef = useRef(null);
     
     // Helper function to handle timetable data import
@@ -151,6 +153,29 @@ const ImportTimetable = ({ onImport, onCancel }) => {
             }
         };
     }, []);
+
+    // Check if it's the user's first time importing and show tutorial
+    useEffect(() => {
+        const hasSeenTutorial = localStorage.getItem('import-tutorial-seen');
+        if (!hasSeenTutorial) {
+            // Small delay to let the modal render first
+            setTimeout(() => {
+                setShowTutorial(true);
+            }, 500);
+        }
+    }, []);
+
+    // Tutorial event handlers
+    const handleCloseTutorial = () => {
+        console.log('handleCloseTutorial called');
+        setShowTutorial(false);
+    };
+
+    const handleDontShowTutorialAgain = () => {
+        console.log('handleDontShowTutorialAgain called');
+        localStorage.setItem('import-tutorial-seen', 'true');
+        setShowTutorial(false);
+    };
 
     const handleTextChange = (e) => {
         const newText = e.target.value;
@@ -1181,7 +1206,17 @@ ${importText}`;
     return (
         <div className="import-timetable-modal" ref={modalRef}>
             <div className="import-timetable-content">
-                <h2>Import Timetable</h2>
+                <div className="import-header">
+                    <h2>Import Timetable</h2>
+                    <button 
+                        className="tutorial-help-button"
+                        onClick={() => setShowTutorial(true)}
+                        title="Show import tutorial"
+                        type="button"
+                    >
+                        ?
+                    </button>
+                </div>
                 
                 <div className="import-tabs">
                     <button 
@@ -1451,6 +1486,13 @@ ${importText}`}
                     </button>
                 </div>
             </div>
+            
+            {/* Tutorial popup for first-time users */}
+            <ImportTutorialPopup 
+                isVisible={showTutorial}
+                onClose={handleCloseTutorial}
+                onDontShowAgain={handleDontShowTutorialAgain}
+            />
         </div>
     );
 };

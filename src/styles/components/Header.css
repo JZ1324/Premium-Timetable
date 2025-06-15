@@ -323,6 +323,34 @@ html[data-theme] .header.shrunk {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.tutorial-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border: 2px solid transparent;
+    color: white;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    margin-right: 0.5rem;
+}
+
+.tutorial-button:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+}
+
+.tutorial-button:active {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 3px 10px rgba(79, 70, 229, 0.3);
+}
+
 /* Styling for smooth transition of header content */
 .title-container h1, 
 .subtitle, 
@@ -565,6 +593,17 @@ html[data-theme] .header.shrunk {
     
     .subtitle {
         font-size: 0.85rem;
+    }
+
+    .tutorial-button,
+    .help-button {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .tutorial-button {
+        margin-right: 0.4rem;
     }
 }
 

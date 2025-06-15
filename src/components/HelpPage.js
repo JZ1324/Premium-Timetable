@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Tutorial from './Tutorial';
 import '../styles/components/HelpPage.css';
 
 const HelpPage = ({ onClose }) => {
   const [activeSection, setActiveSection] = useState('');
-  const [showTutorial, setShowTutorial] = useState(false);
 
   const sections = [
     { id: 'getting-started', title: '🚀 Getting Started' },
@@ -64,14 +62,6 @@ const HelpPage = ({ onClose }) => {
     }
   };
 
-  const handleOpenTutorial = () => {
-    setShowTutorial(true);
-  };
-
-  const handleCloseTutorial = () => {
-    setShowTutorial(false);
-  };
-
   return (
     <div className="help-page-fullscreen">
       <div className="help-page-header">
@@ -79,19 +69,9 @@ const HelpPage = ({ onClose }) => {
           <h1>Help & Documentation</h1>
           <p className="help-subtitle">Your complete guide to using Academic Planner</p>
         </div>
-        <div className="help-header-actions">
-          <button 
-            className="tutorial-launch-button" 
-            onClick={handleOpenTutorial} 
-            title="Start Interactive Tutorial"
-          >
-            <i className="tutorial-icon">🎓</i>
-            <span>Tutorial</span>
-          </button>
-          <button className="help-close-button" onClick={onClose} title="Close Help">
-            <i className="close-icon">✕</i>
-          </button>
-        </div>
+        <button className="help-close-button" onClick={onClose} title="Close Help">
+          <i className="close-icon">✕</i>
+        </button>
       </div>
 
       <div className="help-main-content">
@@ -215,11 +195,6 @@ const HelpPage = ({ onClose }) => {
           </div>          </section>
         </div>
       </div>
-
-      {/* Tutorial Modal */}
-      {showTutorial && (
-        <Tutorial onClose={handleCloseTutorial} />
-      )}
     </div>
   );
 };

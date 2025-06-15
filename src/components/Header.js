@@ -5,6 +5,7 @@ import ChangePassword from './ChangePassword';
 import LogoutButton from './LogoutButton';
 import LogoutConfirm from './LogoutConfirm';
 import HelpPage from './HelpPage';
+import TutorialSelection from './TutorialSelection';
 // import HelpCenter from './HelpCenter';
 import { useAuth } from './AuthProvider';
 import '../styles/components/Header.css';
@@ -20,6 +21,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showHelpPage, setShowHelpPage] = useState(false);
     const [showHelpCenter, setShowHelpCenter] = useState(false);
+    const [showTutorialSelection, setShowTutorialSelection] = useState(false);
     const lastScrollY = useRef(0);
     const ticking = useRef(false);
     const userMenuRef = useRef(null);
@@ -161,6 +163,11 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
         setShowHelpPage(!showHelpPage);
     };
 
+    // Toggle tutorial selection
+    const handleToggleTutorial = () => {
+        setShowTutorialSelection(!showTutorialSelection);
+    };
+
     // Get the first letter of the email or username for the avatar
     const getAvatarInitial = () => {
         if (user) {
@@ -250,6 +257,9 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
                                 )}
                             </div>
                         )}
+                        <button className="tutorial-button" title="Interactive Tutorial" onClick={handleToggleTutorial}>
+                            <span>🎓</span>
+                        </button>
                         <button className="help-button" title="Help & FAQ" onClick={handleToggleHelp}>
                             <span>?</span>
                         </button>
@@ -266,6 +276,7 @@ const Header = ({ toggleSidebar, sidebarOpen, toggleAcademicPlanner, academicPla
                 onConfirm={handleLogoutSuccess} 
             />}
             {showHelpPage && <HelpPage onClose={() => setShowHelpPage(false)} />}
+            {showTutorialSelection && <TutorialSelection isOpen={showTutorialSelection} onClose={() => setShowTutorialSelection(false)} />}
             {/* {showHelpCenter && <HelpCenter onClose={() => setShowHelpCenter(false)} />} */}
         </>
     );

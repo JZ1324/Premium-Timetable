@@ -16,7 +16,6 @@ import { saveCurrentTimetableDay, getLastActiveTimetableDay, saveCurrentTemplate
 import { useAuth } from './AuthProvider';
 import { isAdmin } from '../services/userService';
 import AdminTerminal from './AdminTerminal';
-import TutorialSelection from './TutorialSelection';
 import { isNotificationSupported, requestNotificationPermission, checkUpcomingClasses } from '../services/notificationService';
 import '../styles/components/Timetable.css';
 import '../styles/components/TimeSlot.css';
@@ -77,7 +76,6 @@ const Timetable = () => {
     const [practiceReminders, setPracticeReminders] = useState({});
     const [activePracticePopups, setActivePracticePopups] = useState([]);
     const [showPracticeReminderSettings, setShowPracticeReminderSettings] = useState(false);
-    const [showTutorialSelection, setShowTutorialSelection] = useState(false);
     
     // Animation functions - More dramatic animations
     const animateTimeSlots = () => {
@@ -1310,14 +1308,6 @@ const Timetable = () => {
                         Colours
                     </button>
                     
-                    <button 
-                        className="tutorial-btn"
-                        onClick={() => setShowTutorialSelection(true)}
-                        title="Learn how to use the timetable"
-                    >
-                        📚 Help
-                    </button>
-                    
                     {isAdminUser && (
                         <button 
                             className="admin-button" 
@@ -1527,12 +1517,6 @@ const Timetable = () => {
                     onShowLater={() => closePracticePopup(popup.id, true)}
                 />
             ))}
-            
-            {/* Tutorial Selection Modal */}
-            <TutorialSelection
-                isOpen={showTutorialSelection}
-                onClose={() => setShowTutorialSelection(false)}
-            />
         </div>
     );
 };

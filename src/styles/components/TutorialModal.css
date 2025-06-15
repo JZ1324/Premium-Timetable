@@ -44,6 +44,33 @@
     font-weight: 600;
 }
 
+.tutorial-header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tutorial-close-text {
+    background: none;
+    border: 1px solid var(--border-color, #e0e0e0);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-secondary, #666666);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.tutorial-close-text:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary, #333333);
+    border-color: var(--text-secondary, #666666);
+}
+
 .tutorial-close {
     background: none;
     border: none;
@@ -176,6 +203,18 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.tutorial-btn-disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.tutorial-btn-disabled:hover {
+    background: #ccc;
+    transform: none;
+    box-shadow: none;
+}
+
 .tutorial-dots {
     display: flex;
     gap: 8px;
@@ -204,24 +243,161 @@
     transform: scale(1.2);
 }
 
-/* Tutorial Highlight Effect */
-.tutorial-highlight {
-    position: relative;
-    z-index: 9999;
-    outline: 3px solid var(--accent-color, #6c78c8);
-    outline-offset: 4px;
+/* Interactive Tutorial Styles */
+.tutorial-instruction {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
     border-radius: 8px;
-    animation: tutorial-pulse 2s infinite;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
-@keyframes tutorial-pulse {
-    0%, 100% {
-        outline-color: var(--accent-color, #6c78c8);
-        outline-width: 3px;
+.instruction-icon {
+    font-size: 1.5rem;
+    animation: tutorialBounce 1s ease-in-out infinite alternate;
+}
+
+.instruction-text {
+    flex: 1;
+}
+
+.instruction-text strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.waiting-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    animation: tutorialPulse 1.5s ease-in-out infinite;
+}
+
+.tutorial-btn-disabled {
+    background: #9ca3af !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.tutorial-btn-disabled:hover {
+    background: #9ca3af !important;
+    transform: none !important;
+}
+
+/* Pulse animation for wrong clicks */
+.tutorial-pulse {
+    animation: tutorialWrongClick 0.5s ease-in-out;
+}
+
+@keyframes tutorialWrongClick {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
     }
-    50% {
-        outline-color: var(--accent-color-light, #8a96d8);
-        outline-width: 5px;
+    50% { 
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
+@keyframes tutorialPulse {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes tutorialBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-5px); }
+}
+
+/* Enhanced overlay styles */
+.tutorial-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    z-index: 9998 !important;
+    pointer-events: auto !important;
+}
+
+/* Tutorial element highlighting */
+.tutorial-highlight {
+    position: relative !important;
+    z-index: 9999 !important;
+    outline: 3px solid #ff9800 !important;
+    outline-offset: 4px !important;
+    border-radius: 8px !important;
+    box-shadow: 
+        0 0 0 4px rgba(255, 152, 0, 0.3),
+        0 0 20px rgba(255, 152, 0, 0.5),
+        0 0 40px rgba(255, 152, 0, 0.3) !important;
+    background: rgba(255, 152, 0, 0.1) !important;
+    animation: tutorial-highlight-pulse 2s ease-in-out infinite !important;
+}
+
+/* Alternative highlighting using pseudo-element for better coverage */
+.tutorial-highlight::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    border: 3px solid #ff9800;
+    border-radius: 12px;
+    background: rgba(255, 152, 0, 0.15);
+    z-index: -1;
+    animation: tutorial-highlight-glow 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes tutorial-highlight-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 0 4px rgba(255, 152, 0, 0.3),
+            0 0 20px rgba(255, 152, 0, 0.5),
+            0 0 40px rgba(255, 152, 0, 0.3);
+    }
+    50% { 
+        transform: scale(1.02);
+        box-shadow: 
+            0 0 0 6px rgba(255, 152, 0, 0.4),
+            0 0 25px rgba(255, 152, 0, 0.6),
+            0 0 50px rgba(255, 152, 0, 0.4);
+    }
+}
+
+@keyframes tutorial-highlight-glow {
+    0%, 100% { 
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.05);
     }
 }
 
@@ -343,5 +519,661 @@
     
     .tutorial-content {
         max-height: calc(100vh - 300px);
+    }
+}
+
+/* Non-blocking overlay for interactive tutorials */
+.tutorial-modal-overlay.non-blocking {
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    backdrop-filter: none;
+}
+
+.tutorial-modal-overlay.non-blocking .tutorial-modal {
+    pointer-events: all;
+}
+
+/* Sidebar positioning for interactive tutorials */
+.tutorial-modal-sidebar {
+    position: fixed !important;
+    top: 100px !important;
+    right: 20px !important;
+    left: unset !important;
+    width: 350px !important;
+    max-width: 350px !important;
+    max-height: calc(100vh - 120px) !important;
+    transform: none !important;
+    animation: tutorial-slideInFromRight 0.3s ease forwards !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid var(--accent-color, #4f46e5) !important;
+}
+
+@keyframes tutorial-slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Interactive mode indicator */
+.tutorial-modal-sidebar .tutorial-header {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border-bottom: none;
+}
+
+.tutorial-modal-sidebar .tutorial-header h2 {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.tutorial-modal-sidebar .tutorial-close {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tutorial-modal-sidebar .tutorial-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Pulse animation for interactive mode - subtle effect */
+.tutorial-modal-sidebar {
+    animation: tutorial-slideInFromRight 0.3s ease forwards;
+}
+
+/* Optional: Add a very subtle pulse only when waiting for click */
+.tutorial-modal-sidebar.waiting-for-click {
+    animation: tutorial-slideInFromRight 0.3s ease forwards, tutorial-subtle-pulse 3s ease-in-out infinite 1s;
+}
+
+@keyframes tutorial-subtle-pulse {
+    0%, 100% { 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+}
+
+/* Mobile adjustments for sidebar */
+@media (max-width: 768px) {
+    .tutorial-modal-sidebar {
+        position: fixed !important;
+        bottom: 20px !important;
+        top: unset !important;
+        right: 20px !important;
+        left: 20px !important;
+        width: calc(100% - 40px) !important;
+        max-width: none !important;
+        max-height: 250px !important;
+    }
+    
+    @keyframes tutorial-slideInFromRight {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Sidebar Tutorial Modal for Interactive Steps */
+.tutorial-modal-sidebar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+    background: var(--bg-primary, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    z-index: 10001; /* Higher than the tutorial overlay */
+    overflow: hidden;
+    animation: tutorial-slideInFromRight 0.3s ease forwards;
+}
+
+@keyframes tutorial-slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .tutorial-modal-sidebar {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: none;
+    }
+}
+
+/* Adjust existing tutorial modal styles */
+.tutorial-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    animation: tutorial-fadeIn 0.3s ease forwards;
+}
+
+/* Tutorial finish options */
+.tutorial-finish-options {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.tutorial-finish-options .tutorial-btn {
+    min-width: auto;
+}
+
+.tutorial-finish-options .tutorial-btn-secondary {
+    flex-shrink: 0;
+}
+
+.tutorial-finish-options .tutorial-btn-primary {
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .tutorial-finish-options {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .tutorial-finish-options .tutorial-btn {
+        width: 100%;
+    }
+}
+
+/* Enhanced Tutorial Instruction Feedback */
+.completed-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid var(--success-color, #4caf50);
+    font-size: 0.9rem;
+    color: var(--success-color, #4caf50);
+    animation: tutorial-success-fade-in 0.5s ease-out;
+}
+
+.checkmark-icon {
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    animation: checkmark-bounce 0.5s ease forwards;
+}
+
+@keyframes completion-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes checkmark-bounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Enhanced progress bar animations */
+.tutorial-progress-fill {
+    transition: width 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+    background: linear-gradient(90deg, #4caf50 0%, #6c78c8 100%);
+}
+
+/* Step completion effect */
+.tutorial-dot.completed {
+    background: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+    animation: dot-completion 0.3s ease forwards;
+}
+
+@keyframes dot-completion {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* Enhanced instruction icon animation */
+.instruction-icon {
+    font-size: 24px;
+    transition: all 0.3s ease;
+}
+
+.instruction-icon:has-text('✅') {
+    animation: icon-success 0.5s ease forwards;
+}
+
+@keyframes icon-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Mobile responsiveness for completion indicators */
+@media (max-width: 768px) {
+    .completed-indicator {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    
+    .checkmark-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+    }
+}
+
+/* Auto-play toggle button */
+.tutorial-autoplay-toggle {
+    background: var(--bg-secondary, #f5f5f5);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+
+.tutorial-autoplay-toggle:hover {
+    background: var(--bg-primary, #ffffff);
+    border-color: var(--accent-color, #4f46e5);
+}
+
+.tutorial-autoplay-toggle.active {
+    background: var(--accent-color, #4f46e5);
+    color: white;
+    border-color: var(--accent-color, #4f46e5);
+}
+
+/* Auto-playing button state */
+.tutorial-btn.auto-playing {
+    background: var(--warning-color, #ff9800);
+    cursor: not-allowed;
+    animation: tutorial-auto-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tutorial-auto-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Auto-clicking visual indicator */
+.tutorial-auto-clicking {
+    position: relative;
+    z-index: 10001 !important;
+    animation: tutorial-auto-click-highlight 1.5s ease-in-out !important;
+    pointer-events: none !important;
+}
+
+.tutorial-auto-clicking::before {
+    content: '🤖 Auto-clicking...';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--warning-color, #ff9800);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 10002;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    animation: tutorial-bounce 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes tutorial-auto-click-highlight {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+        transform: scale(1);
+    }
+    25% { 
+        box-shadow: 0 0 0 8px rgba(255, 152, 0, 0.3);
+        transform: scale(1.05);
+    }
+    50% { 
+        box-shadow: 0 0 0 15px rgba(255, 152, 0, 0.2);
+        transform: scale(1.1);
+    }
+    75% { 
+        box-shadow: 0 0 0 8px rgba(255, 152, 0, 0.3);
+        transform: scale(1.05);
+    }
+}
+
+/* Enhanced tutorial instruction for auto-play mode */
+.tutorial-instruction.auto-play-mode {
+    background: linear-gradient(45deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+    border-left: 4px solid var(--warning-color, #ff9800);
+}
+
+.tutorial-instruction.auto-play-mode .instruction-icon {
+    animation: tutorial-robot-bounce 1s ease-in-out infinite;
+}
+
+@keyframes tutorial-robot-bounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(5deg); }
+}
+
+/* Auto-playing indicator */
+.auto-playing-indicator {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid var(--warning-color, #ff9800);
+    font-size: 0.9rem;
+    color: var(--warning-color, #ff9800);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auto-playing-indicator .pulse-dot {
+    background: var(--warning-color, #ff9800);
+}
+
+/* Auto-play countdown indicators */
+.auto-countdown-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(33, 150, 243, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color, #2196f3);
+    font-size: 0.9rem;
+    color: var(--primary-color, #2196f3);
+    animation: tutorial-countdown-pulse 2s ease-in-out infinite;
+}
+
+.countdown-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-color, #2196f3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    animation: tutorial-countdown-spin 1s ease-in-out infinite;
+}
+
+@keyframes tutorial-countdown-pulse {
+    0%, 100% { background: rgba(33, 150, 243, 0.1); }
+    50% { background: rgba(33, 150, 243, 0.2); }
+}
+
+@keyframes tutorial-countdown-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Auto-progress indicator for non-interactive steps */
+.tutorial-auto-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(156, 39, 176, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color, #9c27b0);
+}
+
+.auto-progress-icon {
+    font-size: 1.2rem;
+    animation: tutorial-robot-bounce 2s ease-in-out infinite;
+}
+
+.auto-progress-text {
+    flex: 1;
+}
+
+.auto-progress-text strong {
+    color: var(--secondary-color, #9c27b0);
+    font-size: 0.95rem;
+}
+
+@keyframes tutorial-robot-bounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Auto-mode button styling */
+.tutorial-btn.auto-mode {
+    background: linear-gradient(45deg, var(--primary-color, #2196f3), var(--secondary-color, #9c27b0));
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.tutorial-btn.auto-mode::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: tutorial-auto-shine 2s ease-in-out infinite;
+}
+
+@keyframes tutorial-auto-shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Enhanced auto-clicking animation - comprehensive version */
+.tutorial-auto-clicking {
+    position: relative !important;
+    z-index: 10001 !important;
+    animation: tutorial-auto-click-comprehensive 1.2s ease-in-out infinite !important;
+    outline: 4px solid #ff5722 !important;
+    outline-offset: 6px !important;
+    border-radius: 8px !important;
+    box-shadow: 
+        0 0 0 8px rgba(255, 87, 34, 0.4),
+        0 0 30px rgba(255, 87, 34, 0.6),
+        0 0 60px rgba(255, 87, 34, 0.4) !important;
+    background: rgba(255, 87, 34, 0.2) !important;
+}
+
+.tutorial-auto-clicking::before {
+    content: '🤖 Auto-clicking...';
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff5722, #ff3d00);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    z-index: 10002;
+    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
+    animation: tutorial-auto-indicator 1s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+@keyframes tutorial-auto-click-comprehensive {
+    0% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 0 8px rgba(255, 87, 34, 0.4),
+            0 0 30px rgba(255, 87, 34, 0.6),
+            0 0 60px rgba(255, 87, 34, 0.4);
+    }
+    25% { 
+        transform: scale(1.08);
+        box-shadow: 
+            0 0 0 12px rgba(255, 87, 34, 0.5),
+            0 0 40px rgba(255, 87, 34, 0.7),
+            0 0 80px rgba(255, 87, 34, 0.5);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 0 16px rgba(255, 87, 34, 0.6),
+            0 0 50px rgba(255, 87, 34, 0.8),
+            0 0 100px rgba(255, 87, 34, 0.6);
+    }
+    75% { 
+        transform: scale(1.08);
+        box-shadow: 
+            0 0 0 12px rgba(255, 87, 34, 0.5),
+            0 0 40px rgba(255, 87, 34, 0.7),
+            0 0 80px rgba(255, 87, 34, 0.5);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 0 8px rgba(255, 87, 34, 0.4),
+            0 0 30px rgba(255, 87, 34, 0.6),
+            0 0 60px rgba(255, 87, 34, 0.4);
+    }
+}
+
+@keyframes tutorial-auto-indicator {
+    0%, 100% { 
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    50% { 
+        transform: translateX(-50%) translateY(-5px);
+        opacity: 0.9;
+    }
+}
+
+/* Dramatic Auto-Click Visual Effects */
+@keyframes tutorial-spotlight-appear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes tutorial-click-bounce {
+    0% { 
+        transform: translateX(-50%) translateY(0px) scale(1);
+        box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
+    }
+    100% { 
+        transform: translateX(-50%) translateY(-5px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(255, 68, 68, 0.8);
+    }
+}
+
+@keyframes tutorial-click-final {
+    0%, 100% { 
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 8px 25px rgba(0, 255, 0, 0.6);
+    }
+    50% { 
+        transform: translateX(-50%) scale(1.1);
+        box-shadow: 0 12px 35px rgba(0, 255, 0, 0.9);
+    }
+}
+
+@keyframes tutorial-pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+        border-width: 4px;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+        border-width: 2px;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+        border-width: 1px;
+    }
+}
+
+/* Enhanced auto-clicking animation for the main element */
+.tutorial-auto-clicking {
+    animation: tutorial-auto-click-enhanced 1s ease-in-out infinite !important;
+    box-shadow: 0 0 30px rgba(255, 68, 68, 0.8) !important;
+    transform: scale(1.05) !important;
+    border: 3px solid #ff4444 !important;
+    border-radius: 8px !important;
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
+@keyframes tutorial-auto-click-enhanced {
+    0%, 100% { 
+        box-shadow: 0 0 30px rgba(255, 68, 68, 0.8);
+        transform: scale(1.05);
+        border-color: #ff4444;
+    }
+    25% { 
+        box-shadow: 0 0 40px rgba(255, 68, 68, 1);
+        transform: scale(1.08);
+        border-color: #ff6666;
+    }
+    50% { 
+        box-shadow: 0 0 50px rgba(255, 68, 68, 1);
+        transform: scale(1.1);
+        border-color: #ff8888;
+    }
+    75% { 
+        box-shadow: 0 0 40px rgba(255, 68, 68, 1);
+        transform: scale(1.08);
+        border-color: #ff6666;
     }
 }

@@ -2,23 +2,28 @@ import React, { useEffect, useRef } from 'react';
 import '../styles/components/PracticeReminderPopup.css';
 
 const PracticeReminderPopup = ({ 
-    popup, 
+    practiceData, 
     onClose, 
     onShowLater 
 }) => {
     const modalRef = useRef(null);
 
+    // Don't render if no practice data
+    if (!practiceData) {
+        return null;
+    }
+
     // Close on escape key
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
-                onShowLater(popup.id);
+                onShowLater(practiceData.id);
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [popup.id, onShowLater]);
+    }, [practiceData.id, onShowLater]);
 
     // Prevent background click from closing
     const handleBackgroundClick = (e) => {
@@ -49,32 +54,32 @@ const PracticeReminderPopup = ({
                 
                 <div className="practice-reminder-body">
                     <div className="reminder-subject">
-                        <h3>{popup.subject}</h3>
-                        <p className="reminder-period">Period {popup.period}</p>
+                        <h3>{practiceData.subject}</h3>
+                        <p className="reminder-period">Period {practiceData.period}</p>
                     </div>
                     
                     <div className="reminder-details">
                         <div className="detail-item">
                             <span className="detail-label">Tomorrow:</span>
-                            <span className="detail-value">{getDayName(popup.day)}</span>
+                            <span className="detail-value">{getDayName(practiceData.day)}</span>
                         </div>
                         
                         <div className="detail-item">
                             <span className="detail-label">Time:</span>
-                            <span className="detail-value">{popup.time}</span>
+                            <span className="detail-value">{practiceData.time}</span>
                         </div>
                         
-                        {popup.room && (
+                        {practiceData.room && (
                             <div className="detail-item">
                                 <span className="detail-label">Room:</span>
-                                <span className="detail-value">{popup.room}</span>
+                                <span className="detail-value">{practiceData.room}</span>
                             </div>
                         )}
                         
-                        {popup.teacher && (
+                        {practiceData.teacher && (
                             <div className="detail-item">
                                 <span className="detail-label">Teacher:</span>
-                                <span className="detail-value">{popup.teacher}</span>
+                                <span className="detail-value">{practiceData.teacher}</span>
                             </div>
                         )}
                     </div>
@@ -90,14 +95,14 @@ const PracticeReminderPopup = ({
                 <div className="practice-reminder-actions">
                     <button 
                         className="reminder-btn secondary"
-                        onClick={() => onShowLater(popup.id)}
+                        onClick={() => onShowLater(practiceData.id)}
                     >
                         Remind Me Later
                     </button>
                     
                     <button 
                         className="reminder-btn primary"
-                        onClick={() => onClose(popup.id, false)}
+                        onClick={() => onClose(practiceData.id, false)}
                     >
                         Got It, Thanks!
                     </button>

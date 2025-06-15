@@ -916,17 +916,21 @@ const Timetable = () => {
         tomorrow.setHours(0, 0, 0, 0);
         
         const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+        let interval = null;
         
         const timeout = setTimeout(() => {
             checkPracticeReminders();
             
             // Set up daily interval
-            const interval = setInterval(checkPracticeReminders, 24 * 60 * 60 * 1000);
-            
-            return () => clearInterval(interval);
+            interval = setInterval(checkPracticeReminders, 24 * 60 * 60 * 1000);
         }, timeUntilMidnight);
         
-        return () => clearTimeout(timeout);
+        return () => {
+            clearTimeout(timeout);
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
     }, [practiceReminders]);
 
     /**

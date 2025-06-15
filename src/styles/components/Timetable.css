@@ -1074,14 +1074,15 @@
 
 /* Tutorial Highlighting Styles */
 .tutorial-highlight {
-    position: relative;
-    z-index: 9999;
+    position: relative !important;
+    z-index: 9999 !important;
     border: 3px solid #4f46e5 !important;
     border-radius: 8px !important;
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 
                 0 8px 25px rgba(79, 70, 229, 0.3) !important;
     animation: tutorialPulse 2s infinite;
     background-color: rgba(79, 70, 229, 0.05) !important;
+    pointer-events: auto !important;
 }
 
 .tutorial-highlight::before {
@@ -1093,58 +1094,36 @@
     bottom: -8px;
     border: 2px dashed #4f46e5;
     border-radius: 12px;
-    animation: tutorialRotate 3s linear infinite;
+    animation: tutorialFade 2s ease-in-out infinite;
     pointer-events: none;
+    z-index: -1;
 }
 
 .tutorial-highlight::after {
-    content: '👆 Focus here';
+    content: '👆 Click here';
     position: absolute;
-    top: -35px;
+    top: -40px;
     left: 50%;
     transform: translateX(-50%);
     background: #4f46e5;
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     pointer-events: none;
     animation: tutorialBounce 1s ease-in-out infinite alternate;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    z-index: 10000;
 }
 
-@keyframes tutorialPulse {
-    0%, 100% { 
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 
-                    0 8px 25px rgba(79, 70, 229, 0.3);
-    }
-    50% { 
-        box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.3), 
-                    0 12px 35px rgba(79, 70, 229, 0.4);
-    }
-}
-
-@keyframes tutorialRotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-@keyframes tutorialBounce {
-    from { transform: translateX(-50%) translateY(0); }
-    to { transform: translateX(-50%) translateY(-5px); }
-}
-
-/* Overlay to dim non-highlighted content during tutorial */
-.tutorial-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 9998;
-    pointer-events: none;
+/* Special highlighting for buttons */
+.tutorial-highlight.day-button::after,
+.tutorial-highlight.edit-mode-toggle::after,
+.tutorial-highlight button::after {
+    content: '👆 Click me';
+    top: -35px;
 }
 
 /* Special highlighting for different elements */
@@ -1160,20 +1139,70 @@
 
 .tutorial-highlight.day-selector::after {
     background: #22c55e;
+    content: '👆 Try clicking different days';
 }
 
-.tutorial-highlight.controls {
+.tutorial-highlight.template-controls {
     border-color: #f59e0b !important;
     box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2), 
                 0 8px 25px rgba(245, 158, 11, 0.3) !important;
 }
 
-.tutorial-highlight.controls::before {
+.tutorial-highlight.template-controls::before {
     border-color: #f59e0b;
 }
 
-.tutorial-highlight.controls::after {
+.tutorial-highlight.template-controls::after {
     background: #f59e0b;
+    content: '👆 Control buttons';
+}
+
+.tutorial-highlight.timetable::after {
+    content: '📅 Your timetable grid';
+    background: #7c3aed;
+}
+
+.tutorial-highlight.add-time-slot::after {
+    content: '➕ Click to add class';
+    background: #059669;
+}
+
+.tutorial-highlight.time-slot::after {
+    content: '✏️ Click to edit';
+    background: #dc2626;
+}
+
+@keyframes tutorialPulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 
+                    0 8px 25px rgba(79, 70, 229, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.3), 
+                    0 12px 35px rgba(79, 70, 229, 0.4);
+    }
+}
+
+@keyframes tutorialFade {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+@keyframes tutorialBounce {
+    from { transform: translateX(-50%) translateY(0); }
+    to { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* Overlay to dim non-highlighted content during tutorial */
+.tutorial-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    z-index: 9998 !important;
+    pointer-events: auto !important;
 }
 
 /* Dark mode adjustments */
@@ -1188,8 +1217,8 @@
     background: #10b981;
 }
 
-[data-theme="dark"] .tutorial-highlight.controls::after,
-.theme-dark .tutorial-highlight.controls::after {
+[data-theme="dark"] .tutorial-highlight.template-controls::after,
+.theme-dark .tutorial-highlight.template-controls::after {
     background: #f59e0b;
 }
 

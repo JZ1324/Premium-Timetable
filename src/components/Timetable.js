@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import anime from 'animejs';
 import TimeSlot from './TimeSlot';
 import ImportButton from './ImportButton';
 import ImportTimetable from './ImportTimetable';
@@ -15,6 +16,7 @@ import { saveCurrentTimetableDay, getLastActiveTimetableDay, saveCurrentTemplate
 import { useAuth } from './AuthProvider';
 import { isAdmin } from '../services/userService';
 import AdminTerminal from './AdminTerminal';
+import TutorialSelection from './TutorialSelection';
 import { isNotificationSupported, requestNotificationPermission, checkUpcomingClasses } from '../services/notificationService';
 import '../styles/components/Timetable.css';
 import '../styles/components/TimeSlot.css';
@@ -29,6 +31,8 @@ import '../styles/components/PracticeReminderPopup.css';
 
 const Timetable = () => {
     const { user } = useAuth();
+    const timetableRef = useRef(null);
+    const dayButtonsRef = useRef([]);
     const [timeSlots, setTimeSlots] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [currentTemplate, setCurrentTemplate] = useState('');
@@ -73,6 +77,152 @@ const Timetable = () => {
     const [practiceReminders, setPracticeReminders] = useState({});
     const [activePracticePopups, setActivePracticePopups] = useState([]);
     const [showPracticeReminderSettings, setShowPracticeReminderSettings] = useState(false);
+    const [showTutorialSelection, setShowTutorialSelection] = useState(false);
+    
+    // Animation functions - More dramatic animations
+    const animateTimeSlots = () => {
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: '.time-slot',
+                opacity: [0, 1],
+                translateY: [50, 0],
+                scale: [0.8, 1],
+                duration: 800,
+                easing: 'easeOutElastic(1, .8)',
+                delay: function(el, i) { return i * 100; }
+            });
+        }
+    };
+
+    const animateDayChange = () => {
+        if (typeof anime !== 'undefined') {
+            // First fade out
+            anime({
+                targets: '.time-slot',
+                opacity: 0,
+                translateX: -30,
+                duration: 200,
+                easing: 'easeInCubic',
+                complete: () => {
+                    // Then fade back in
+                    anime({
+                        targets: '.time-slot',
+                        opacity: 1,
+                        translateX: 0,
+                        duration: 400,
+                        easing: 'easeOutBounce',
+                        delay: function(el, i) { return i * 50; }
+                    });
+                }
+            });
+        }
+    };
+
+    const animateCurrentPeriod = () => {
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: '.current-period',
+                scale: [1, 1.1, 1],
+                backgroundColor: ['#ffffff', '#ffeb3b', '#ffffff'],
+                duration: 1000,
+                easing: 'easeOutElastic(1, .6)'
+            });
+        }
+    };
+
+    const animateAdminButton = () => {
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: '.admin-button',
+                scale: [0, 1.2, 1],
+                opacity: [0, 1],
+                rotate: [0, 360],
+                duration: 800,
+                easing: 'easeOutElastic(1, .8)'
+            });
+        }
+    };
+    
+    // Add button hover animations
+    const addButtonHoverAnimations = () => {
+        if (typeof anime !== 'undefined') {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', () => {
+                    anime({
+                        targets: button,
+                        scale: 1.1,
+                        duration: 200,
+                        easing: 'easeOutQuart'
+                    });
+                });
+                
+                button.addEventListener('mouseleave', () => {
+                    anime({
+                        targets: button,
+                        scale: 1,
+                        duration: 200,
+                        easing: 'easeOutQuart'
+                    });
+                });
+            });
+        }
+    };
+    
+    // Test animation function you can call manually
+    const testAnimation = () => {
+        console.log('testAnimation called!');
+        console.log('anime object:', anime);
+        console.log('anime type:', typeof anime);
+        
+        const timeSlots = document.querySelectorAll('.time-slot');
+        console.log('Found time slots:', timeSlots.length);
+        
+        if (typeof anime !== 'undefined') {
+            console.log('Running animation...');
+            anime({
+                targets: '.time-slot',
+                scale: [1, 1.2, 1],
+                rotate: [0, 10, 0],
+                backgroundColor: ['rgb(255, 255, 255)', 'rgb(255, 235, 59)', 'rgb(255, 255, 255)'],
+                duration: 1000,
+                easing: 'easeOutElastic(1, .8)',
+                delay: function(el, i) { 
+                    console.log(`Animating element ${i}`);
+                    return i * 150; 
+                },
+                complete: () => {
+                    console.log('Animation completed!');
+                }
+            });
+        } else {
+            console.error('Anime.js not available or not properly imported');
+            console.log('Available properties:', Object.keys(anime || {}));
+        }
+    };
+    
+    // Simple test function without anime.js to check DOM elements
+    const testDOMElements = () => {
+        const timeSlots = document.querySelectorAll('.time-slot');
+        console.log(`Found ${timeSlots.length} time slots in DOM`);
+        
+        timeSlots.forEach((slot, i) => {
+            console.log(`Time slot ${i}:`, slot);
+            // Simple CSS animation test
+            slot.style.transform = 'scale(1.1) rotate(5deg)';
+            slot.style.transition = 'transform 0.3s ease';
+            slot.style.backgroundColor = '#ffeb3b';
+            
+            setTimeout(() => {
+                slot.style.transform = 'scale(1) rotate(0deg)';
+                slot.style.backgroundColor = '';
+            }, 300);
+        });
+    };
+    
+    // Make both test functions available globally
+    window.testAnimation = testAnimation;
+    window.testDOMElements = testDOMElements;
     
     /**
      * Generate a template name for auto-saving imported timetables
@@ -179,6 +329,8 @@ const Timetable = () => {
         saveCurrentTimetableDay(day);
         // Close any open editing form when switching days
         setCurrentEditingSlot(null);
+        // Animate day change
+        setTimeout(() => animateDayChange(), 50);
     };
 
     // Open colors customization popup
@@ -226,6 +378,11 @@ const Timetable = () => {
             console.log(`Updating current period to: ${updatedPeriod}`);
             setCurrentPeriod(updatedPeriod);
             
+            // Animate current period change
+            if (updatedPeriod) {
+                setTimeout(() => animateCurrentPeriod(), 100);
+            }
+            
             // Update break period visibility
             const updatedShowRecess = shouldShowBreakPeriod('Recess');
             const updatedShowLunch = shouldShowBreakPeriod('Lunch');
@@ -262,6 +419,9 @@ const Timetable = () => {
                 console.error('Error parsing settings:', error);
             }
         }
+        
+        // Add button hover animations
+        setTimeout(() => addButtonHoverAnimations(), 1000);
     }, []);
     
     // Initialize notification system
@@ -418,6 +578,11 @@ const Timetable = () => {
                 try {
                     const adminStatus = await isAdmin(user.uid);
                     setIsAdminUser(adminStatus);
+                    
+                    // Animate admin button if user is admin
+                    if (adminStatus) {
+                        setTimeout(() => animateAdminButton(), 100);
+                    }
                 } catch (error) {
                     console.error('Error checking admin status:', error);
                     setIsAdminUser(false);
@@ -448,6 +613,9 @@ const Timetable = () => {
         saveCurrentTemplate(templateName);
         // Close any open editing form when loading a template
         setCurrentEditingSlot(null);
+        
+        // Animate time slots when template loads
+        setTimeout(() => animateTimeSlots(), 100);
         
         // Load practice reminders for this template
         const storageKey = `practice-reminders-${templateName}`;
@@ -1142,6 +1310,14 @@ const Timetable = () => {
                         Colours
                     </button>
                     
+                    <button 
+                        className="tutorial-btn"
+                        onClick={() => setShowTutorialSelection(true)}
+                        title="Learn how to use the timetable"
+                    >
+                        📚 Help
+                    </button>
+                    
                     {isAdminUser && (
                         <button 
                             className="admin-button" 
@@ -1351,6 +1527,12 @@ const Timetable = () => {
                     onShowLater={() => closePracticePopup(popup.id, true)}
                 />
             ))}
+            
+            {/* Tutorial Selection Modal */}
+            <TutorialSelection
+                isOpen={showTutorialSelection}
+                onClose={() => setShowTutorialSelection(false)}
+            />
         </div>
     );
 };

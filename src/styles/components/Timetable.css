@@ -1072,6 +1072,50 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Tutorial Button */
+.tutorial-btn {
+    background: linear-gradient(45deg, var(--success-color-light, #e8f5e8) 0%, var(--bg-primary) 100%);
+    color: var(--success-color, #2e7d32);
+    border: 1px solid var(--success-color-light, #c8e6c9);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    min-height: 32px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.tutorial-btn:hover {
+    background: linear-gradient(45deg, var(--success-color-light, #c8e6c9) 0%, var(--success-color-lighter, #e8f5e8) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);
+}
+
+.tutorial-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme styling for tutorial button */
+.theme-dark .tutorial-btn,
+[data-theme="dark"] .tutorial-btn {
+    background: linear-gradient(45deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+    color: var(--success-color, #4caf50);
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.theme-dark .tutorial-btn:hover,
+[data-theme="dark"] .tutorial-btn:hover {
+    background: linear-gradient(45deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.1) 100%);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .day-selector {

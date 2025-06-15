@@ -102,6 +102,15 @@ export const getUserData = async (uid) => {
     initializeFirestore();
   }
   
+  // Ensure authentication state is loaded (this was the fix!)
+  const { getAuth } = await import('firebase/auth');
+  const auth = getAuth();
+  
+  // Small delay to ensure auth is ready
+  if (!auth.currentUser) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
   const userDoc = await getDoc(doc(db, 'users', uid));
   if (userDoc.exists()) {
     return userDoc.data();
@@ -170,8 +179,12 @@ export const isAdmin = async (uid) => {
   
   try {
     const userData = await getUserData(uid);
-    // Check if user has admin role or email is the special admin credential
-    return userData && (userData.role === 'admin' || (userData.email && userData.email === 'admin@timetable.com'));
+    
+    // Check if user has admin role or isAdmin field set in Firebase
+    return userData && (
+      userData.role === 'admin' || 
+      userData.isAdmin === true
+    );
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;

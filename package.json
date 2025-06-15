@@ -29,6 +29,7 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "animejs": "^4.0.2",
     "firebase": "^11.7.1",
     "node-fetch": "^3.3.2",
     "react": "^17.0.2",

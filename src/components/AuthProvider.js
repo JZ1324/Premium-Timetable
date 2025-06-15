@@ -48,7 +48,12 @@ export const AuthProvider = ({ children }) => {
               setUserData(firestoreData);
             } catch (err) {
               console.error('Error fetching user data:', err);
-              // Don't stop the authentication flow if Firestore fetch fails
+              // Create minimal user data from auth user if Firestore fails
+              setUserData({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName
+              });
             }
           } else {
             console.log('No user authenticated');
@@ -88,6 +93,12 @@ export const AuthProvider = ({ children }) => {
           setUserData(firestoreData);
         } catch (err) {
           console.error('Error refreshing user data:', err);
+          // Fallback to basic user data if Firestore fails
+          setUserData({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName
+          });
         }
       }
     };

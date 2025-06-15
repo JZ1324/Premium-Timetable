@@ -8,93 +8,117 @@ const TutorialModal = ({ isOpen, onClose, tutorialId }) => {
     // Tutorial content for each tutorial type
     const tutorials = {
         'getting-started': {
-            title: 'Getting Started with Premium Timetable',
+            title: '🚀 Getting Started with Premium Timetable',
             steps: [
                 {
                     title: 'Welcome to Premium Timetable!',
-                    content: 'This tutorial will help you get started with using your timetable app. You\'ll learn the basics of navigation and viewing your schedule.',
+                    content: 'Welcome! This interactive tutorial will guide you through using your timetable app. You\'ll learn navigation, viewing schedules, and basic features. Let\'s start!',
                     image: null,
                     highlight: null
                 },
                 {
                     title: 'Day Navigation',
-                    content: 'Use the day selector buttons at the top to switch between different school days. The current day is highlighted in blue.',
+                    content: 'These buttons let you switch between different school days (Day 1, Day 2, etc.). The current day is highlighted. Try clicking on different days to see how the timetable changes.',
                     image: null,
                     highlight: '.day-selector'
                 },
                 {
-                    title: 'Viewing Your Classes',
-                    content: 'Your classes are displayed in a grid format. Each time slot shows the subject, teacher, room, and class code.',
+                    title: 'Your Timetable Grid',
+                    content: 'This is your main timetable view. Each cell shows a class with subject name, teacher, room, and class code. The time periods are shown on the left.',
                     image: null,
                     highlight: '.timetable'
                 },
                 {
                     title: 'Current Period Indicator',
-                    content: 'During school hours, your current class will be highlighted with a special border to help you know where you should be.',
+                    content: 'During school hours, your current class will glow with a special highlight so you always know where you should be right now.',
                     image: null,
                     highlight: null
                 },
                 {
-                    title: 'Control Buttons',
-                    content: 'Use the buttons at the top to switch between templates, enter edit mode, customize colors, and access help.',
+                    title: 'Control Panel',
+                    content: 'These buttons give you access to key features: Templates, Edit Mode, Colors, Import, and Tutorials. We\'ll explore these in other tutorials.',
                     image: null,
                     highlight: '.controls'
+                },
+                {
+                    title: 'Ready to Explore!',
+                    content: 'Great! You now know the basics. Try the other tutorials to learn about creating timetables, importing data, and customizing colors. Happy scheduling!',
+                    image: null,
+                    highlight: null
                 }
             ]
         },
         'creating-timetable': {
-            title: 'Creating Your Timetable',
+            title: '📅 Creating Your Timetable',
             steps: [
                 {
+                    title: 'Let\'s Create Your Timetable',
+                    content: 'Ready to build your perfect timetable? This tutorial will show you how to add and edit classes step by step.',
+                    image: null,
+                    highlight: null
+                },
+                {
                     title: 'Enter Edit Mode',
-                    content: 'Click the "Edit Mode" button to start creating or modifying your timetable.',
+                    content: 'First, click the "Edit Mode" button to unlock editing features. This will reveal "Add Class" buttons in empty slots and make existing classes editable.',
                     image: null,
                     highlight: '.edit-btn'
                 },
                 {
                     title: 'Add New Classes',
-                    content: 'In edit mode, you\'ll see "+ Add Class" buttons in empty time slots. Click these to create new classes.',
+                    content: 'In edit mode, empty time slots show "Add Class" buttons. Click any of these to create a new class in that time period.',
                     image: null,
                     highlight: '.add-time-slot'
                 },
                 {
-                    title: 'Edit Existing Classes',
-                    content: 'Click on any existing class to edit its details including subject name, teacher, room, and class code.',
+                    title: 'Edit Class Details',
+                    content: 'Click on any existing class to edit its details. You can change the subject name, teacher, room number, and class code.',
                     image: null,
                     highlight: '.time-slot'
                 },
                 {
-                    title: 'Save Your Changes',
-                    content: 'After making changes, click "View Mode" to save and see your updated timetable.',
+                    title: 'Save Your Work',
+                    content: 'When you\'re done editing, click "View Mode" to save your changes and return to the normal view. Your timetable is automatically saved!',
                     image: null,
                     highlight: '.edit-btn'
                 }
             ]
         },
         'importing-data': {
-            title: 'Importing Timetable Data',
+            title: '📥 Importing Timetable Data',
             steps: [
                 {
-                    title: 'Import Options',
-                    content: 'Click the "Import" button to see different ways to add your timetable data.',
+                    title: 'Import Your Existing Timetable',
+                    content: 'Already have a timetable from your school? No need to recreate it! This tutorial shows you how to import your existing schedule quickly.',
+                    image: null,
+                    highlight: null
+                },
+                {
+                    title: 'Open Import Options',
+                    content: 'Click the "Import" button to see all the different ways you can bring your timetable data into the app.',
                     image: null,
                     highlight: '.import-button'
                 },
                 {
-                    title: 'Text Import',
-                    content: 'You can paste your timetable as plain text and the app will try to parse it automatically.',
+                    title: 'Text Import Method',
+                    content: 'Got your timetable as text? Just copy and paste it! The app will automatically try to understand the format and extract your classes.',
                     image: null,
                     highlight: null
                 },
                 {
-                    title: 'AI Assistance',
-                    content: 'Use AI to help extract timetable information from screenshots or complex text formats.',
+                    title: 'AI-Powered Parsing',
+                    content: 'For complex formats or messy data, use the AI parser. It can understand screenshots, PDFs, and even handwritten schedules!',
                     image: null,
                     highlight: null
                 },
                 {
-                    title: 'File Upload',
-                    content: 'Upload image files of your timetable and let the app extract the data for you.',
+                    title: 'File Upload Option',
+                    content: 'Have an image of your timetable? Upload it directly and let the smart AI extract all your class information automatically.',
+                    image: null,
+                    highlight: null
+                },
+                {
+                    title: 'Import Complete!',
+                    content: 'Once imported, review the extracted data and make any adjustments needed. Your timetable will be ready in seconds!',
                     image: null,
                     highlight: null
                 }
@@ -152,24 +176,59 @@ const TutorialModal = ({ isOpen, onClose, tutorialId }) => {
                 }
             ]
         },
-        'notifications': {
-            title: 'Setting Up Notifications',
+        'keyboard-shortcuts': {
+            title: '⌨️ Keyboard Shortcuts',
             steps: [
                 {
-                    title: 'Browser Notifications',
-                    content: 'Enable browser notifications to get reminders about upcoming classes.',
+                    title: 'Speed Up Your Workflow',
+                    content: 'Learn these handy keyboard shortcuts to navigate and use your timetable more efficiently!',
                     image: null,
                     highlight: null
                 },
                 {
-                    title: 'Notification Timing',
-                    content: 'Set how many minutes before class you want to be notified.',
+                    title: 'Quick Day Navigation',
+                    content: 'Press 1, 2, 3, 4, etc. to quickly switch between different timetable days without clicking.',
+                    image: null,
+                    highlight: '.day-selector'
+                },
+                {
+                    title: 'Edit Mode Toggle',
+                    content: 'Press "E" to quickly toggle between Edit Mode and View Mode.',
+                    image: null,
+                    highlight: '.edit-btn'
+                },
+                {
+                    title: 'Escape to Cancel',
+                    content: 'Press "Escape" to cancel any form or close any modal dialog quickly.',
+                    image: null,
+                    highlight: null
+                }
+            ]
+        },
+        'mobile-tips': {
+            title: '📱 Mobile Usage Tips',
+            steps: [
+                {
+                    title: 'Mobile-Friendly Design',
+                    content: 'Your timetable works great on phones and tablets! Here are some tips for the best mobile experience.',
                     image: null,
                     highlight: null
                 },
                 {
-                    title: 'Practice Reminders',
-                    content: 'Set up special reminders for classes that require preparation or practice.',
+                    title: 'Touch Gestures',
+                    content: 'Tap to select, long-press for options, and swipe to navigate between days on mobile devices.',
+                    image: null,
+                    highlight: '.timetable'
+                },
+                {
+                    title: 'Mobile Editing',
+                    content: 'In edit mode on mobile, forms are optimized for touch input with larger buttons and better spacing.',
+                    image: null,
+                    highlight: null
+                },
+                {
+                    title: 'Add to Home Screen',
+                    content: 'For the best experience, add this app to your phone\'s home screen for quick access!',
                     image: null,
                     highlight: null
                 }
@@ -186,9 +245,23 @@ const TutorialModal = ({ isOpen, onClose, tutorialId }) => {
 
     useEffect(() => {
         if (isOpen && tutorialData?.steps[currentStep]?.highlight) {
+            // Remove previous highlights
+            document.querySelectorAll('.tutorial-highlight').forEach(el => {
+                el.classList.remove('tutorial-highlight');
+            });
+            
+            // Add new highlight
             const highlightElement = document.querySelector(tutorialData.steps[currentStep].highlight);
             if (highlightElement) {
                 highlightElement.classList.add('tutorial-highlight');
+                
+                // Scroll element into view
+                highlightElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center',
+                    inline: 'center'
+                });
+                
                 return () => {
                     highlightElement.classList.remove('tutorial-highlight');
                 };

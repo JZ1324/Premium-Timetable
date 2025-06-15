@@ -9,7 +9,7 @@ const TutorialSelection = ({ isOpen, onClose }) => {
         {
             id: 'getting-started',
             title: 'Getting Started',
-            description: 'Learn the basics of using the timetable',
+            description: 'Learn the basics of navigating and using your timetable',
             icon: '🚀',
             duration: '3 mins',
             difficulty: 'Beginner'
@@ -17,7 +17,7 @@ const TutorialSelection = ({ isOpen, onClose }) => {
         {
             id: 'creating-timetable',
             title: 'Creating Your Timetable',
-            description: 'Add and edit classes in your timetable',
+            description: 'Add and edit classes to build your perfect schedule',
             icon: '📅',
             duration: '5 mins',
             difficulty: 'Beginner'
@@ -25,7 +25,7 @@ const TutorialSelection = ({ isOpen, onClose }) => {
         {
             id: 'importing-data',
             title: 'Importing Timetable Data',
-            description: 'Import from text, files, or AI assistance',
+            description: 'Import from text, files, or use AI to extract schedules',
             icon: '📥',
             duration: '4 mins',
             difficulty: 'Intermediate'
@@ -33,7 +33,7 @@ const TutorialSelection = ({ isOpen, onClose }) => {
         {
             id: 'customizing-colors',
             title: 'Customizing Colors',
-            description: 'Personalize your timetable with custom colors',
+            description: 'Personalize your timetable with custom subject colors',
             icon: '🎨',
             duration: '3 mins',
             difficulty: 'Beginner'
@@ -47,25 +47,25 @@ const TutorialSelection = ({ isOpen, onClose }) => {
             difficulty: 'Intermediate'
         },
         {
-            id: 'notifications',
-            title: 'Setting Up Notifications',
-            description: 'Get reminders for upcoming classes',
-            icon: '🔔',
-            duration: '3 mins',
+            id: 'keyboard-shortcuts',
+            title: 'Keyboard Shortcuts',
+            description: 'Speed up your workflow with handy shortcuts',
+            icon: '⌨️',
+            duration: '2 mins',
             difficulty: 'Intermediate'
         },
         {
-            id: 'practice-reminders',
-            title: 'Practice Reminders',
-            description: 'Set reminders for practice sessions',
-            icon: '⏰',
+            id: 'mobile-tips',
+            title: 'Mobile Usage Tips',
+            description: 'Optimize your experience on phones and tablets',
+            icon: '📱',
             duration: '3 mins',
-            difficulty: 'Intermediate'
+            difficulty: 'Beginner'
         },
         {
             id: 'advanced-features',
             title: 'Advanced Features',
-            description: 'Explore all the advanced functionality',
+            description: 'Explore all the powerful advanced functionality',
             icon: '⚡',
             duration: '6 mins',
             difficulty: 'Advanced'

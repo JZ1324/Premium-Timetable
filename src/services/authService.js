@@ -104,27 +104,36 @@ export const createUser = async (email, password) => {
  * Includes validation and Firestore integration
  */
 export const registerUser = async (username, email, password) => {
+  console.log('🔥 Starting registration process for:', username, email);
+  
   if (!initialized) {
+    console.log('🔥 Initializing Firebase Auth...');
     await initializeAuth();
   }
   
   // Import necessary services
   const { isDisposableEmail, isUsernameAvailable, createUserDocument } = await import('./userService');
   
+  console.log('🔥 Checking disposable email...');
   // Check if email is from a disposable provider
   if (isDisposableEmail(email)) {
     throw new Error('Temporary emails are not allowed.');
   }
   
+  console.log('🔥 Checking username availability...');
   // Check if username is available
   if (!(await isUsernameAvailable(username))) {
     throw new Error('Username already taken');
   }
   
+  console.log('🔥 Creating Firebase Auth user...');
   // Create user with Firebase Authentication
   const { createUserWithEmailAndPassword } = await import('firebase/auth');
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
+  
+  console.log('🔥 Firebase Auth user created successfully! UID:', user.uid);
+  console.log('🔥 Now creating Firestore user document...');
   
   // Store user data in Firestore
   await createUserDocument(user.uid, {
@@ -132,6 +141,7 @@ export const registerUser = async (username, email, password) => {
     email
   });
   
+  console.log('🔥 Registration completed successfully!');
   return userCredential;
 };
 

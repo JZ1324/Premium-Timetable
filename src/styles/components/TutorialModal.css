@@ -342,35 +342,26 @@
     pointer-events: auto !important;
 }
 
-/* Tutorial element highlighting */
+/* Tutorial element highlighting - Fixed positioning */
 .tutorial-highlight {
     position: relative !important;
     z-index: 9999 !important;
-    outline: 3px solid #ff9800 !important;
-    outline-offset: 4px !important;
+    border: 4px solid #ff9800 !important;
     border-radius: 8px !important;
     box-shadow: 
-        0 0 0 4px rgba(255, 152, 0, 0.3),
-        0 0 20px rgba(255, 152, 0, 0.5),
-        0 0 40px rgba(255, 152, 0, 0.3) !important;
+        0 0 0 2px rgba(255, 152, 0, 0.4),
+        0 0 15px rgba(255, 152, 0, 0.6),
+        0 0 30px rgba(255, 152, 0, 0.4),
+        inset 0 0 0 2px rgba(255, 152, 0, 0.2) !important;
     background: rgba(255, 152, 0, 0.1) !important;
     animation: tutorial-highlight-pulse 2s ease-in-out infinite !important;
+    /* Ensure the highlight covers the entire element */
+    box-sizing: border-box !important;
 }
 
-/* Alternative highlighting using pseudo-element for better coverage */
+/* Remove the problematic pseudo-element approach */
 .tutorial-highlight::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    right: -6px;
-    bottom: -6px;
-    border: 3px solid #ff9800;
-    border-radius: 12px;
-    background: rgba(255, 152, 0, 0.15);
-    z-index: -1;
-    animation: tutorial-highlight-glow 2s ease-in-out infinite;
-    pointer-events: none;
+    display: none !important;
 }
 
 @keyframes tutorial-highlight-pulse {
@@ -843,30 +834,22 @@
     50% { opacity: 0.7; }
 }
 
-/* Auto-clicking visual indicator */
+/* Auto-clicking visual indicator - Fixed positioning */
 .tutorial-auto-clicking {
-    position: relative;
-    z-index: 10001 !important;
-    animation: tutorial-auto-click-highlight 1.5s ease-in-out !important;
-    pointer-events: none !important;
-}
-
-.tutorial-auto-clicking::before {
-    content: '🤖 Auto-clicking...';
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--warning-color, #ff9800);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-    z-index: 10002;
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-    animation: tutorial-bounce 0.5s ease-in-out infinite alternate;
+    position: relative !important;
+    z-index: 10000 !important;
+    border: 4px solid #ff4444 !important;
+    border-radius: 8px !important;
+    box-shadow: 
+        0 0 0 3px rgba(255, 68, 68, 0.5),
+        0 0 20px rgba(255, 68, 68, 0.7),
+        0 0 40px rgba(255, 68, 68, 0.5),
+        inset 0 0 0 2px rgba(255, 68, 68, 0.3) !important;
+    background: rgba(255, 68, 68, 0.15) !important;
+    animation: tutorial-auto-click-enhanced 1s ease-in-out infinite !important;
+    /* Ensure the highlight covers the entire element */
+    box-sizing: border-box !important;
+    transform: scale(1.02) !important;
 }
 
 @keyframes tutorial-auto-click-highlight {
@@ -1015,39 +998,7 @@
     100% { left: 100%; }
 }
 
-/* Enhanced auto-clicking animation - comprehensive version */
-.tutorial-auto-clicking {
-    position: relative !important;
-    z-index: 10001 !important;
-    animation: tutorial-auto-click-comprehensive 1.2s ease-in-out infinite !important;
-    outline: 4px solid #ff5722 !important;
-    outline-offset: 6px !important;
-    border-radius: 8px !important;
-    box-shadow: 
-        0 0 0 8px rgba(255, 87, 34, 0.4),
-        0 0 30px rgba(255, 87, 34, 0.6),
-        0 0 60px rgba(255, 87, 34, 0.4) !important;
-    background: rgba(255, 87, 34, 0.2) !important;
-}
-
-.tutorial-auto-clicking::before {
-    content: '🤖 Auto-clicking...';
-    position: absolute;
-    top: -60px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #ff5722, #ff3d00);
-    color: white;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 700;
-    white-space: nowrap;
-    z-index: 10002;
-    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
-    animation: tutorial-auto-indicator 1s ease-in-out infinite;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-}
+/* Removed duplicate auto-clicking definition - keeping only the main one above */
 
 @keyframes tutorial-auto-click-comprehensive {
     0% { 
@@ -1144,16 +1095,7 @@
     }
 }
 
-/* Enhanced auto-clicking animation for the main element */
-.tutorial-auto-clicking {
-    animation: tutorial-auto-click-enhanced 1s ease-in-out infinite !important;
-    box-shadow: 0 0 30px rgba(255, 68, 68, 0.8) !important;
-    transform: scale(1.05) !important;
-    border: 3px solid #ff4444 !important;
-    border-radius: 8px !important;
-    position: relative !important;
-    z-index: 10000 !important;
-}
+/* Removed third duplicate auto-clicking definition */
 
 @keyframes tutorial-auto-click-enhanced {
     0%, 100% { 

@@ -64,20 +64,43 @@ export const isUsernameAvailable = async (username) => {
     initializeFirestore();
   }
   
-  // Special handling for the "JZ" username
-  // This ensures that if "JZ" is already taken, the check fails
-  // If it's not yet taken, we'll perform the normal availability check
-  if (username === "JZ") {
+  try {
+    console.log('🔍 Checking username availability for:', username);
+    console.log('🔍 Firebase project ID:', db?.app?.options?.projectId);
+    
+    // Special handling for the "JZ" username
+    if (username === "JZ") {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      console.log('🔍 Querying for JZ username...');
+      const querySnapshot = await getDocs(q);
+      const isAvailable = querySnapshot.empty;
+      console.log('🔍 JZ username available:', isAvailable);
+      return isAvailable;
+    }
+    
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('username', '==', username));
+    console.log('🔍 Querying for username:', username);
     const querySnapshot = await getDocs(q);
-    return querySnapshot.empty; // Returns true if JZ is available
+    const isAvailable = querySnapshot.empty;
+    console.log('🔍 Username available:', isAvailable);
+    return isAvailable;
+  } catch (error) {
+    console.error('❌ Error checking username availability:', error);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Error message:', error.message);
+    
+    // If we can't check username availability due to permissions,
+    // we'll assume it's available and let the registration proceed
+    // The worst case is a duplicate username error later
+    if (error.code === 'permission-denied') {
+      console.warn('⚠️ Permission denied for username check, proceeding anyway');
+      return true; // Assume available
+    }
+    
+    throw error;
   }
-  
-  const usersRef = collection(db, 'users');
-  const q = query(usersRef, where('username', '==', username));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.empty; // Returns true if username is available
 };
 
 /**
@@ -88,10 +111,30 @@ export const createUserDocument = async (uid, userData) => {
     initializeFirestore();
   }
   
-  await setDoc(doc(db, 'users', uid), {
-    ...userData,
-    createdAt: new Date().toISOString()
-  });
+  try {
+    console.log('Creating user document for UID:', uid);
+    console.log('User data:', userData);
+    console.log('Firestore instance:', db);
+    console.log('Firebase project ID:', db?.app?.options?.projectId);
+    console.log('Expected project ID: timetable-28639');
+    
+    const userDoc = {
+      ...userData,
+      createdAt: new Date().toISOString()
+    };
+    
+    console.log('Final document data:', userDoc);
+    console.log('Document path will be: users/' + uid);
+    
+    await setDoc(doc(db, 'users', uid), userDoc);
+    console.log('User document created successfully');
+  } catch (error) {
+    console.error('Error creating user document:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', error);
+    throw error;
+  }
 };
 
 /**

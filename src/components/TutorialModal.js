@@ -721,52 +721,57 @@ const TutorialModal = ({ isOpen, onClose, tutorialId, onBackToTutorials }) => {
                 
                 // Add multiple visual effects to the target element
                 targetElement.classList.add('tutorial-auto-clicking');
-                targetElement.style.position = 'relative';
-                targetElement.style.zIndex = '10000';
                 
-                // Create clicking indicator
+                // Create clicking indicator with fixed positioning for better control
                 const clickIndicator = document.createElement('div');
                 clickIndicator.className = 'tutorial-click-indicator';
                 clickIndicator.innerHTML = '🤖 AUTO-CLICKING';
+                
+                // Position the indicator above the element using fixed positioning
+                const indicatorRect = targetElement.getBoundingClientRect();
+                const indicatorTop = indicatorRect.top - 60;
+                const indicatorLeft = indicatorRect.left + (indicatorRect.width / 2);
+                
                 clickIndicator.style.cssText = `
-                    position: absolute;
-                    top: -50px;
-                    left: 50%;
+                    position: fixed;
+                    top: ${indicatorTop}px;
+                    left: ${indicatorLeft}px;
                     transform: translateX(-50%);
                     background: linear-gradient(45deg, #ff4444, #ff6666);
                     color: white;
-                    padding: 10px 20px;
-                    border-radius: 25px;
-                    font-size: 14px;
+                    padding: 12px 24px;
+                    border-radius: 30px;
+                    font-size: 16px;
                     font-weight: bold;
                     z-index: 10001;
                     animation: tutorial-click-bounce 0.6s ease infinite alternate;
-                    box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
+                    box-shadow: 0 10px 30px rgba(255, 68, 68, 0.6);
                     white-space: nowrap;
+                    pointer-events: none;
                 `;
                 
-                // Ensure the indicator is positioned correctly
-                if (targetElement.style.position === 'static' || !targetElement.style.position) {
-                    targetElement.style.position = 'relative';
-                }
-                targetElement.appendChild(clickIndicator);
+                // Add to document body instead of target element for better positioning
+                document.body.appendChild(clickIndicator);
                 
-                // Add pulse rings around the element
+                // Add pulse rings around the element with fixed positioning
                 const pulseRing = document.createElement('div');
                 pulseRing.className = 'tutorial-pulse-ring';
+                
+                // Position the pulse ring exactly over the element
                 pulseRing.style.cssText = `
-                    position: absolute;
-                    top: -15px;
-                    left: -15px;
-                    right: -15px;
-                    bottom: -15px;
+                    position: fixed;
+                    top: ${indicatorRect.top - 8}px;
+                    left: ${indicatorRect.left - 8}px;
+                    width: ${indicatorRect.width + 16}px;
+                    height: ${indicatorRect.height + 16}px;
                     border: 4px solid #ff4444;
                     border-radius: 12px;
                     animation: tutorial-pulse-ring 1.2s ease-out infinite;
                     pointer-events: none;
                     z-index: 9998;
+                    box-sizing: border-box;
                 `;
-                targetElement.appendChild(pulseRing);
+                document.body.appendChild(pulseRing);
                 
                 // Wait for dramatic build-up, then click
                 setTimeout(() => {

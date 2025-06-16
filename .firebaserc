@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "timetable-28639"
-  }
+    "default": "timetable-28639",
+    "stuff": "timetable-28639"
+  },
+  "targets": {},
+  "etags": {}
 }

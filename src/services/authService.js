@@ -38,16 +38,21 @@ export const initializeAuth = async () => {
   if (initialized) return auth;
   
   try {
-    // Check if Firebase is already available globally (from HTML script tags)
+    // Use Firebase SDK from HTML script tags (v8 compat)
     if (typeof window !== 'undefined' && window.firebase) {
-      console.log('Using Firebase SDK from HTML script tags');
+      console.log('🔥 Using Firebase SDK from HTML script tags');
       app = window.firebase.app();
       auth = window.firebase.auth();
+      
+      // Set persistence to LOCAL to keep users logged in
+      await auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+      
       initialized = true;
+      console.log('🔥 Firebase Auth initialized successfully');
       return auth;
     }
     
-    // If not available globally, dynamically import Firebase modules
+    // Fallback: If not available globally, use dynamic imports (v9 modular)
     const { initializeApp } = await import('firebase/app');
     const { getAuth, setPersistence, browserLocalPersistence } = await import('firebase/auth');
     
@@ -84,7 +89,12 @@ export const signIn = async (email, password) => {
   }
   
   const { signInWithEmailAndPassword } = await import('firebase/auth');
-  return signInWithEmailAndPassword(auth, email, password);
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  
+  // Ensure user document exists in Firestore
+  await ensureUserDocumentExists(userCredential.user);
+  
+  return userCredential;
 };
 
 /**
@@ -127,22 +137,47 @@ export const registerUser = async (username, email, password) => {
   }
   
   console.log('🔥 Creating Firebase Auth user...');
+  console.log('🔥 Email:', email);
+  console.log('🔥 Password length:', password ? password.length : 'undefined');
+  console.log('🔥 Auth object:', !!auth);
+  
   // Create user with Firebase Authentication
   const { createUserWithEmailAndPassword } = await import('firebase/auth');
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
   
-  console.log('🔥 Firebase Auth user created successfully! UID:', user.uid);
-  console.log('🔥 Now creating Firestore user document...');
-  
-  // Store user data in Firestore
-  await createUserDocument(user.uid, {
-    username,
-    email
-  });
-  
-  console.log('🔥 Registration completed successfully!');
-  return userCredential;
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    console.log('🔥 Firebase Auth user created successfully! UID:', user.uid);
+    console.log('🔥 Now creating Firestore user document...');
+    
+    // Store user data in Firestore
+    await createUserDocument(user.uid, {
+      username,
+      email
+    });
+    
+    console.log('🔥 Registration completed successfully!');
+    return userCredential;
+  } catch (error) {
+    console.error('🔥 Firebase Auth error:', error);
+    console.error('🔥 Error code:', error.code);
+    console.error('🔥 Error message:', error.message);
+    
+    // Handle specific error cases
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('An account with this email already exists. If this is your first time using the app, the account might be incomplete. Please try signing in first, or contact support if you need help completing your registration.');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('Password is too weak. Please choose a stronger password.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email address format.');
+    } else if (error.code === 'auth/network-request-failed') {
+      throw new Error('Network error. Please check your internet connection and try again.');
+    } else {
+      console.error('🔥 Full error object:', error);
+      throw new Error(`Registration failed: ${error.message}`);
+    }
+  }
 };
 
 /**
@@ -254,6 +289,45 @@ export const changePassword = async (currentPassword, newPassword) => {
   return updatePassword(auth.currentUser, newPassword);
 };
 
+/**
+ * Ensure user document exists in Firestore after sign in
+ * This handles cases where Firebase Auth account exists but Firestore document is missing
+ */
+export const ensureUserDocumentExists = async (user, additionalData = {}) => {
+  if (!user) return;
+  
+  console.log('🔥 Ensuring user document exists for:', user.uid);
+  
+  const { getUserData, createUserDocument } = await import('./userService');
+  
+  try {
+    // Check if user document exists
+    const userData = await getUserData(user.uid);
+    
+    if (!userData) {
+      console.log('🔥 User document not found, creating it...');
+      
+      // Extract username from email or use default
+      const email = user.email || '';
+      const username = additionalData.username || email.split('@')[0] || 'user';
+      
+      // Create the missing user document
+      await createUserDocument(user.uid, {
+        username,
+        email,
+        ...additionalData
+      });
+      
+      console.log('🔥 User document created successfully');
+    } else {
+      console.log('🔥 User document already exists');
+    }
+  } catch (error) {
+    console.error('🔥 Error ensuring user document exists:', error);
+    throw error;
+  }
+};
+
 export default {
   initializeAuth,
   signIn,
@@ -267,5 +341,6 @@ export default {
   changePassword,
   sendEmailVerification,
   isEmailVerified,
-  isAdminCredentials
+  isAdminCredentials,
+  ensureUserDocumentExists
 };

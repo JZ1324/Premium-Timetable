@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import anime from 'animejs';
+import { animate as anime } from 'animejs';
 import TimeSlot from './TimeSlot';
 import ImportButton from './ImportButton';
 import ImportTimetable from './ImportTimetable';
@@ -9,6 +9,9 @@ import ConfirmDialog from './ConfirmDialog';
 import ColorsPopup from './ColorsPopup';
 import PracticeReminderPopup from './PracticeReminderPopup';
 import timetableService from '../services/timetableService';
+import FirestoreTimetableService from '../services/firestoreTimetableService';
+import { TimetableManager } from '../services/timetableManager';
+import { getFirestore } from 'firebase/firestore';
 import parseTimetable from '../utils/timetableParser';
 import convertStructuredDataToTimeSlots from '../utils/convertStructuredDataToTimeSlots';
 import { getCurrentSchoolDay, getCurrentPeriod, shouldShowBreakPeriod } from '../utils/dateUtils';
@@ -32,6 +35,13 @@ const Timetable = () => {
     const { user } = useAuth();
     const timetableRef = useRef(null);
     const dayButtonsRef = useRef([]);
+    
+    // Firestore service state
+    const [firestoreService, setFirestoreService] = useState(null);
+    const [timetableManager, setTimetableManager] = useState(null);
+    const [isFirestoreReady, setIsFirestoreReady] = useState(false);
+    
+    // Existing state variables
     const [timeSlots, setTimeSlots] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [currentTemplate, setCurrentTemplate] = useState('');
@@ -260,7 +270,7 @@ const Timetable = () => {
             suggestedName: suggestedName,
             successMessage,
             fallbackMessage,
-            onSave: (userTemplateName) => {
+            onSave: async (userTemplateName) => {
                 try {
                     // If user provides a name, use it; otherwise use the suggested name
                     const templateName = userTemplateName ? userTemplateName.trim() : suggestedName;
@@ -269,7 +279,15 @@ const Timetable = () => {
                     const finalTemplateName = templateName || `Imported ${new Date().toISOString().slice(0, 10)}`;
                     
                     // Save the timetable as a template
-                    timetableService.saveAsTemplate(finalTemplateName);
+                    if (isFirestoreReady && firestoreService) {
+                        // Save to Firestore
+                        await firestoreService.saveTemplate(finalTemplateName, timeSlots);
+                        console.log('✅ Template saved to Firestore');
+                    } else {
+                        // Fallback to localStorage
+                        timetableService.saveAsTemplate(finalTemplateName);
+                        console.log('✅ Template saved to localStorage');
+                    }
                     
                     // Update the templates list and current template
                     setTemplates(timetableService.getTemplateNames());
@@ -337,6 +355,31 @@ const Timetable = () => {
     };
 
     useEffect(() => {
+        const initializeServices = async () => {
+            // Initialize Firestore services if user is authenticated
+            if (user) {
+                try {
+                    console.log('🔥 Initializing Firestore timetable services...');
+                    const db = getFirestore();
+                    const firestoreService = new FirestoreTimetableService(db, user.uid);
+                    const manager = new TimetableManager(firestoreService, timetableService);
+                    
+                    setFirestoreService(firestoreService);
+                    setTimetableManager(manager);
+                    
+                    // Perform migration from localStorage to Firestore if needed
+                    await manager.migrate();
+                    
+                    setIsFirestoreReady(true);
+                    console.log('✅ Firestore services initialized');
+                } catch (error) {
+                    console.error('❌ Error initializing Firestore services:', error);
+                    // Fall back to localStorage-only mode
+                    setIsFirestoreReady(false);
+                }
+            }
+        };
+
         // Load templates on component mount
         const templateNames = timetableService.getTemplateNames();
         setTemplates(templateNames);
@@ -356,6 +399,9 @@ const Timetable = () => {
         
         // Save today's day as the current selection
         saveCurrentTimetableDay(todayDay);
+        
+        // Initialize Firestore services
+        initializeServices();
         
         // Set current period based on current time
         const nowPeriod = getCurrentPeriod();
@@ -1252,12 +1298,76 @@ const Timetable = () => {
         };
     }, [timeSlots]);
 
+    // Helper function to save timetable data using Firestore when available
+    const saveTimetableData = async (newTimeSlots = timeSlots) => {
+        try {
+            if (isFirestoreReady && timetableManager) {
+                // Save to Firestore
+                await timetableManager.saveTimetable({
+                    timeSlots: newTimeSlots,
+                    currentDay: currentDay
+                });
+                console.log('✅ Timetable saved to Firestore');
+            } else {
+                // Fallback to localStorage (existing behavior)
+                console.log('💾 Saving to localStorage (Firestore not ready)');
+                // The existing timetableService already handles localStorage
+            }
+        } catch (error) {
+            console.error('❌ Error saving timetable:', error);
+            // On error, fall back to localStorage
+            console.log('💾 Falling back to localStorage due to error');
+        }
+    };
+
+    // Helper function to load timetable data from Firestore when available
+    const loadTimetableData = async () => {
+        try {
+            if (isFirestoreReady && timetableManager) {
+                // Load from Firestore
+                const timetableData = await timetableManager.loadTimetable();
+                if (timetableData && timetableData.timeSlots) {
+                    setTimeSlots(timetableData.timeSlots);
+                    if (timetableData.currentDay) {
+                        setCurrentDay(timetableData.currentDay);
+                    }
+                    console.log('✅ Timetable loaded from Firestore');
+                    return true;
+                }
+            }
+            return false; // Indicate that Firestore load was not successful
+        } catch (error) {
+            console.error('❌ Error loading timetable from Firestore:', error);
+            return false; // Fall back to localStorage
+        }
+    };
+    
+    // Auto-save to Firestore when timeSlots change (debounced)
+    useEffect(() => {
+        if (timeSlots.length > 0 && isFirestoreReady) {
+            // Debounce the save operation to avoid too many writes
+            const timeoutId = setTimeout(() => {
+                saveTimetableData(timeSlots);
+            }, 1000); // Wait 1 second after last change
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [timeSlots, isFirestoreReady]);
+    
     return (
         <div className="timetable-container">
             <div className="timetable-header">
                 <h2>School Timetable</h2>
                 <div className="current-day-display">
                     <span>{getDayName(currentDay)}</span>
+                    {/* Sync Status Indicator */}
+                    <div className="sync-status" title={isFirestoreReady ? "Synced to cloud" : "Local storage only"}>
+                        {isFirestoreReady ? (
+                            <span style={{color: '#4CAF50', fontSize: '12px', marginLeft: '10px'}}>☁️ Cloud</span>
+                        ) : (
+                            <span style={{color: '#FF9800', fontSize: '12px', marginLeft: '10px'}}>💾 Local</span>
+                        )}
+                    </div>
                 </div>
                 
                 <div className="template-controls">

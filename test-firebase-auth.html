@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Test</title>
+    
+    <!-- Firebase SDK - same versions as main app -->
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-auth-compat.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firebase Auth Registration Test</h1>
+        <p>This page tests Firebase Authentication registration directly.</p>
+        
+        <button onclick="testRegistration()" id="testBtn">Test Registration</button>
+        <button onclick="clearOutput()" id="clearBtn">Clear Output</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // Firebase configuration - same as main app
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUlHCKRwkIpJX0PXc3Nvt_l2HmfJwyjC0",
+            authDomain: "timetable-28639.firebaseapp.com",
+            projectId: "timetable-28639",
+            storageBucket: "timetable-28639.appspot.com",
+            messagingSenderId: "653769103112",
+            appId: "1:653769103112:web:7b7fe45718bec053843ebd",
+            measurementId: "G-J0F10129PJ"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+        
+        async function testRegistration() {
+            const testBtn = document.getElementById('testBtn');
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            
+            try {
+                log('🔥 Starting Firebase Auth registration test...', 'info');
+                
+                // Generate unique email for this test
+                const testEmail = 'test_' + Date.now() + '@example.com';
+                const testPassword = 'TestPassword123';
+                
+                log(`📧 Test email: ${testEmail}`, 'info');
+                log(`🔒 Test password: ${testPassword}`, 'info');
+                
+                const auth = firebase.auth();
+                log('🔥 Firebase Auth instance obtained', 'success');
+                
+                log('🔥 Attempting to create user...', 'info');
+                const userCredential = await auth.createUserWithEmailAndPassword(testEmail, testPassword);
+                
+                log(`✅ User created successfully!`, 'success');
+                log(`👤 User UID: ${userCredential.user.uid}`, 'success');
+                log(`📧 User email: ${userCredential.user.email}`, 'success');
+                
+                // Clean up - delete the test user
+                log('🧹 Cleaning up test user...', 'info');
+                await userCredential.user.delete();
+                log('✅ Test user deleted successfully', 'success');
+                
+                log('🎉 Registration test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(`❌ Registration test failed`, 'error');
+                log(`🔍 Error code: ${error.code}`, 'error');
+                log(`💬 Error message: ${error.message}`, 'error');
+                
+                if (error.code) {
+                    log(`📋 Full error details:`, 'error');
+                    log(`   - Code: ${error.code}`, 'error');
+                    log(`   - Message: ${error.message}`, 'error');
+                    
+                    // Provide specific troubleshooting for common errors
+                    switch (error.code) {
+                        case 'auth/api-key-not-valid':
+                            log('💡 Suggestion: Check Firebase API key configuration', 'info');
+                            break;
+                        case 'auth/project-not-found':
+                            log('💡 Suggestion: Verify Firebase project ID', 'info');
+                            break;
+                        case 'auth/network-request-failed':
+                            log('💡 Suggestion: Check internet connection and Firebase service status', 'info');
+                            break;
+                        case 'auth/email-already-in-use':
+                            log('💡 This is expected if running the test multiple times', 'info');
+                            break;
+                        default:
+                            log(`💡 Unexpected error code: ${error.code}`, 'info');
+                    }
+                }
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test Registration';
+            }
+        }
+        
+        // Auto-run test on page load
+        log('🚀 Firebase Auth Test Page Loaded', 'success');
+        log('👆 Click "Test Registration" to run the test', 'info');
+    </script>
+</body>
+</html>

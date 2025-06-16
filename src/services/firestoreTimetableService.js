@@ -1,32 +1,28 @@
-// Firestore-enabled timetable service
-import { 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    deleteDoc, 
-    collection, 
-    query, 
-    where, 
-    getDocs,
-    serverTimestamp 
-} from 'firebase/firestore';
+// Firestore-enabled timetable service using v8 compat SDK
+// This ensures compatibility with the existing auth service
 
 class FirestoreTimetableService {
     constructor(db, userId) {
         this.db = db;
         this.userId = userId;
         this.cache = new Map(); // Local cache for better performance
+        
+        // Verify Firebase v8 compat SDK is available
+        if (typeof window !== 'undefined' && window.firebase && window.firebase.firestore) {
+            console.log('🔥 Using Firebase v8 compat SDK for Firestore');
+        } else {
+            console.warn('⚠️ Firebase v8 compat SDK not found, operations may fail');
+        }
     }
 
     // Get user's timetable document reference
     getUserTimetableRef() {
-        return doc(this.db, 'timetables', this.userId);
+        return this.db.collection('timetables').doc(this.userId);
     }
 
     // Get user's templates collection reference
     getUserTemplatesRef() {
-        return collection(this.db, 'timetables', this.userId, 'templates');
+        return this.db.collection('timetables').doc(this.userId).collection('templates');
     }
 
     /**
@@ -40,11 +36,11 @@ class FirestoreTimetableService {
             const dataToSave = {
                 timeSlots: timetableData.timeSlots || [],
                 currentDay: timetableData.currentDay || 1,
-                lastModified: serverTimestamp(),
+                lastModified: window.firebase.firestore.FieldValue.serverTimestamp(),
                 version: '1.0'
             };
 
-            await setDoc(timetableRef, dataToSave, { merge: true });
+            await timetableRef.set(dataToSave, { merge: true });
             
             // Update cache
             this.cache.set('timetable', dataToSave);
@@ -71,9 +67,9 @@ class FirestoreTimetableService {
             }
 
             const timetableRef = this.getUserTimetableRef();
-            const docSnap = await getDoc(timetableRef);
+            const docSnap = await timetableRef.get();
 
-            if (docSnap.exists()) {
+            if (docSnap.exists) {
                 const data = docSnap.data();
                 this.cache.set('timetable', data);
                 console.log('✅ Timetable loaded successfully');
@@ -99,15 +95,15 @@ class FirestoreTimetableService {
         try {
             console.log(`💾 Saving template "${templateName}" to Firestore...`);
             
-            const templateRef = doc(this.getUserTemplatesRef(), templateName);
+            const templateRef = this.getUserTemplatesRef().doc(templateName);
             const dataToSave = {
                 name: templateName,
                 timeSlots: templateData,
-                createdAt: serverTimestamp(),
-                lastModified: serverTimestamp()
+                createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+                lastModified: window.firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            await setDoc(templateRef, dataToSave);
+            await templateRef.set(dataToSave);
             
             console.log(`✅ Template "${templateName}" saved successfully`);
             return true;
@@ -125,7 +121,7 @@ class FirestoreTimetableService {
             console.log('📥 Loading templates from Firestore...');
             
             const templatesRef = this.getUserTemplatesRef();
-            const querySnapshot = await getDocs(templatesRef);
+            const querySnapshot = await templatesRef.get();
             
             const templates = {};
             querySnapshot.forEach((doc) => {
@@ -148,8 +144,8 @@ class FirestoreTimetableService {
         try {
             console.log(`🗑️ Deleting template "${templateName}" from Firestore...`);
             
-            const templateRef = doc(this.getUserTemplatesRef(), templateName);
-            await deleteDoc(templateRef);
+            const templateRef = this.getUserTemplatesRef().doc(templateName);
+            await templateRef.delete();
             
             console.log(`✅ Template "${templateName}" deleted successfully`);
             return true;
@@ -167,9 +163,9 @@ class FirestoreTimetableService {
             console.log('🔄 Updating time slots in Firestore...');
             
             const timetableRef = this.getUserTimetableRef();
-            await updateDoc(timetableRef, {
+            await timetableRef.update({
                 timeSlots: timeSlots,
-                lastModified: serverTimestamp()
+                lastModified: window.firebase.firestore.FieldValue.serverTimestamp()
             });
 
             // Update cache
@@ -200,8 +196,8 @@ class FirestoreTimetableService {
     async hasTimetableData() {
         try {
             const timetableRef = this.getUserTimetableRef();
-            const docSnap = await getDoc(timetableRef);
-            return docSnap.exists() && docSnap.data().timeSlots?.length > 0;
+            const docSnap = await timetableRef.get();
+            return docSnap.exists && docSnap.data().timeSlots?.length > 0;
         } catch (error) {
             console.error('❌ Error checking timetable data:', error);
             return false;

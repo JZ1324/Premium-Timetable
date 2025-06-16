@@ -30,13 +30,39 @@ export class TimetableManager {
                 return true;
             } catch (error) {
                 console.warn('Firestore save failed, falling back to localStorage:', error);
-                this.localService.saveTimetableToLocalStorage(timetableData);
+                // Use localStorage directly since timetableService doesn't have this method
+                this.saveToLocalStorage(timetableData);
                 return false;
             }
         } else {
             // Offline: save to localStorage
-            this.localService.saveTimetableToLocalStorage(timetableData);
+            this.saveToLocalStorage(timetableData);
             return false;
+        }
+    }
+
+    /**
+     * Save data to localStorage directly
+     */
+    saveToLocalStorage(timetableData) {
+        try {
+            localStorage.setItem('timetable-data', JSON.stringify(timetableData));
+            console.log('💾 Saved to localStorage');
+        } catch (error) {
+            console.error('❌ Error saving to localStorage:', error);
+        }
+    }
+
+    /**
+     * Load data from localStorage directly  
+     */
+    loadFromLocalStorage() {
+        try {
+            const data = localStorage.getItem('timetable-data');
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('❌ Error loading from localStorage:', error);
+            return null;
         }
     }
 
@@ -49,10 +75,10 @@ export class TimetableManager {
                 return await this.firestoreService.loadTimetable();
             } catch (error) {
                 console.warn('Firestore load failed, falling back to localStorage:', error);
-                return this.localService.loadTimetableFromLocalStorage();
+                return this.loadFromLocalStorage();
             }
         } else {
-            return this.localService.loadTimetableFromLocalStorage();
+            return this.loadFromLocalStorage();
         }
     }
 
@@ -64,7 +90,7 @@ export class TimetableManager {
 
         try {
             // Check if there's newer data in localStorage that needs syncing
-            const localData = this.localService.loadTimetableFromLocalStorage();
+            const localData = this.loadFromLocalStorage();
             if (localData && localData.timeSlots && localData.timeSlots.length > 0) {
                 await this.firestoreService.saveTimetable(localData);
                 console.log('✅ Local data synced to Firestore');

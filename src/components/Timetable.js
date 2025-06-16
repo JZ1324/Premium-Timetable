@@ -9,6 +9,7 @@ import ConfirmDialog from './ConfirmDialog';
 import ColorsPopup from './ColorsPopup';
 import PracticeReminderPopup from './PracticeReminderPopup';
 import timetableService from '../services/timetableService';
+import { useSyncStatus } from '../hooks/useSyncStatus';
 import FirestoreTimetableService from '../services/firestoreTimetableService';
 import { TimetableManager } from '../services/timetableManager';
 import { getFirestore } from 'firebase/firestore';
@@ -36,10 +37,8 @@ const Timetable = () => {
     const timetableRef = useRef(null);
     const dayButtonsRef = useRef([]);
     
-    // Firestore service state
-    const [firestoreService, setFirestoreService] = useState(null);
-    const [timetableManager, setTimetableManager] = useState(null);
-    const [isFirestoreReady, setIsFirestoreReady] = useState(false);
+    // Use shared sync status hook
+    const { isFirestoreReady, firestoreService, timetableManager } = useSyncStatus();
     
     // Existing state variables
     const [timeSlots, setTimeSlots] = useState([]);
@@ -87,125 +86,166 @@ const Timetable = () => {
     const [activePracticePopups, setActivePracticePopups] = useState([]);
     const [showPracticeReminderSettings, setShowPracticeReminderSettings] = useState(false);
     
-    // Animation functions - More dramatic animations
+    // Animation functions - Using CSS animations for better compatibility
     const animateTimeSlots = () => {
-        if (typeof anime !== 'undefined') {
-            anime({
-                targets: '.time-slot',
-                opacity: [0, 1],
-                translateY: [50, 0],
-                scale: [0.8, 1],
-                duration: 800,
-                easing: 'easeOutElastic(1, .8)',
-                delay: function(el, i) { return i * 100; }
+        try {
+            const timeSlots = document.querySelectorAll('.time-slot');
+            console.log(`Found ${timeSlots.length} time slots in DOM`);
+            
+            timeSlots.forEach((slot, i) => {
+                // Simple CSS animation
+                slot.style.opacity = '0';
+                slot.style.transform = 'translateY(50px) scale(0.8)';
+                slot.style.transition = 'all 0.8s ease';
+                
+                setTimeout(() => {
+                    slot.style.opacity = '1';
+                    slot.style.transform = 'translateY(0) scale(1)';
+                }, i * 100);
             });
+        } catch (error) {
+            console.warn('Error in animateTimeSlots:', error);
         }
     };
 
     const animateDayChange = () => {
-        if (typeof anime !== 'undefined') {
+        try {
+            const timeSlots = document.querySelectorAll('.time-slot');
+            console.log(`Animating day change for ${timeSlots.length} time slots`);
+            
             // First fade out
-            anime({
-                targets: '.time-slot',
-                opacity: 0,
-                translateX: -30,
-                duration: 200,
-                easing: 'easeInCubic',
-                complete: () => {
-                    // Then fade back in
-                    anime({
-                        targets: '.time-slot',
-                        opacity: 1,
-                        translateX: 0,
-                        duration: 400,
-                        easing: 'easeOutBounce',
-                        delay: function(el, i) { return i * 50; }
-                    });
-                }
+            timeSlots.forEach((slot) => {
+                slot.style.opacity = '0';
+                slot.style.transform = 'translateX(-30px)';
+                slot.style.transition = 'all 0.2s ease-in';
             });
+            
+            // Then fade back in
+            setTimeout(() => {
+                timeSlots.forEach((slot, i) => {
+                    setTimeout(() => {
+                        slot.style.opacity = '1';
+                        slot.style.transform = 'translateX(0)';
+                        slot.style.transition = 'all 0.4s ease-out';
+                    }, i * 50);
+                });
+            }, 200);
+        } catch (error) {
+            console.warn('Error in animateDayChange:', error);
         }
     };
 
     const animateCurrentPeriod = () => {
-        if (typeof anime !== 'undefined') {
-            anime({
-                targets: '.current-period',
-                scale: [1, 1.1, 1],
-                backgroundColor: ['#ffffff', '#ffeb3b', '#ffffff'],
-                duration: 1000,
-                easing: 'easeOutElastic(1, .6)'
+        try {
+            const currentPeriodElements = document.querySelectorAll('.current-period');
+            console.log(`Found ${currentPeriodElements.length} current period elements in DOM`);
+            
+            currentPeriodElements.forEach((element) => {
+                // Enhanced CSS animation that complements existing styles
+                element.style.transform = 'translateY(-8px) scale(1.08)';
+                element.style.boxShadow = '0 12px 24px rgba(255, 94, 58, 0.4), 0 0 30px rgba(255, 149, 0, 0.6)';
+                element.style.border = '2px solid rgba(255, 255, 255, 0.9)';
+                element.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                element.style.zIndex = '2000';
+                
+                // Add a subtle background enhancement without overriding text
+                element.style.backgroundImage = 'linear-gradient(135deg, rgba(255, 94, 58, 0.2) 0%, rgba(255, 149, 0, 0.2) 100%)';
+                
+                setTimeout(() => {
+                    element.style.transform = 'translateY(-3px) scale(1.02)';
+                    element.style.boxShadow = '0 8px 16px rgba(255, 94, 58, 0.3), 0 0 20px rgba(255, 149, 0, 0.4)';
+                    element.style.border = '1px solid rgba(255, 255, 255, 0.8)';
+                    element.style.zIndex = '1000';
+                    element.style.backgroundImage = 'linear-gradient(135deg, rgba(255, 94, 58, 0.08) 0%, rgba(255, 149, 0, 0.08) 100%)';
+                }, 600);
             });
+        } catch (error) {
+            console.warn('Error in animateCurrentPeriod:', error);
         }
     };
 
     const animateAdminButton = () => {
-        if (typeof anime !== 'undefined') {
-            anime({
-                targets: '.admin-button',
-                scale: [0, 1.2, 1],
-                opacity: [0, 1],
-                rotate: [0, 360],
-                duration: 800,
-                easing: 'easeOutElastic(1, .8)'
+        try {
+            const adminButtons = document.querySelectorAll('.admin-button');
+            console.log(`Found ${adminButtons.length} admin buttons in DOM`);
+            
+            adminButtons.forEach((button) => {
+                // Simple CSS animation
+                button.style.transform = 'scale(0) rotate(0deg)';
+                button.style.opacity = '0';
+                button.style.transition = 'all 0.8s ease';
+                
+                setTimeout(() => {
+                    button.style.transform = 'scale(1) rotate(360deg)';
+                    button.style.opacity = '1';
+                }, 100);
+                
+                setTimeout(() => {
+                    button.style.transform = 'scale(1) rotate(0deg)';
+                }, 800);
             });
+        } catch (error) {
+            console.warn('Error in animateAdminButton:', error);
         }
     };
     
     // Add button hover animations
     const addButtonHoverAnimations = () => {
-        if (typeof anime !== 'undefined') {
+        try {
             const buttons = document.querySelectorAll('button');
+            console.log(`Adding hover animations to ${buttons.length} buttons`);
+            
             buttons.forEach(button => {
                 button.addEventListener('mouseenter', () => {
-                    anime({
-                        targets: button,
-                        scale: 1.1,
-                        duration: 200,
-                        easing: 'easeOutQuart'
-                    });
+                    try {
+                        button.style.transform = 'scale(1.1)';
+                        button.style.transition = 'transform 0.2s ease';
+                    } catch (e) {
+                        console.warn('Error in button hover animation:', e);
+                    }
                 });
                 
                 button.addEventListener('mouseleave', () => {
-                    anime({
-                        targets: button,
-                        scale: 1,
-                        duration: 200,
-                        easing: 'easeOutQuart'
-                    });
+                    try {
+                        button.style.transform = 'scale(1)';
+                        button.style.transition = 'transform 0.2s ease';
+                    } catch (e) {
+                        console.warn('Error in button leave animation:', e);
+                    }
                 });
             });
+        } catch (error) {
+            console.warn('Error in addButtonHoverAnimations:', error);
         }
     };
     
     // Test animation function you can call manually
     const testAnimation = () => {
         console.log('testAnimation called!');
-        console.log('anime object:', anime);
-        console.log('anime type:', typeof anime);
         
         const timeSlots = document.querySelectorAll('.time-slot');
         console.log('Found time slots:', timeSlots.length);
         
-        if (typeof anime !== 'undefined') {
-            console.log('Running animation...');
-            anime({
-                targets: '.time-slot',
-                scale: [1, 1.2, 1],
-                rotate: [0, 10, 0],
-                backgroundColor: ['rgb(255, 255, 255)', 'rgb(255, 235, 59)', 'rgb(255, 255, 255)'],
-                duration: 1000,
-                easing: 'easeOutElastic(1, .8)',
-                delay: function(el, i) { 
-                    console.log(`Animating element ${i}`);
-                    return i * 150; 
-                },
-                complete: () => {
-                    console.log('Animation completed!');
-                }
+        try {
+            console.log('Running CSS animation test...');
+            timeSlots.forEach((slot, i) => {
+                setTimeout(() => {
+                    slot.style.transform = 'scale(1.2) rotate(10deg)';
+                    slot.style.backgroundColor = '#ffeb3b';
+                    slot.style.transition = 'all 1s ease';
+                    
+                    setTimeout(() => {
+                        slot.style.transform = 'scale(1) rotate(0deg)';
+                        slot.style.backgroundColor = '';
+                    }, 1000);
+                }, i * 150);
             });
-        } else {
-            console.error('Anime.js not available or not properly imported');
-            console.log('Available properties:', Object.keys(anime || {}));
+            
+            setTimeout(() => {
+                console.log('Animation completed!');
+            }, timeSlots.length * 150 + 1000);
+        } catch (error) {
+            console.warn('Error in testAnimation:', error);
         }
     };
     
@@ -355,31 +395,6 @@ const Timetable = () => {
     };
 
     useEffect(() => {
-        const initializeServices = async () => {
-            // Initialize Firestore services if user is authenticated
-            if (user) {
-                try {
-                    console.log('🔥 Initializing Firestore timetable services...');
-                    const db = getFirestore();
-                    const firestoreService = new FirestoreTimetableService(db, user.uid);
-                    const manager = new TimetableManager(firestoreService, timetableService);
-                    
-                    setFirestoreService(firestoreService);
-                    setTimetableManager(manager);
-                    
-                    // Perform migration from localStorage to Firestore if needed
-                    await manager.migrate();
-                    
-                    setIsFirestoreReady(true);
-                    console.log('✅ Firestore services initialized');
-                } catch (error) {
-                    console.error('❌ Error initializing Firestore services:', error);
-                    // Fall back to localStorage-only mode
-                    setIsFirestoreReady(false);
-                }
-            }
-        };
-
         // Load templates on component mount
         const templateNames = timetableService.getTemplateNames();
         setTemplates(templateNames);
@@ -399,9 +414,6 @@ const Timetable = () => {
         
         // Save today's day as the current selection
         saveCurrentTimetableDay(todayDay);
-        
-        // Initialize Firestore services
-        initializeServices();
         
         // Set current period based on current time
         const nowPeriod = getCurrentPeriod();
@@ -1360,14 +1372,6 @@ const Timetable = () => {
                 <h2>School Timetable</h2>
                 <div className="current-day-display">
                     <span>{getDayName(currentDay)}</span>
-                    {/* Sync Status Indicator */}
-                    <div className="sync-status" title={isFirestoreReady ? "Synced to cloud" : "Local storage only"}>
-                        {isFirestoreReady ? (
-                            <span style={{color: '#4CAF50', fontSize: '12px', marginLeft: '10px'}}>☁️ Cloud</span>
-                        ) : (
-                            <span style={{color: '#FF9800', fontSize: '12px', marginLeft: '10px'}}>💾 Local</span>
-                        )}
-                    </div>
                 </div>
                 
                 <div className="template-controls">

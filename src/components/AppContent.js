@@ -8,6 +8,7 @@ import SmartStudySearch from './SmartStudySearch';
 import Login from './Login';
 import ThemeInitializer from './ThemeInitializer';
 import { useAuth } from './AuthProvider';
+import { useSyncStatus } from '../hooks/useSyncStatus';
 import '../styles/components/SmartStudySearchContainer.css';
 
 const AppContent = () => {
@@ -29,6 +30,9 @@ const AppContent = () => {
   
   // Get authentication state from context
   const { isAuthenticated, isLoading, user } = useAuth();
+  
+  // Get sync status for Firestore
+  const { isFirestoreReady } = useSyncStatus();
 
   const handleThemeChange = (theme) => {
     console.log("%c THEME CHANGE: ", "background: #6e3cbf; color: white; padding: 4px; border-radius: 4px", theme);
@@ -180,7 +184,17 @@ const AppContent = () => {
                   </div>
                   <div className="timetable-section">
                     <div className="animated-container fade-in-up">
-                      <h2 className="section-title">Weekly Schedule</h2>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px'}}>
+                        <h2 className="section-title" style={{margin: 0}}>Weekly Schedule</h2>
+                        {/* Sync Status Indicator */}
+                        <div className="sync-status" title={isFirestoreReady ? "Synced to cloud" : "Local storage only"}>
+                          {isFirestoreReady ? (
+                            <span style={{color: '#4CAF50', fontSize: '12px', fontWeight: 'bold'}}>☁️ Cloud</span>
+                          ) : (
+                            <span style={{color: '#FF9800', fontSize: '12px', fontWeight: 'bold'}}>💾 Local</span>
+                          )}
+                        </div>
+                      </div>
                       <Timetable />
                     </div>
                   </div>

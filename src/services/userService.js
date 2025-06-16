@@ -234,6 +234,108 @@ export const isAdmin = async (uid) => {
   }
 };
 
+/**
+ * Update user's last activity timestamp
+ */
+export const updateUserActivity = async (uid) => {
+  if (!db) {
+    initializeFirestore();
+  }
+  
+  try {
+    const now = new Date();
+    await db.collection('users').doc(uid).update({
+      lastActive: now.toISOString(),
+      lastActiveTimestamp: now.getTime()
+    });
+    console.log('✅ User activity updated for:', uid);
+  } catch (error) {
+    console.error('❌ Error updating user activity:', error);
+    // Don't throw error to avoid breaking the app
+  }
+};
+
+/**
+ * Get users active within the last X minutes
+ */
+export const getActiveUsers = async (minutesThreshold = 15) => {
+  if (!db) {
+    initializeFirestore();
+  }
+  
+  try {
+    const cutoffTime = new Date(Date.now() - (minutesThreshold * 60 * 1000));
+    const cutoffTimestamp = cutoffTime.getTime();
+    
+    const usersRef = db.collection('users');
+    const querySnapshot = await usersRef
+      .where('lastActiveTimestamp', '>', cutoffTimestamp)
+      .get();
+    
+    const activeUsers = [];
+    querySnapshot.forEach(doc => {
+      const userData = doc.data();
+      const lastActive = new Date(userData.lastActiveTimestamp);
+      const minutesAgo = Math.floor((Date.now() - lastActive.getTime()) / (1000 * 60));
+      
+      activeUsers.push({
+        uid: doc.id,
+        email: userData.email,
+        username: userData.username,
+        lastActive: userData.lastActive,
+        minutesAgo: minutesAgo
+      });
+    });
+    
+    // Sort by most recently active
+    activeUsers.sort((a, b) => a.minutesAgo - b.minutesAgo);
+    
+    console.log(`📊 Found ${activeUsers.length} users active in last ${minutesThreshold} minutes`);
+    return activeUsers;
+  } catch (error) {
+    console.error('❌ Error getting active users:', error);
+    return [];
+  }
+};
+
+/**
+ * Initialize activity tracking for a user session
+ */
+export const startActivityTracking = (uid) => {
+  // Update activity immediately
+  updateUserActivity(uid);
+  
+  // Update activity every 5 minutes while user is active
+  const activityInterval = setInterval(() => {
+    updateUserActivity(uid);
+  }, 5 * 60 * 1000); // 5 minutes
+  
+  // Update activity on user interactions
+  const events = ['click', 'keypress', 'scroll', 'mousemove'];
+  let lastActivityUpdate = Date.now();
+  
+  const handleUserActivity = () => {
+    const now = Date.now();
+    // Only update if it's been more than 2 minutes since last update
+    if (now - lastActivityUpdate > 2 * 60 * 1000) {
+      updateUserActivity(uid);
+      lastActivityUpdate = now;
+    }
+  };
+  
+  events.forEach(event => {
+    document.addEventListener(event, handleUserActivity, { passive: true });
+  });
+  
+  // Cleanup function
+  return () => {
+    clearInterval(activityInterval);
+    events.forEach(event => {
+      document.removeEventListener(event, handleUserActivity);
+    });
+  };
+};
+
 export default {
   initializeFirestore,
   isDisposableEmail,
@@ -242,5 +344,8 @@ export default {
   getUserData,
   updateUserDocument,
   setUserAsAdmin,
-  isAdmin
+  isAdmin,
+  updateUserActivity,
+  getActiveUsers,
+  startActivityTracking
 };

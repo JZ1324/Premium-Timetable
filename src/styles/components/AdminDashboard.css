@@ -1,0 +1,720 @@
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff !important;
+    z-index: 1000;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+}
+
+/* Force ALL text elements to be white - most important rule */
+.admin-dashboard * {
+    color: #ffffff !important;
+}
+
+/* Specifically target all text elements */
+.admin-dashboard h1,
+.admin-dashboard h2,
+.admin-dashboard h3,
+.admin-dashboard h4,
+.admin-dashboard h5,
+.admin-dashboard h6,
+.admin-dashboard p,
+.admin-dashboard span,
+.admin-dashboard div,
+.admin-dashboard td,
+.admin-dashboard th,
+.admin-dashboard label,
+.admin-dashboard input,
+.admin-dashboard button {
+    color: #ffffff !important;
+}
+
+.admin-dashboard.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    font-size: 1.5rem;
+    text-align: center;
+    color: #ffffff !important;
+}
+
+/* Ensure no horizontal overflow */
+* {
+    box-sizing: border-box;
+}
+
+.admin-dashboard * {
+    max-width: 100%;
+}
+
+/* Header */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.admin-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    padding: 0 2rem;
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab.active {
+    color: white;
+    border-bottom-color: #4CAF50;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Content */
+.admin-content {
+    height: calc(100% - 140px);
+    padding: 2rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Overview Tab */
+.admin-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+    color: #ffffff !important;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.stat-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    opacity: 1 !important;
+    font-weight: 500;
+    color: #ffffff !important;
+    visibility: visible !important;
+}
+
+/* CRITICAL: Force text visibility - override any conflicting styles */
+.admin-dashboard .stat-card h3 {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.admin-dashboard .stat-number {
+    color: #4CAF50 !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.admin-dashboard .recent-activity h3,
+.admin-dashboard .users-header h3,
+.admin-dashboard .system-actions h3,
+.admin-dashboard .system-logs h3 {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.admin-dashboard .activity-item,
+.admin-dashboard .activity-item * {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.admin-dashboard table,
+.admin-dashboard table th,
+.admin-dashboard table td {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4CAF50 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.recent-activity {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff !important;
+}
+
+.recent-activity h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: #ffffff !important;
+}
+
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: grid;
+    grid-template-columns: 150px 1fr 150px;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    color: #ffffff !important;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-time {
+    opacity: 1 !important;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.activity-action {
+    font-weight: 500;
+    color: #ffffff !important;
+}
+
+.activity-user {
+    opacity: 1 !important;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Active user indicator */
+.activity-item.active-user::before {
+    content: "🟢";
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+}
+
+/* Real-time indicator */
+.stat-card .stat-subtitle {
+    position: relative;
+}
+
+.stat-card .stat-subtitle::after {
+    content: "🔄";
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* Better activity time formatting */
+.activity-time {
+    font-weight: 500;
+    color: #4CAF50 !important;
+}
+
+.activity-item.active-user .activity-time {
+    font-size: 0.8rem;
+    color: #4CAF50 !important;
+    font-weight: 600;
+}
+
+/* Users Tab */
+.admin-users {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.users-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #ffffff !important;
+}
+
+.refresh-btn {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: rgba(76, 175, 80, 0.3);
+}
+
+.users-table {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: auto;
+    backdrop-filter: blur(10px);
+    max-width: 100%;
+    box-sizing: border-box;
+    max-width: calc(100vw - 4rem); /* Account for padding */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; /* Ensure white text */
+}
+
+@media (max-width: 1200px) {
+    .users-table table {
+        min-width: 600px; /* Smaller minimum on smaller screens */
+    }
+}
+
+@media (max-width: 900px) {
+    .users-table {
+        max-width: calc(100vw - 2rem); /* Less padding on mobile */
+    }
+    
+    .users-table table {
+        min-width: 500px;
+    }
+    
+    .users-table th,
+    .users-table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+.users-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Ensure table doesn't get too cramped */
+}
+
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff !important;
+}
+
+.users-table th {
+    background: rgba(0, 0, 0, 0.3);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ffffff !important;
+}
+
+.users-table td {
+    font-size: 0.9rem;
+    color: #ffffff !important;
+}
+
+.role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.role-badge.admin {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+    border: 1px solid #FFC107;
+}
+
+.role-badge.user {
+    background: rgba(33, 150, 243, 0.2);
+    color: #2196F3;
+    border: 1px solid #2196F3;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.action-btn.promote {
+    color: #FFC107;
+}
+
+.action-btn.demote {
+    color: #2196F3;
+}
+
+.action-btn.suspend {
+    color: #FF9800;
+}
+
+.action-btn.delete {
+    color: #F44336;
+}
+
+/* System Tab */
+.admin-system {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.system-actions {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; /* Ensure white text */
+}
+
+.system-actions h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #ffffff !important;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.system-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.system-btn.export {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+}
+
+.system-btn.terminal {
+    background: linear-gradient(45deg, #333, #555);
+}
+
+.system-btn.refresh {
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+}
+
+.system-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.system-logs {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; /* Ensure white text */
+}
+
+.system-logs h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #ffffff !important;
+}
+
+.logs-container {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #ffffff !important;
+}
+
+.log-entry {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid #4CAF50;
+    color: rgba(255, 255, 255, 0.9); /* Ensure white text */
+}
+
+.log-entry.warning {
+    border-left-color: #FF9800;
+}
+
+.log-entry.error {
+    border-left-color: #F44336;
+}
+
+.log-time {
+    opacity: 0.7;
+    margin-right: 1rem;
+    color: rgba(255, 255, 255, 0.7); /* Ensure white text */
+}
+
+.log-level {
+    font-weight: bold;
+    margin-right: 1rem;
+    color: rgba(255, 255, 255, 0.9); /* Ensure white text */
+}
+
+.log-level:contains("ERROR") {
+    color: #F44336 !important;
+}
+
+.log-level:contains("WARN") {
+    color: #FF9800 !important;
+}
+
+.log-message {
+    margin-right: 1rem;
+    color: rgba(255, 255, 255, 0.9); /* Ensure white text */
+}
+
+.log-user {
+    opacity: 0.7;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.7); /* Ensure white text */
+}
+
+/* Stat card subtitle */
+.stat-subtitle {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-top: 0.5rem;
+    font-weight: normal;
+}
+
+/* Dashboard sections layout */
+.dashboard-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-sections {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Active users styling */
+.activity-item.active-user {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
+}
+
+.activity-username {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.no-activity {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-dashboard {
+        font-size: 0.9rem;
+    }
+    
+    .admin-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .admin-tabs {
+        padding: 0 1rem;
+        flex-wrap: wrap;
+        overflow-x: auto;
+    }
+    
+    .tab {
+        padding: 0.75rem 1rem;
+        flex-shrink: 0;
+    }
+    
+    .admin-content {
+        padding: 1rem;
+        height: calc(100% - 160px); /* Adjust for mobile header height */
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-item {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .users-table {
+        overflow-x: auto;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .system-btn {
+        width: 100%;
+    }
+}
+
+/* Scrollbar Styling */
+.admin-content::-webkit-scrollbar,
+.activity-list::-webkit-scrollbar,
+.logs-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-content::-webkit-scrollbar-track,
+.activity-list::-webkit-scrollbar-track,
+.logs-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.admin-content::-webkit-scrollbar-thumb,
+.activity-list::-webkit-scrollbar-thumb,
+.logs-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.admin-content::-webkit-scrollbar-thumb:hover,
+.activity-list::-webkit-scrollbar-thumb:hover,
+.logs-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* CRITICAL: Force all stat card content to be visible always */
+.admin-dashboard .stat-card,
+.admin-dashboard .stat-card *,
+.admin-dashboard .stat-card h3,
+.admin-dashboard .stat-card .stat-number {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Remove any potential white overlays or backgrounds */
+.admin-dashboard .stat-card::before,
+.admin-dashboard .stat-card::after {
+    display: none !important;
+}

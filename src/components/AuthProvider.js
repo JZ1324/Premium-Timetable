@@ -4,7 +4,7 @@ import {
   getCurrentUser, 
   onAuthStateChanged 
 } from '../services/authService';
-import { getUserData } from '../services/userService';
+import { getUserData, startActivityTracking } from '../services/userService';
 
 // Create Auth Context
 export const AuthContext = createContext(null);
@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
   const [error, setError] = useState(null);
+  const [activityCleanup, setActivityCleanup] = useState(null);
 
   // Initialize Firebase auth on component mount
   useEffect(() => {
@@ -37,10 +38,25 @@ export const AuthProvider = ({ children }) => {
         const unsubscribe = onAuthStateChanged(async (user) => {
           setIsLoading(true);
           
+          // Clean up previous activity tracking
+          if (activityCleanup) {
+            activityCleanup();
+            setActivityCleanup(null);
+          }
+          
           if (user) {
             console.log('User authenticated:', user.uid);
             setUser(user);
             setIsAuthenticated(true);
+            
+            // Start activity tracking for the authenticated user
+            try {
+              const cleanup = startActivityTracking(user.uid);
+              setActivityCleanup(() => cleanup);
+              console.log('✅ Activity tracking started for user:', user.uid);
+            } catch (err) {
+              console.error('Error starting activity tracking:', err);
+            }
             
             // Fetch additional user data from Firestore
             try {
@@ -66,7 +82,12 @@ export const AuthProvider = ({ children }) => {
         });
         
         // Return cleanup function
-        return () => unsubscribe();
+        return () => {
+          unsubscribe();
+          if (activityCleanup) {
+            activityCleanup();
+          }
+        };
       } catch (err) {
         console.error('Failed to initialize auth:', err);
         setError(err.message);
@@ -105,6 +126,15 @@ export const AuthProvider = ({ children }) => {
     
     refreshUserData();
   }, [user]);
+
+  // Cleanup activity tracking on unmount
+  useEffect(() => {
+    return () => {
+      if (activityCleanup) {
+        activityCleanup();
+      }
+    };
+  }, [activityCleanup]);
 
   // The value to be provided to consumers of this context
   const authValue = {

@@ -20,6 +20,7 @@ import { saveCurrentTimetableDay, getLastActiveTimetableDay, saveCurrentTemplate
 import { useAuth } from './AuthProvider';
 import { isAdmin } from '../services/userService';
 import AdminTerminal from './AdminTerminal';
+import AdminDashboard from './AdminDashboard';
 import { isNotificationSupported, requestNotificationPermission, checkUpcomingClasses } from '../services/notificationService';
 import '../styles/components/Timetable.css';
 import '../styles/components/TimeSlot.css';
@@ -50,6 +51,7 @@ const Timetable = () => {
     const [currentPeriod, setCurrentPeriod] = useState('');
     const [isAdminUser, setIsAdminUser] = useState(false);
     const [showAdminTerminal, setShowAdminTerminal] = useState(false);
+    const [showAdminDashboard, setShowAdminDashboard] = useState(false);
     const [templatePopup, setTemplatePopup] = useState({
         isOpen: false,
         suggestedName: '',
@@ -1369,7 +1371,27 @@ const Timetable = () => {
     return (
         <div className="timetable-container">
             <div className="timetable-header">
-                <h2>School Timetable</h2>
+                <div className="header-main">
+                    <h2>School Timetable</h2>
+                    {isAdminUser && (
+                        <div className="admin-controls header-admin">
+                            <button 
+                                className="admin-button-header" 
+                                onClick={() => setShowAdminDashboard(true)}
+                                title="Open Admin Dashboard"
+                            >
+                                🛠️
+                            </button>
+                            <button 
+                                className="admin-button-header terminal" 
+                                onClick={() => setShowAdminTerminal(true)}
+                                title="Open Admin Terminal"
+                            >
+                                💻
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <div className="current-day-display">
                     <span>{getDayName(currentDay)}</span>
                 </div>
@@ -1425,15 +1447,6 @@ const Timetable = () => {
                     >
                         Colours
                     </button>
-                    
-                    {isAdminUser && (
-                        <button 
-                            className="admin-button" 
-                            onClick={() => setShowAdminTerminal(true)}
-                        >
-                            Admin
-                        </button>
-                    )}
                     
                     <ImportButton onImport={importTimetable} />
                 </div>
@@ -1587,9 +1600,13 @@ const Timetable = () => {
                 </div>
             </div>
             
-            {/* Admin Terminal */}
+            {/* Admin Interfaces */}
             {showAdminTerminal && (
                 <AdminTerminal onClose={() => setShowAdminTerminal(false)} />
+            )}
+            
+            {showAdminDashboard && (
+                <AdminDashboard onClose={() => setShowAdminDashboard(false)} />
             )}
             
             {/* Template Name Popup */}

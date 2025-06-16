@@ -1,7 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Rules for user documents - simplified and more permissive for registration
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true);
+    }
+    
+    // Rules for user documents
     match /users/{userId} {
       // Allow authenticated users to create, read, and write their own user document
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -10,6 +18,9 @@ service cloud.firestore {
       
       // Allow public read access for username availability checks during registration
       allow read: if true;
+      
+      // Allow admins to read all user documents for management
+      allow read, write: if isAdmin();
     }
     
     // Rules for timetable data
@@ -19,11 +30,21 @@ service cloud.firestore {
       allow read, update: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
       
+      // Allow admins to read all timetables for system statistics
+      allow read: if isAdmin();
+      // Allow admins to delete user timetables for user management
+      allow delete: if isAdmin();
+      
       // Allow user to manage their own templates
       match /templates/{templateId} {
         allow create: if request.auth != null && request.auth.uid == userId;
         allow read, update: if request.auth != null && request.auth.uid == userId;
         allow delete: if request.auth != null && request.auth.uid == userId;
+        
+        // Allow admins to read all templates for system statistics
+        allow read: if isAdmin();
+        // Allow admins to delete templates for user management
+        allow delete: if isAdmin();
       }
     }
     
@@ -31,11 +52,17 @@ service cloud.firestore {
     match /settings/{userId} {
       // Allow read and write if the user is authenticated and the document belongs to them
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow admins to read and manage user settings
+      allow read, write: if isAdmin();
     }
     
     // Rules for practice reminders
     match /users/{userId}/practiceReminders/{reminderId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow admins to read practice reminders
+      allow read: if isAdmin();
     }
     
     // Allow reading public data
@@ -45,9 +72,12 @@ service cloud.firestore {
     
     // Admin collection access
     match /admin/{document} {
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
+      allow read, write: if isAdmin();
+    }
+    
+    // Admin logs collection access
+    match /admin_logs/{logId} {
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -114,21 +114,29 @@
   background: none;
   border: none;
   color: #0077ff;
-  font-size: 14px;
-  padding: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 8px 12px;
   cursor: pointer;
   text-decoration: underline;
   display: inline-block;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  /* Ensure text is always visible */
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .text-button:hover {
   color: #0066dd;
-  background: none;
+  background: rgba(0, 119, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .text-button:disabled {
-  color: #cccccc;
+  color: #999999;
   cursor: not-allowed;
+  opacity: 0.6 !important;
 }
 
 .error-message {
@@ -154,7 +162,12 @@
 .tabs {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
+  background: transparent;
+  gap: 15px;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
 .tab {
@@ -162,26 +175,58 @@
   border: none;
   font-size: 16px;
   padding: 10px 20px;
-  color: #666;
+  color: #333 !important;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.3s;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  min-width: 80px;
+  text-align: center;
+  /* Ensure text is always visible - force visibility */
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative;
+  z-index: 10;
+  /* Remove any potential overlays */
+  text-shadow: none !important;
+  background-color: transparent !important;
 }
 
 .tab.active {
-  color: #0077ff;
+  color: #0077ff !important;
   border-bottom: 2px solid #0077ff;
-  font-weight: 500;
+  font-weight: 600;
+  background-color: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .tab:hover:not(.active) {
-  color: #444;
+  color: #0077ff !important;
   border-bottom: 2px solid #ddd;
+  background-color: transparent !important;
 }
 
 .tab:disabled {
   color: #ccc;
   cursor: not-allowed;
+}
+
+.tab:hover:not(.active) {
+  color: #0066dd !important;
+  background: rgba(0, 119, 255, 0.2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 119, 255, 0.3) !important;
+}
+
+.tab:disabled {
+  color: #999 !important;
+  cursor: not-allowed;
+  background: #f0f0f0 !important;
+  border-color: #ddd !important;
+  transform: none;
+  box-shadow: none !important;
 }
 
 .actions {
@@ -196,14 +241,14 @@
   padding: 15px;
   border: 1px dashed #ccc;
   border-radius: 6px;
-  background-color: #f8f9fa;
+  background-color: transparent;
   text-align: center;
 }
 
 .register-notice p {
   margin: 5px 0;
-  color: #666;
-  font-size: 14px;
+  color: #333;
+  font-size: 16px;
 }
 
 /* Responsive adjustments */
@@ -220,9 +265,15 @@
     font-size: 18px;
   }
   
+  .tabs {
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  
   .tab {
     padding: 8px 15px;
     font-size: 14px;
+    min-width: 70px;
   }
 }
 

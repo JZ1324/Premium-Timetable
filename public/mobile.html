@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Timetable</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mobile-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .day-selector {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 10px 20px 10px;
+            gap: 8px;
+            padding: 5px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .day-btn {
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            min-width: 60px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 20px;
+        }
+
+        .day-btn.active::before {
+            opacity: 1;
+        }
+
+        .day-btn.active {
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .day-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .timetable-mobile {
+            display: none;
+            margin: 0 10px 20px 10px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        .timetable-mobile.active {
+            display: block;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .period-slot {
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: white;
+        }
+
+        .period-slot:last-child {
+            border-bottom: none;
+        }
+
+        .period-slot:hover {
+            background: #fafbfc;
+        }
+
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .period-number {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .period-number::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            display: inline-block;
+        }
+
+        .period-time {
+            font-size: 12px;
+            color: #6c757d;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 500;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .subject-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+
+        .subject-details {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-item i {
+            width: 12px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .break-period {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3436;
+            border-left: 4px solid #f39c12;
+        }
+
+        .break-period .period-number {
+            color: #e17055;
+        }
+
+        .break-period .period-number::before {
+            background: #e17055;
+        }
+
+        .tutorial-period {
+            background: linear-gradient(135deg, #a8e6cf 0%, #81ecec 100%);
+            color: #2d3436;
+            border-left: 4px solid #00b894;
+        }
+
+        .tutorial-period .period-number {
+            color: #00b894;
+        }
+
+        .tutorial-period .period-number::before {
+            background: #00b894;
+        }
+
+        .current-period {
+            border-left: 4px solid #00b894;
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2);
+            transform: scale(1.02);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2);
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(0, 184, 148, 0.3);
+            }
+        }
+
+        .current-period .period-number {
+            color: #00b894;
+        }
+
+        .empty-slot {
+            color: #adb5bd;
+            font-style: italic;
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            margin: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            background: white;
+            border-radius: 20px;
+            margin: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .loading::before {
+            content: '⏳';
+            display: block;
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            border-radius: 20px;
+            margin: 10px;
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.1);
+        }
+
+        .error::before {
+            content: '⚠️';
+            display: block;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .sync-status {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sync-status.online {
+            background: rgba(0, 184, 148, 0.9);
+            border-color: rgba(0, 184, 148, 0.3);
+        }
+
+        .sync-status::before {
+            content: '●';
+            margin-right: 6px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .refresh-btn::before {
+            content: '🔄';
+            display: block;
+            animation: rotateRefresh 1s ease-in-out;
+        }
+
+        @keyframes rotateRefresh {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Enhanced mobile responsiveness */
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .day-selector {
+                margin: 10px 5px 15px 5px;
+                gap: 4px;
+            }
+            
+            .day-btn {
+                font-size: 12px;
+                padding: 10px 12px;
+            }
+            
+            .timetable-mobile {
+                margin: 0 5px 15px 5px;
+                border-radius: 15px;
+            }
+            
+            .period-slot {
+                padding: 16px;
+            }
+            
+            .period-number {
+                font-size: 16px;
+            }
+            
+            .subject-name {
+                font-size: 16px;
+            }
+            
+            .refresh-btn {
+                width: 55px;
+                height: 55px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .day-btn {
+                font-size: 11px;
+                padding: 8px 10px;
+            }
+            
+            .period-slot {
+                padding: 14px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .mobile-container {
+                background: #1a1a1a;
+            }
+            
+            .timetable-mobile {
+                background: #2d2d2d;
+            }
+            
+            .period-slot {
+                background: #2d2d2d;
+                border-bottom-color: rgba(255,255,255,0.1);
+            }
+            
+            .period-slot:hover {
+                background: #343434;
+            }
+            
+            .subject-name {
+                color: #ffffff;
+            }
+            
+            .subject-details {
+                color: #adb5bd;
+            }
+            
+            .day-selector {
+                background: #2d2d2d;
+            }
+            
+            .loading, .error {
+                background: #2d2d2d;
+                color: #ffffff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <h1>📚 School Timetable</h1>
+            <p>Mobile View</p>
+        </div>
+
+        <div class="sync-status" id="syncStatus">Loading...</div>
+
+        <div class="day-selector">
+            <button class="day-btn" data-day="1"><span>Day 1</span></button>
+            <button class="day-btn" data-day="2"><span>Day 2</span></button>
+            <button class="day-btn" data-day="3"><span>Day 3</span></button>
+            <button class="day-btn" data-day="4"><span>Day 4</span></button>
+            <button class="day-btn" data-day="5"><span>Day 5</span></button>
+        </div>
+
+        <div id="timetableContainer">
+            <div class="loading">Loading your timetable...</div>
+        </div>
+
+        <button class="refresh-btn" onclick="refreshData()" title="Refresh">
+        </button>
+    </div>
+
+    <script>
+        let currentData = null;
+        let currentDay = 1;
+
+        // Standard 5-period structure that matches desktop
+        const STANDARD_PERIODS = [
+            { number: 1, name: 'Period 1' },
+            { number: 2, name: 'Period 2' },
+            { number: 'Tutorial', name: 'Tutorial' },
+            { number: 'Recess', name: 'Recess', isBreak: true },
+            { number: 3, name: 'Period 3' },
+            { number: 4, name: 'Period 4' },
+            { number: 'Lunch', name: 'Lunch', isBreak: true },
+            { number: 5, name: 'Period 5' }
+        ];
+
+        // Check if a break period should be shown (5 minutes before it starts or during it)
+        function shouldShowBreakPeriod(periodName) {
+            if (periodName !== 'Recess' && periodName !== 'Lunch') {
+                return true; // Always show non-break periods
+            }
+            
+            const now = new Date();
+            const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Don't show break periods on weekends
+            if (day === 0 || day === 6) {
+                return false;
+            }
+            
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+            
+            // Don't show break periods outside of school hours (8:30am - 4:30pm)
+            if (totalMinutes < 8 * 60 + 30 || totalMinutes > 16 * 60 + 30) {
+                return false;
+            }
+            
+            // Define break periods
+            const breakPeriods = {
+                'Recess': { start: 10 * 60 + 55, end: 11 * 60 + 25 }, // 10:55am - 11:25am
+                'Lunch': { start: 13 * 60 + 30, end: 14 * 60 + 25 } // 1:30pm - 2:25pm
+            };
+            
+            const period = breakPeriods[periodName];
+            
+            // Show break 5 minutes before it starts and during the break
+            const showBreakStart = period.start - 5;
+            
+            // Show if we're 5 minutes before break or during break
+            if (totalMinutes >= showBreakStart && totalMinutes < period.end) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function refreshData() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.style.animation = 'rotateRefresh 1s ease-in-out';
+            loadTimetableData();
+            setTimeout(() => {
+                refreshBtn.style.animation = '';
+            }, 1000);
+        }
+
+        function updateSyncStatus(status) {
+            const syncElement = document.getElementById('syncStatus');
+            if (status === 'online') {
+                syncElement.textContent = 'Online';
+                syncElement.className = 'sync-status online';
+            } else {
+                syncElement.textContent = 'Offline';
+                syncElement.className = 'sync-status';
+            }
+        }
+
+        function loadTimetableData() {
+            try {
+                // Try to load from localStorage first
+                const savedData = localStorage.getItem('timetableData');
+                if (savedData) {
+                    currentData = JSON.parse(savedData);
+                    renderTimetable();
+                    updateSyncStatus('online');
+                } else {
+                    // No desktop data and not signed in - redirect to mobile sign-in page
+                    window.location.href = '/mobile-signin.html';
+                    return;
+                }
+
+                // Get current day from data or default to 1
+                if (currentData.currentDay) {
+                    currentDay = currentData.currentDay;
+                } else {
+                    currentDay = 1;
+                }
+
+                updateDaySelector();
+
+            } catch (error) {
+                console.error('Error loading timetable data:', error);
+                showError('Failed to load timetable data');
+                updateSyncStatus('offline');
+            }
+        }
+
+        function renderTimetable() {
+            const container = document.getElementById('timetableContainer');
+            
+            if (!currentData || !currentData.timeSlots || currentData.timeSlots.length === 0) {
+                container.innerHTML = '<div class="empty-slot">No timetable data available</div>';
+                return;
+            }
+
+            // Clear existing content
+            container.innerHTML = '';
+
+            // Create timetable for each day (1-5)
+            for (let day = 1; day <= 5; day++) {
+                const dayContainer = document.createElement('div');
+                dayContainer.className = 'timetable-mobile';
+                dayContainer.id = `day-${day}`;
+
+                // Convert timeSlots array to object format expected by mobile.html
+                const daySlots = currentData.timeSlots.filter(slot => slot.day === day);
+                
+                // Create slots for standard periods only (matching desktop 5-period structure)
+                STANDARD_PERIODS.forEach(period => {
+                    // Check if break periods should be shown (only 5 minutes before or during)
+                    if (period.isBreak) {
+                        if (!shouldShowBreakPeriod(period.name)) {
+                            return; // Skip this break period
+                        }
+                    }
+                    
+                    const slot = daySlots.find(s => s.period === period.number || s.period === period.name);
+                    const periodElement = createPeriodElement(period, slot, day);
+                    dayContainer.appendChild(periodElement);
+                });
+
+                container.appendChild(dayContainer);
+            }
+
+            // Show current day
+            showDay(currentDay);
+        }
+
+        function createPeriodElement(period, slot, day) {
+            const periodDiv = document.createElement('div');
+            periodDiv.className = 'period-slot';
+
+            // Add special classes for break periods
+            if (period.number === 'Recess' || period.number === 'Lunch') {
+                periodDiv.classList.add('break-period');
+            } else if (period.number === 'Tutorial') {
+                periodDiv.classList.add('tutorial-period');
+            }
+
+            // Check if this is the current period
+            if (isCurrentPeriod(period, day)) {
+                periodDiv.classList.add('current-period');
+            }
+
+            const periodHeader = document.createElement('div');
+            periodHeader.className = 'period-header';
+
+            const periodNumber = document.createElement('div');
+            periodNumber.className = 'period-number';
+            periodNumber.textContent = period.name;
+
+            const periodTime = document.createElement('div');
+            periodTime.className = 'period-time';
+            
+            if (slot && slot.startTime && slot.endTime) {
+                periodTime.textContent = `${slot.startTime} - ${slot.endTime}`;
+            } else {
+                // Default times for break periods
+                if (period.number === 'Recess') {
+                    periodTime.textContent = '10:55am - 11:25am';
+                } else if (period.number === 'Lunch') {
+                    periodTime.textContent = '1:30pm - 2:25pm';
+                } else if (period.number === 'Tutorial') {
+                    periodTime.textContent = '10:45am - 10:55am';
+                } else {
+                    periodTime.textContent = '';
+                }
+            }
+
+            periodHeader.appendChild(periodNumber);
+            periodHeader.appendChild(periodTime);
+
+            const subjectName = document.createElement('div');
+            subjectName.className = 'subject-name';
+
+            const subjectDetails = document.createElement('div');
+            subjectDetails.className = 'subject-details';
+
+            if (slot && slot.subject && slot.subject !== 'Free Period') {
+                subjectName.textContent = slot.subject;
+                
+                let details = [];
+                if (slot.code) details.push(`<div class="detail-item"><i>📚</i> ${slot.code}</div>`);
+                if (slot.room) details.push(`<div class="detail-item"><i>🏛️</i> Room ${slot.room}</div>`);
+                if (slot.teacher) details.push(`<div class="detail-item"><i>👨‍🏫</i> ${slot.teacher}</div>`);
+                
+                subjectDetails.innerHTML = details.join('');
+            } else {
+                subjectName.textContent = period.number === 'Recess' ? '☕ Recess Break' : 
+                                         period.number === 'Lunch' ? '🍽️ Lunch Break' :
+                                         period.number === 'Tutorial' ? '📖 Tutorial Time' : '📝 Free Period';
+                subjectDetails.innerHTML = '';
+            }
+
+            periodDiv.appendChild(periodHeader);
+            periodDiv.appendChild(subjectName);
+            if (subjectDetails.textContent) {
+                periodDiv.appendChild(subjectDetails);
+            }
+
+            return periodDiv;
+        }
+
+        function isCurrentPeriod(period, day) {
+            const now = new Date();
+            const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Convert school day (1-5) to weekday (1-5, Monday-Friday)
+            const schoolDayToWeekday = {
+                1: 1, // Monday
+                2: 2, // Tuesday  
+                3: 3, // Wednesday
+                4: 4, // Thursday
+                5: 5  // Friday
+            };
+            
+            // Only highlight if it's the current school day
+            if (schoolDayToWeekday[day] !== currentDay) {
+                return false;
+            }
+            
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+            
+            // Define period times (simplified - you can make this more accurate)
+            const periodTimes = {
+                1: { start: 8 * 60 + 35, end: 9 * 60 + 35 }, // 8:35am - 9:35am
+                2: { start: 9 * 60 + 40, end: 10 * 60 + 40 }, // 9:40am - 10:40am
+                'Tutorial': { start: 10 * 60 + 45, end: 10 * 60 + 55 }, // 10:45am - 10:55am
+                'Recess': { start: 10 * 60 + 55, end: 11 * 60 + 25 }, // 10:55am - 11:25am
+                3: { start: 11 * 60 + 25, end: 12 * 60 + 25 }, // 11:25am - 12:25pm
+                4: { start: 12 * 60 + 30, end: 13 * 60 + 30 }, // 12:30pm - 1:30pm
+                'Lunch': { start: 13 * 60 + 30, end: 14 * 60 + 25 }, // 1:30pm - 2:25pm
+                5: { start: 14 * 60 + 25, end: 15 * 60 + 25 } // 2:25pm - 3:25pm
+            };
+            
+            const timeRange = periodTimes[period.number];
+            if (timeRange) {
+                return totalMinutes >= timeRange.start && totalMinutes < timeRange.end;
+            }
+            
+            return false;
+        }
+
+        function showDay(day) {
+            currentDay = day;
+            
+            // Hide all timetables
+            document.querySelectorAll('.timetable-mobile').forEach(tt => {
+                tt.classList.remove('active');
+            });
+            
+            // Show selected day
+            const selectedTimetable = document.getElementById(`day-${day}`);
+            if (selectedTimetable) {
+                selectedTimetable.classList.add('active');
+            }
+            
+            updateDaySelector();
+        }
+
+        function updateDaySelector() {
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.day) === currentDay) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function showError(message) {
+            const container = document.getElementById('timetableContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Day selector event listeners
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const day = parseInt(this.dataset.day);
+                    showDay(day);
+                });
+            });
+
+            // Load timetable data
+            loadTimetableData();
+
+            // Auto-refresh every minute to update break period visibility
+            setInterval(loadTimetableData, 60000);
+        });
+
+        // Handle back button - redirect to desktop if screen is wide enough
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>

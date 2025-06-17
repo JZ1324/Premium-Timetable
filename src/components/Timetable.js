@@ -8,6 +8,7 @@ import NotificationPopup from './NotificationPopup';
 import ConfirmDialog from './ConfirmDialog';
 import ColorsPopup from './ColorsPopup';
 import PracticeReminderPopup from './PracticeReminderPopup';
+import MobileDetector from './MobileDetector';
 import timetableService from '../services/timetableService';
 import { useSyncStatus } from '../hooks/useSyncStatus';
 import FirestoreTimetableService from '../services/firestoreTimetableService';
@@ -1369,7 +1370,15 @@ const Timetable = () => {
     }, [timeSlots, isFirestoreReady]);
     
     return (
-        <div className="timetable-container">
+        <MobileDetector
+            timeSlots={timeSlots}
+            currentTemplate={currentTemplate}
+            templates={templates}
+            currentDay={currentDay}
+            onDayChange={setCurrentDay}
+            editMode={editMode}
+        >
+            <div className="timetable-container">
             <div className="timetable-header">
                 <div className="header-main">
                     <h2>School Timetable</h2>
@@ -1518,10 +1527,10 @@ const Timetable = () => {
                             >
                                 <span>{period}</span>
                                 {period === '1' && <span className="time">8:35am–9:35am</span>}
-                                {period === '2' && <span className="time">9:35am–10:35am</span>}
-                                {period === 'Tutorial' && <span className="time">10:35am–11:05am</span>}
+                                {period === '2' && <span className="time">9:40am–10:40am</span>}
+                                {period === 'Tutorial' && <span className="time">10:45am–10:55am</span>}
                                 {period === 'Recess' && <span className="time">10:55am–11:25am</span>}
-                                {period === '3' && <span className="time">11:30am–12:30pm</span>}
+                                {period === '3' && <span className="time">11:25am–12:25pm</span>}
                                 {period === '4' && <span className="time">12:30pm–1:30pm</span>}
                                 {period === 'Lunch' && <span className="time">1:30pm–2:25pm</span>}
                                 {period === '5' && <span className="time">2:25pm–3:25pm</span>}
@@ -1569,15 +1578,15 @@ const Timetable = () => {
                                                     day: currentDay,
                                                     period: period,
                                                     startTime: period === '1' ? '8:35am' :
-                                                              period === '2' ? '9:35am' :
-                                                              period === 'Tutorial' ? '10:35am' :
-                                                              period === '3' ? '11:30am' :
+                                                              period === '2' ? '9:40am' :
+                                                              period === 'Tutorial' ? '10:45am' :
+                                                              period === '3' ? '11:25am' :
                                                               period === '4' ? '12:30pm' :
                                                               period === '5' ? '2:25pm' : '3:35pm',
                                                     endTime: period === '1' ? '9:35am' :
-                                                             period === '2' ? '10:35am' :
-                                                             period === 'Tutorial' ? '11:05am' :
-                                                             period === '3' ? '12:30pm' :
+                                                             period === '2' ? '10:40am' :
+                                                             period === 'Tutorial' ? '10:55am' :
+                                                             period === '3' ? '12:25pm' :
                                                              period === '4' ? '1:30pm' :
                                                              period === '5' ? '3:25pm' : '4:30pm',
                                                     subject: '',
@@ -1652,7 +1661,8 @@ const Timetable = () => {
                     onShowLater={() => closePracticePopup(popup.id, true)}
                 />
             ))}
-        </div>
+            </div>
+        </MobileDetector>
     );
 };
 

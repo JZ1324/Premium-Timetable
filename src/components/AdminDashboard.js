@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import AdminTerminal from './AdminTerminal';
 import { adminService } from '../services/adminService';
+import { updateUserActivity } from '../services/userService';
 import '../styles/components/AdminDashboard.css';
 
 const AdminDashboard = ({ onClose }) => {
@@ -20,6 +21,13 @@ const AdminDashboard = ({ onClose }) => {
     const loadAdminData = async () => {
         try {
             setLoading(true);
+            
+            // Update current user's activity first to ensure they show up as active
+            if (user?.uid) {
+                await updateUserActivity(user.uid);
+                console.log('✅ Updated admin user activity before fetching stats');
+            }
+            
             const [statsData, usersData, logsData] = await Promise.all([
                 adminService.getSystemStats(),
                 adminService.getAllUsers(),
@@ -91,7 +99,9 @@ const AdminDashboard = ({ onClose }) => {
                 <div className="stat-card">
                     <h3>Active Now</h3>
                     <div className="stat-number">{stats.activeNow || 0}</div>
-                    <div className="stat-subtitle">Last 15 minutes</div>
+                    <div className="stat-subtitle">
+                        {stats.activeNow === 0 ? 'No recent activity' : 'Last 15 minutes'}
+                    </div>
                 </div>
                 <div className="stat-card">
                     <h3>Timetables Created</h3>

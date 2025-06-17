@@ -85,6 +85,22 @@ class AdminService {
 
             console.log('📊 System stats retrieved:', stats);
             console.log(`👥 ${stats.activeNow} users active in last 15 minutes`);
+            console.log('Active users details:', activeUsers);
+            
+            // If no active users, let's check what users exist and their last activity
+            if (stats.activeNow === 0) {
+                console.log('🔍 No active users found. Checking all users...');
+                const allUsersSnapshot = await this.db.collection('users').limit(5).get();
+                allUsersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    console.log(`User ${doc.id}:`, {
+                        email: userData.email,
+                        lastActive: userData.lastActive,
+                        lastActiveTimestamp: userData.lastActiveTimestamp
+                    });
+                });
+            }
+            
             return stats;
         } catch (error) {
             console.error('Error getting system stats:', error);

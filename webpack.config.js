@@ -161,6 +161,16 @@ module.exports = {
           noErrorOnMissing: true
         },
         {
+          from: 'mobile.html',
+          to: 'mobile.html',
+          noErrorOnMissing: true
+        },
+        {
+          from: 'mobile-signin.html',
+          to: 'mobile-signin.html',
+          noErrorOnMissing: true
+        },
+        {
           from: 'src/utils/EnglishTruncationFixStandalone.js',
           to: 'EnglishTruncationFixStandalone.js'
         },

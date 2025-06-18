@@ -51,6 +51,37 @@
             font-size: 14px;
         }
 
+        .week-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .week-btn {
+            padding: 8px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .week-btn.active {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.8);
+            transform: scale(1.05);
+        }
+
+        .week-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
         .day-selector {
             display: flex;
             justify-content: space-around;
@@ -479,16 +510,16 @@
         <div class="header">
             <h1>📚 School Timetable</h1>
             <p>Mobile View</p>
+            <div class="week-toggle">
+                <button class="week-btn" data-week="A">Week A</button>
+                <button class="week-btn" data-week="B">Week B</button>
+            </div>
         </div>
 
         <div class="sync-status" id="syncStatus">Loading...</div>
 
         <div class="day-selector">
-            <button class="day-btn" data-day="1"><span>Day 1</span></button>
-            <button class="day-btn" data-day="2"><span>Day 2</span></button>
-            <button class="day-btn" data-day="3"><span>Day 3</span></button>
-            <button class="day-btn" data-day="4"><span>Day 4</span></button>
-            <button class="day-btn" data-day="5"><span>Day 5</span></button>
+            <!-- Day buttons will be dynamically created by JavaScript -->
         </div>
 
         <div id="timetableContainer">
@@ -502,6 +533,115 @@
     <script>
         let currentData = null;
         let currentDay = 1;
+        let currentWeek = 'A'; // Will be determined automatically
+
+        // Determine current school week (A or B) based on desktop logic
+        function getCurrentSchoolWeek() {
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Get user settings from localStorage (same as desktop)
+            const savedSettings = localStorage.getItem('timetable-settings');
+            let settings = {
+                startWithWeek: 'B' // Default to Week B (matches desktop)
+            };
+            
+            if (savedSettings) {
+                try {
+                    const parsedSettings = JSON.parse(savedSettings);
+                    if (parsedSettings.startWithWeek) {
+                        settings.startWithWeek = parsedSettings.startWithWeek;
+                    }
+                } catch (error) {
+                    console.error('Error parsing settings:', error);
+                }
+            }
+            
+            // Calculate week number
+            const target = new Date(today.valueOf());
+            const dayNumber = (today.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNumber + 3);
+            const firstThursday = target.valueOf();
+            target.setMonth(0, 1);
+            if (target.getDay() !== 4) {
+                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            }
+            const weekNumber = 1 + Math.ceil((firstThursday - target) / 604800000);
+            
+            // Determine if this is Week A or Week B
+            let isWeekA = weekNumber % 2 === 1; // Odd weeks are Week A by default
+            
+            // If user prefers to start with Week B, flip the week type
+            if (settings.startWithWeek === 'B') {
+                isWeekA = !isWeekA;
+            }
+            
+            return isWeekA ? 'A' : 'B';
+        }
+
+        // Get the days to display based on current week
+        function getCurrentWeekDays(week) {
+            if (week === 'A') {
+                return [1, 2, 3, 4, 5]; // Week A: Days 1-5
+            } else {
+                return [6, 7, 8, 9, 10]; // Week B: Days 6-10
+            }
+        }
+
+        // Update day selector buttons based on current week
+        function updateDaySelector() {
+            const dayContainer = document.querySelector('.day-selector');
+            const days = getCurrentWeekDays(currentWeek);
+            
+            // Clear existing buttons
+            dayContainer.innerHTML = '';
+            
+            // Create buttons for current week's days
+            days.forEach(day => {
+                const button = document.createElement('button');
+                button.className = 'day-btn';
+                button.dataset.day = day;
+                button.innerHTML = `<span>Day ${day}</span>`;
+                
+                // Set active class for current day
+                if (day === currentDay) {
+                    button.classList.add('active');
+                }
+                
+                // Add click event
+                button.addEventListener('click', function() {
+                    const selectedDay = parseInt(this.dataset.day);
+                    showDay(selectedDay);
+                });
+                
+                dayContainer.appendChild(button);
+            });
+        }
+
+        // Update week toggle buttons
+        function updateWeekToggle() {
+            document.querySelectorAll('.week-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.week === currentWeek) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Switch to a different week
+        function switchWeek(week) {
+            currentWeek = week;
+            const days = getCurrentWeekDays(week);
+            currentDay = days[0]; // Set to first day of the week
+            
+            updateWeekToggle();
+            updateDaySelector();
+            renderTimetable();
+            
+            // Save preference to localStorage
+            localStorage.setItem('mobile-selected-week', week);
+            console.log(`📅 Switched to Week ${week} (Days ${days.join(', ')})`);
+        }
 
         // Standard 5-period structure that matches desktop
         const STANDARD_PERIODS = [
@@ -583,6 +723,30 @@
                 const savedData = localStorage.getItem('timetableData');
                 if (savedData) {
                     currentData = JSON.parse(savedData);
+                    
+                    // Determine current week (A or B) automatically
+                    const detectedWeek = getCurrentSchoolWeek();
+                    
+                    // Check if user has manually selected a week preference
+                    const savedWeek = localStorage.getItem('mobile-selected-week');
+                    if (savedWeek && (savedWeek === 'A' || savedWeek === 'B')) {
+                        currentWeek = savedWeek;
+                        console.log(`📱 Using saved week preference: Week ${currentWeek}`);
+                    } else {
+                        currentWeek = detectedWeek;
+                        console.log(`📅 Auto-detected current week: Week ${currentWeek}`);
+                    }
+                    
+                    // Get current day from data or default to first day of current week
+                    const weekDays = getCurrentWeekDays(currentWeek);
+                    if (currentData.currentDay && weekDays.includes(currentData.currentDay)) {
+                        currentDay = currentData.currentDay;
+                    } else {
+                        currentDay = weekDays[0]; // Default to first day of current week
+                    }
+                    
+                    updateWeekToggle();
+                    updateDaySelector();
                     renderTimetable();
                     updateSyncStatus('online');
                 } else {
@@ -590,15 +754,6 @@
                     window.location.href = '/mobile-signin.html';
                     return;
                 }
-
-                // Get current day from data or default to 1
-                if (currentData.currentDay) {
-                    currentDay = currentData.currentDay;
-                } else {
-                    currentDay = 1;
-                }
-
-                updateDaySelector();
 
             } catch (error) {
                 console.error('Error loading timetable data:', error);
@@ -618,8 +773,11 @@
             // Clear existing content
             container.innerHTML = '';
 
-            // Create timetable for each day (1-5)
-            for (let day = 1; day <= 5; day++) {
+            // Get current week's days
+            const days = getCurrentWeekDays(currentWeek);
+
+            // Create timetable for current week's days
+            days.forEach(day => {
                 const dayContainer = document.createElement('div');
                 dayContainer.className = 'timetable-mobile';
                 dayContainer.id = `day-${day}`;
@@ -642,7 +800,7 @@
                 });
 
                 container.appendChild(dayContainer);
-            }
+            });
 
             // Show current day
             showDay(currentDay);
@@ -779,10 +937,10 @@
                 selectedTimetable.classList.add('active');
             }
             
-            updateDaySelector();
+            updateDayButtonStates();
         }
 
-        function updateDaySelector() {
+        function updateDayButtonStates() {
             document.querySelectorAll('.day-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (parseInt(btn.dataset.day) === currentDay) {
@@ -798,13 +956,15 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Day selector event listeners
-            document.querySelectorAll('.day-btn').forEach(btn => {
+            // Week toggle event listeners
+            document.querySelectorAll('.week-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const day = parseInt(this.dataset.day);
-                    showDay(day);
+                    const week = this.dataset.week;
+                    switchWeek(week);
                 });
             });
+
+            // Day selector event listeners will be added dynamically by updateDaySelector()
 
             // Load timetable data
             loadTimetableData();

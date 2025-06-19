@@ -1,0 +1,294 @@
+/* Gradient Theme - Modern glassmorphism design */
+:root {
+  /* Primary gradient colors */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  
+  /* Background gradients */
+  --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --card-gradient: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+  --glass-gradient: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+  
+  /* Text colors */
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-accent: #2d3748;
+  --text-on-gradient: #ffffff;
+  
+  /* Glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  --backdrop-blur: blur(20px);
+  
+  /* Interactive states */
+  --hover-overlay: rgba(255, 255, 255, 0.1);
+  --active-overlay: rgba(255, 255, 255, 0.2);
+  
+  /* Period colors with gradients */
+  --period-1: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  --period-2: linear-gradient(135deg, #4ecdc4, #44a08d);
+  --period-3: linear-gradient(135deg, #45b7d1, #96c93d);
+  --period-4: linear-gradient(135deg, #f9ca24, #f0932b);
+  --period-5: linear-gradient(135deg, #eb4d4b, #6c5ce7);
+  --tutorial: linear-gradient(135deg, #a55eea, #26de81);
+  --break: linear-gradient(135deg, #fd79a8, #fdcb6e);
+  
+  /* Status colors */
+  --success-gradient: linear-gradient(135deg, #56f39a, #41c463);
+  --warning-gradient: linear-gradient(135deg, #ffbe0b, #fb8500);
+  --error-gradient: linear-gradient(135deg, #ff6b9d, #c44569);
+  --info-gradient: linear-gradient(135deg, #3742fa, #2f3542);
+}
+
+/* Body and main containers */
+body {
+  background: var(--background-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Timetable container */
+.timetable-container {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  margin: 20px;
+  overflow: hidden;
+}
+
+/* Header styling */
+.timetable-header {
+  background: var(--card-gradient);
+  backdrop-filter: var(--backdrop-blur);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 20px;
+}
+
+.timetable-header h2 {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Day selector */
+.day-selector {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 10px;
+  margin: 15px;
+  display: flex;
+  gap: 8px;
+}
+
+.day-button {
+  background: var(--glass-gradient);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+}
+
+.day-button:hover {
+  background: var(--hover-overlay);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.day-button.active {
+  background: var(--primary-gradient);
+  color: var(--text-on-gradient);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* Time slots */
+.time-slot {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  margin: 12px;
+  padding: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.time-slot:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  background: var(--hover-overlay);
+}
+
+.time-slot.current-period {
+  background: var(--active-overlay);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+}
+
+/* Period-specific styling */
+.time-slot[data-period="1"] { border-left: 6px solid var(--period-1); }
+.time-slot[data-period="2"] { border-left: 6px solid var(--period-2); }
+.time-slot[data-period="3"] { border-left: 6px solid var(--period-3); }
+.time-slot[data-period="4"] { border-left: 6px solid var(--period-4); }
+.time-slot[data-period="5"] { border-left: 6px solid var(--period-5); }
+.time-slot[data-period="Tutorial"] { border-left: 6px solid var(--tutorial); }
+.time-slot[data-period="Recess"], 
+.time-slot[data-period="Lunch"] { border-left: 6px solid var(--break); }
+
+/* Subject content */
+.subject-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subject-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.subject-details {
+  font-size: 14px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* Buttons */
+.gradient-button {
+  background: var(--primary-gradient);
+  color: var(--text-on-gradient);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.gradient-button:active {
+  transform: translateY(0);
+}
+
+/* Settings and popups */
+.settings-popup, .template-popup, .notification-popup {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Import section */
+.import-section {
+  background: var(--card-gradient);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 15px;
+}
+
+/* Status indicators */
+.sync-status.online {
+  background: var(--success-gradient);
+  color: var(--text-on-gradient);
+}
+
+.sync-status.offline {
+  background: var(--error-gradient);
+  color: var(--text-on-gradient);
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .timetable-container {
+    margin: 10px;
+    border-radius: 16px;
+  }
+  
+  .day-selector {
+    margin: 10px;
+    gap: 4px;
+  }
+  
+  .day-button {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .time-slot {
+    margin: 8px;
+    padding: 16px;
+  }
+}
+
+/* Dark mode adaptations */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f7fafc;
+    --text-secondary: #cbd5e0;
+    --text-accent: #e2e8f0;
+    --glass-bg: rgba(45, 55, 72, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --card-gradient: linear-gradient(145deg, rgba(45, 55, 72, 0.4) 0%, rgba(45, 55, 72, 0.2) 100%);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .time-slot {
+    border: 2px solid var(--text-primary);
+  }
+  
+  .day-button {
+    border: 2px solid var(--text-primary);
+  }
+}

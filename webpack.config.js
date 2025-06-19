@@ -54,6 +54,38 @@ module.exports = {
     // Add hash for cache-busting in production
     ...(NODE_ENV === 'production' && { filename: 'bundle.js?v=[hash:8]' })
   },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+          priority: 10,
+          reuseExistingChunk: true,
+          enforce: true
+        },
+        firebase: {
+          test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
+          name: 'firebase',
+          chunks: 'all',
+          priority: 20,
+          reuseExistingChunk: true
+        },
+        react: {
+          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+          name: 'react',
+          chunks: 'all',
+          priority: 20,
+          reuseExistingChunk: true
+        }
+      }
+    },
+    runtimeChunk: 'single',
+    usedExports: true,
+    sideEffects: false
+  },
   module: {
     rules: [
       {

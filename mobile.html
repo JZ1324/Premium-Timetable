@@ -973,11 +973,35 @@
             setInterval(loadTimetableData, 60000);
         });
 
-        // Handle back button - redirect to desktop if screen is wide enough
+        // Handle screen size changes - smoothly transition to desktop
+        let resizeTimer;
         window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                window.location.href = '/';
-            }
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (window.innerWidth > 768) {
+                    // Save current mobile state
+                    const mobileState = {
+                        currentDay: currentDay,
+                        currentWeek: currentWeek,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('mobile-state', JSON.stringify(mobileState));
+                    
+                    // Check if we came from desktop
+                    const desktopState = localStorage.getItem('desktop-state');
+                    if (desktopState) {
+                        try {
+                            const parsed = JSON.parse(desktopState);
+                            // Go back to the original desktop page
+                            window.location.href = parsed.pathname || '/';
+                        } catch (error) {
+                            window.location.href = '/';
+                        }
+                    } else {
+                        window.location.href = '/';
+                    }
+                }
+            }, 200); // Small delay to avoid excessive calls
         });
     </script>
 </body>

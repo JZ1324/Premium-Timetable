@@ -410,13 +410,31 @@ const Timetable = () => {
             loadTemplate('school');
         }
 
-        // Always default to today's day on page load/refresh
-        const todayDay = getCurrentSchoolDay();
-        setCurrentDay(todayDay);
-        console.log(`Setting current day to today: Day ${todayDay}`);
+        // Check if we're returning from mobile view
+        const mobileState = localStorage.getItem('mobile-state');
+        let dayToSet = getCurrentSchoolDay(); // Default to today
         
-        // Save today's day as the current selection
-        saveCurrentTimetableDay(todayDay);
+        if (mobileState) {
+            try {
+                const parsed = JSON.parse(mobileState);
+                // Restore the day we were on in mobile view if it's recent (within 5 minutes)
+                if (parsed.timestamp && (Date.now() - parsed.timestamp) < 5 * 60 * 1000) {
+                    dayToSet = parsed.currentDay || dayToSet;
+                    console.log(`🔄 Restored from mobile: Day ${dayToSet}`);
+                }
+                // Clean up the mobile state
+                localStorage.removeItem('mobile-state');
+            } catch (error) {
+                console.error('Error parsing mobile state:', error);
+            }
+        }
+
+        // Set the current day (either today or restored from mobile)
+        setCurrentDay(dayToSet);
+        console.log(`Setting current day to: Day ${dayToSet}`);
+        
+        // Save the current day selection
+        saveCurrentTimetableDay(dayToSet);
         
         // Set current period based on current time
         const nowPeriod = getCurrentPeriod();

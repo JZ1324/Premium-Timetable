@@ -19,12 +19,27 @@ const Settings = ({ sidebarOpen }) => {
         preferredAIModel: 'auto' // Auto select the best model
     });
 
-    // Save settings to localStorage
+    // Save settings to localStorage and check notification permission status
     useEffect(() => {
         const savedSettings = localStorage.getItem('timetable-settings');
         if (savedSettings) {
             try {
-                setSettings(JSON.parse(savedSettings));
+                const parsedSettings = JSON.parse(savedSettings);
+                
+                // Check if notifications are actually available and permitted
+                if (parsedSettings.enableNotifications) {
+                    const hasPermission = Notification?.permission === 'granted';
+                    const isSupported = isNotificationSupported();
+                    
+                    // If notifications were enabled but are no longer available/permitted, disable them
+                    if (!hasPermission || !isSupported) {
+                        parsedSettings.enableNotifications = false;
+                        localStorage.setItem('timetable-settings', JSON.stringify(parsedSettings));
+                        console.log('Notifications were disabled because permission is no longer granted or notifications are not supported');
+                    }
+                }
+                
+                setSettings(parsedSettings);
             } catch (error) {
                 console.error('Error parsing saved settings:', error);
             }
@@ -40,17 +55,29 @@ const Settings = ({ sidebarOpen }) => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        const newValue = type === 'checkbox' ? checked : value;
+        let newValue = type === 'checkbox' ? checked : value;
+        
+        // If trying to enable notifications, check if it's possible
+        if (name === 'enableNotifications' && checked === true) {
+            if (!isNotificationSupported()) {
+                alert('Browser notifications are not supported in your browser.');
+                return; // Don't update the setting
+            }
+            if (Notification?.permission === 'denied') {
+                alert('Notification permission was denied. Please enable notifications in your browser settings to receive class reminders.');
+                return; // Don't update the setting
+            }
+            // If permission is default (not yet asked), request it
+            if (Notification?.permission === 'default') {
+                handleNotificationPermission();
+                return; // handleNotificationPermission will update the setting if permission is granted
+            }
+        }
         
         const updatedSettings = {
             ...settings,
             [name]: newValue
         };
-        
-        // If enabling notifications, request permission
-        if (name === 'enableNotifications' && checked === true) {
-            handleNotificationPermission();
-        }
         
         setSettings(updatedSettings);
         try {
@@ -71,8 +98,25 @@ const Settings = ({ sidebarOpen }) => {
         // Request permission to show notifications
         const permissionGranted = await requestNotificationPermission();
         
-        if (!permissionGranted) {
+        if (permissionGranted) {
+            // Permission granted - enable notifications
+            const updatedSettings = { ...settings, enableNotifications: true };
+            setSettings(updatedSettings);
+            try {
+                localStorage.setItem('timetable-settings', JSON.stringify(updatedSettings));
+            } catch (error) {
+                console.error('Error saving settings to localStorage:', error);
+            }
+        } else {
             alert('Notification permission was denied. Please enable notifications in your browser settings to receive class reminders.');
+            // Ensure the setting remains false
+            const updatedSettings = { ...settings, enableNotifications: false };
+            setSettings(updatedSettings);
+            try {
+                localStorage.setItem('timetable-settings', JSON.stringify(updatedSettings));
+            } catch (error) {
+                console.error('Error saving settings to localStorage:', error);
+            }
         }
     };
 
@@ -210,18 +254,29 @@ const Settings = ({ sidebarOpen }) => {
                                 <input 
                                     type="checkbox" 
                                     name="enableNotifications" 
-                                    checked={settings.enableNotifications} 
-                                    onChange={handleChange} 
+                                    checked={settings.enableNotifications && isNotificationSupported() && Notification?.permission === 'granted'} 
+                                    onChange={handleChange}
+                                    disabled={!isNotificationSupported()}
                                 />
                                 Enable class notifications
                             </label>
                             {isNotificationSupported() ? (
-                                <small className="setting-help-text">
-                                    Get notifications before your classes start.
-                                </small>
+                                Notification?.permission === 'granted' ? (
+                                    <small className="setting-help-text">
+                                        ✅ Notifications are enabled and working.
+                                    </small>
+                                ) : Notification?.permission === 'denied' ? (
+                                    <small className="setting-help-text error">
+                                        ❌ Notification permission was denied. Please enable notifications in your browser settings.
+                                    </small>
+                                ) : (
+                                    <small className="setting-help-text">
+                                        Get notifications before your classes start.
+                                    </small>
+                                )
                             ) : (
                                 <small className="setting-help-text error">
-                                    Notifications are not supported in your browser.
+                                    ❌ Notifications are not supported in your browser.
                                 </small>
                             )}
                         </div>

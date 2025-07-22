@@ -24,7 +24,7 @@ const AppContent = () => {
   };
 
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAcademicPlanner, setShowAcademicPlanner] = useState(false);
   const [showSmartStudySearch, setShowSmartStudySearch] = useState(false);
   

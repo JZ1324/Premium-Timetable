@@ -40,7 +40,7 @@ const envKeys = Object.keys(envParsed).reduce((prev, key) => {
   'process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || envParsed.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || ''),
   'process.env.REACT_APP_FIREBASE_APP_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_APP_ID || envParsed.REACT_APP_FIREBASE_APP_ID || ''),
   'process.env.REACT_APP_FIREBASE_MEASUREMENT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || envParsed.REACT_APP_FIREBASE_MEASUREMENT_ID || ''),
-  'process.env.REACT_APP_OPENROUTER_API_KEY': JSON.stringify(process.env.REACT_APP_OPENROUTER_API_KEY || envParsed.REACT_APP_OPENROUTER_API_KEY || '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')
+  'process.env.REACT_APP_OPENROUTER_API_KEY': JSON.stringify(process.env.REACT_APP_OPENROUTER_API_KEY || envParsed.REACT_APP_OPENROUTER_API_KEY || '')
 });
 
 module.exports = {
@@ -49,42 +49,10 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
     publicPath: getPublicPath(),
-    // Ensure bundle path is correctly referenced in all environments
-    chunkFilename: '[id].bundle.js',
-    // Add hash for cache-busting in production
-    ...(NODE_ENV === 'production' && { filename: 'bundle.js?v=[hash:8]' })
+    clean: true
   },
   optimization: {
-    splitChunks: {
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-          priority: 10,
-          reuseExistingChunk: true,
-          enforce: true
-        },
-        firebase: {
-          test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
-          name: 'firebase',
-          chunks: 'all',
-          priority: 20,
-          reuseExistingChunk: true
-        },
-        react: {
-          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-          name: 'react',
-          chunks: 'all',
-          priority: 20,
-          reuseExistingChunk: true
-        }
-      }
-    },
-    runtimeChunk: 'single',
-    usedExports: true,
-    sideEffects: false
+    splitChunks: false
   },
   module: {
     rules: [
@@ -224,17 +192,22 @@ module.exports = {
     })
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'public'),
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     port: 3001,
     hot: true,
     historyApiFallback: true,
-    proxy: {
-      '/__/firebase': {
+    open: true,
+    compress: true,
+    proxy: [
+      {
+        context: ['/api'],
         target: 'https://timetable-28639.web.app',
         changeOrigin: true,
         secure: false
       }
-    }
+    ]
   },
   resolve: {
     extensions: ['.js', '.jsx'],

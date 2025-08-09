@@ -485,7 +485,7 @@
 /* Timetable Grid */
 .timetable {
     display: grid;
-    grid-template-columns: 220px 1fr; /* Increased from 200px for better proportion */
+    grid-template-columns: 180px 1fr; /* narrower left column to bring columns closer */
     border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow: visible; /* Changed from hidden to visible to allow elements to pop out */
@@ -558,14 +558,14 @@
 
 .period-label .time {
     display: block;
-    font-size: 0.9rem; /* Increased from 0.8rem */
-    opacity: 0.8; /* Increased from 0.7 */
-    margin-top: 8px; /* Increased from 5px */
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 6px;
     text-align: center;
 }
 
 .period-row {
-    padding: 25px; /* Increased from 20px to 25px */
+    padding: 16px; /* tighter padding to reduce empty space */
     border-bottom: 1px solid var(--border-color);
     height: 160px; /* Increased from 140px to 160px */
     position: relative; /* Added to establish stacking context */
@@ -590,7 +590,7 @@
 .period-row[data-period="Recess"],
 .period-row[data-period="Lunch"] {
     background: linear-gradient(to right, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
-    padding: 20px 25px; /* More balanced padding */
+    padding: 14px 16px; /* tighter padding */
     height: 130px; /* Slightly shorter height than regular periods */
     position: relative;
     z-index: 2; /* Higher z-index to allow hover effects to work properly */
@@ -630,12 +630,68 @@
 
 /* Add Time Slot Button */
 .add-time-slot {
-    margin-top: 10px;
+    margin-top: 3px; /* tighter */
+}
+
+/* --- Size overrides to ensure period labels fit inside boxes --- */
+/* These rules are placed at the end to override earlier defaults */
+
+/* Larger default size for all periods; allow content to expand */
+.timetable .period-label {
+    height: auto;           /* override fixed heights above */
+    min-height: 0;          /* allow true content-fit */
+    padding: 3px;           /* ultra-compact */
+    transition: height 180ms ease; /* smooth expand/shrink */
+    will-change: height;
+}
+
+.timetable .period-row {
+    height: auto;           /* override fixed heights above */
+    min-height: 0;          /* allow true content-fit */
+    padding: 3px 3px 2px;   /* reduce bottom by 1px to offset border */
+    transition: height 180ms ease, padding 180ms ease; /* smooth expand/shrink */
+    will-change: height;
+}
+
+/* Break periods slightly shorter but still roomy */
+.timetable .period-label[data-period="Recess"],
+.timetable .period-label[data-period="Lunch"],
+.timetable .period-row[data-period="Recess"],
+.timetable .period-row[data-period="Lunch"] {
+        height: auto;           /* allow growth if needed */
+    min-height: 0;
+}
+
+/* Improve wrapping for multi-line labels */
+.timetable .period-label span {
+        line-height: 1.3;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+}
+
+/* Responsive min-heights so layout scales on smaller screens */
+@media (max-width: 900px) {
+        .timetable .period-label { min-height: 0; }
+        .timetable .period-row { min-height: 0; }
+    .timetable .period-label[data-period="Recess"],
+    .timetable .period-label[data-period="Lunch"],
+    .timetable .period-row[data-period="Recess"],
+    .timetable .period-row[data-period="Lunch"] { min-height: 0; }
+}
+
+@media (max-width: 600px) {
+        .timetable .period-label { min-height: 0; padding: 3px; }
+        .timetable .period-row { min-height: 0; padding: 3px; }
+    .timetable .period-label[data-period="Recess"],
+    .timetable .period-label[data-period="Lunch"],
+    .timetable .period-row[data-period="Recess"],
+    .timetable .period-row[data-period="Lunch"] { min-height: 0; }
 }
 
 .add-time-slot button {
     width: 100%;
-    padding: 10px;
+    padding: 3px; /* ultra-compact */
     border: 1px dashed var(--border-color);
     background-color: transparent;
     color: var(--text-secondary);
@@ -652,11 +708,11 @@
 .time-slot {
     background-color: var(--accent-color);
     border-radius: 6px; /* Match other themes */
-    padding: 12px; /* Match other themes */
+    padding: 3px; /* ultra-compact */
     color: white;
-    margin-bottom: 5px; /* Match other themes */
-    margin: 5px; /* Match other themes */
-    box-shadow: 0 3px 10px var(--shadow-color);
+    margin-bottom: 2px; /* minimal vertical separation */
+    margin: 0; /* remove side margins */
+    box-shadow: 0 1px 3px var(--shadow-color);
     transition: all 0.3s ease;
     animation: fadeIn 0.5s ease forwards;
     position: relative;
@@ -664,8 +720,12 @@
     cursor: pointer; /* Add cursor pointer to indicate clickable */
     user-select: none; /* Prevent text selection */
     z-index: 5; /* Base z-index for all time slots */
-    width: calc(100% - 30px); /* Ensure there's room for highlighting effects */
+    width: 100%; /* use full width inside row */
 }
+
+/* Remove extra space under the last item in a period */
+.period-row .time-slot:last-child { margin-bottom: 0; box-shadow: none; }
+.period-row > :last-child { margin-bottom: 0; }
 
 .time-slot:hover {
     transform: translateY(-2px); /* Match other themes */
@@ -703,26 +763,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px; /* Match other themes */
+    margin-bottom: 2px; /* even tighter */
 }
 
 .time-slot h3 {
-    margin: 0 0 6px 0; /* Match other themes */
-    font-size: 1rem; /* Standard size */
-    font-size: 1.2rem; /* Increased from 1.1rem */
+    margin: 0 0 2px 0; /* minimal */
+    font-size: 1.1rem; /* balanced size */
     font-weight: 600;
 }
 
 .time-slot h3.subject-title {
-    margin: 0 0 6px 0;
-    font-size: 1.2rem;
+    margin: 0 0 2px 0;
+    font-size: 1.1rem;
     font-weight: 600;
     word-break: break-word;
     line-height: 1.3;
 }
 
 .time-slot p {
-    margin: 3px 0; /* Reduced margin to match other themes */
+    margin: 0; /* remove extra space */
     font-size: 0.85rem; /* Smaller font size to match */
     opacity: 0.9;
 }
@@ -774,15 +833,17 @@
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     border: 2px solid var(--accent-color);
-    padding: 20px;
+    padding: 12px; /* tighter but enough for inputs */
     transform: none;
     position: relative;
     z-index: 20;  /* Higher z-index */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     animation: highlight-edit 1.5s ease forwards;
     pointer-events: auto;
     user-select: auto;
     max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 @keyframes highlight-edit {

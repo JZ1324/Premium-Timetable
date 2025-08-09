@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense, useReducer } from 'react';
 import '../styles/components/AcademicPlanner.css';
 import '../styles/components/AcademicPlannerYear.css';
 import '../styles/components/AcademicPlanner/main.css';
@@ -32,6 +32,19 @@ import AdvancedSearch from './AcademicPlanner/AdvancedSearch';
 import TaskTemplates from './AcademicPlanner/TaskTemplates';
 import AnalyticsDashboard from './AcademicPlanner/AnalyticsDashboard';
 import { formatDate, formatTimerDisplay, parseTimeToMinutes, formatMinutesToTimeString } from './AcademicPlanner/utils';
+import { useDebouncedLocalStorage } from '../hooks/useDebouncedLocalStorage';
+import { useStudyTimer } from '../hooks/useStudyTimer';
+
+// Task actions for reducer
+function tasksReducer(state, action) {
+  switch(action.type) {
+    case 'set': return action.payload;
+    case 'update': return state.map(t => t.id === action.id ? { ...t, ...action.patch } : t);
+    case 'replaceAll': return action.payload;
+    case 'map': return state.map(action.mapper);
+    default: return state;
+  }
+}
 
 const AcademicPlanner = () => {
     const [currentView, setCurrentView] = useState('day'); // 'day', 'week', 'month', 'year'
@@ -73,57 +86,30 @@ const AcademicPlanner = () => {
         return [];
     };
 
-    const [tasks, setTasks] = useState(loadTasksFromStorage);
+    const [tasks, setTasksState] = useState(loadTasksFromStorage);
+    const [tasksReducerState, dispatchTasks] = useReducer(tasksReducer, []);
+    // unify setTasks API while migrating: prefer reducer if initialized
+    const setTasks = (updater) => {
+      if (typeof updater === 'function') {
+        setTasksState(prev => {
+          const next = updater(prev);
+          dispatchTasks({ type: 'set', payload: next });
+          return next;
+        });
+      } else {
+        setTasksState(updater);
+        dispatchTasks({ type: 'set', payload: updater });
+      }
+    };
+    useEffect(() => { dispatchTasks({ type: 'set', payload: tasks }); }, []);
+
+    // Study timer extracted to hook
+    const { studyTimer, startStudyTimer, stopStudyTimer, restoreActiveTimer } = useStudyTimer(tasks, setTasks, showToast);
+    useEffect(() => { restoreActiveTimer(); }, []);
     
-    // Check for active timers on component mount
-    useEffect(() => {
-        const savedTasks = loadTasksFromStorage();
-        const activeTimerTask = savedTasks.find(task => task.timerData?.isActive);
-        
-        if (activeTimerTask && activeTimerTask.timerData.lastStartTime) {
-            // Restore the timer if it was active
-            const lastStartTime = new Date(activeTimerTask.timerData.lastStartTime);
-            
-            // Only restore if the timer was started within the last 24 hours (to avoid very old sessions)
-            const timeSinceStart = (new Date() - lastStartTime) / (1000 * 60 * 60); // hours
-            
-            if (timeSinceStart < 24) {
-                setStudyTimer({
-                    taskId: activeTimerTask.id,
-                    startTime: lastStartTime,
-                    isRunning: true
-                });
-                
-                showToast(`Restored timer for "${activeTimerTask.title}" 🔄`, 'info');
-                console.log("✅ Timer restored for task:", activeTimerTask.title);
-            } else {
-                // Clean up old active timer states
-                setTasks(prevTasks =>
-                    prevTasks.map(t =>
-                        t.id === activeTimerTask.id
-                            ? {
-                                ...t,
-                                timerData: {
-                                    ...t.timerData,
-                                    isActive: false,
-                                    lastStartTime: null
-                                }
-                            }
-                            : t
-                    )
-                );
-            }
-        }
-    }, []);
-    
-    // Save tasks to localStorage whenever tasks change
-    useEffect(() => {
-        try {
-            localStorage.setItem('academicPlannerTasks', JSON.stringify(tasks));
-        } catch (error) {
-            console.error('Error saving tasks to storage:', error);
-        }
-    }, [tasks]);
+    // Save tasks to localStorage whenever tasks change (debounced now)
+    // useEffect(() => { /* replaced by useDebouncedLocalStorage */ }, [tasks]);
+    useDebouncedLocalStorage('academicPlannerTasks', tasks, 900);
 
     const [filters, setFilters] = useState({
         hideCompleted: false,
@@ -134,7 +120,6 @@ const AcademicPlanner = () => {
     });
     const [toastMessage, setToastMessage] = useState(null);
     const [showNotifications, setShowNotifications] = useState(false);
-    const [studyTimer, setStudyTimer] = useState({ taskId: null, startTime: null, isRunning: false });
     const [showConfirmDialog, setShowConfirmDialog] = useState({ show: false });
     
     // New features state
@@ -289,114 +274,108 @@ const AcademicPlanner = () => {
 
     // Check for upcoming deadlines and notifications
     useEffect(() => {
-        const checkDeadlines = () => {
-            const now = new Date();
-            
-            // Get all tasks and their subtasks for deadline checking
-            const allItems = [];
-            
-            tasks.forEach(task => {
-                // Add main task if it has a due date
-                if (task.dueDate) {
-                    allItems.push({
-                        ...task,
-                        itemType: 'task'
-                    });
-                }
+        let idleId;
+        let interval;
+        const schedule = () => {
+            const run = () => {
+                const now = new Date();
                 
-                // Add subtasks if they have due dates
-                if (task.subtasks) {
-                    task.subtasks.forEach(subtask => {
-                        if (subtask.dueDate) {
-                            allItems.push({
-                                ...subtask,
-                                itemType: 'subtask',
-                                parentTitle: task.title
-                            });
-                        }
-                    });
-                }
-            });
-            
-            // Filter for items due within different time windows
-            const overdueItems = allItems.filter(item => {
-                const dueDate = new Date(item.dueDate);
-                return dueDate < now && item.status !== 'completed';
-            });
-            
-            const dueTodayItems = allItems.filter(item => {
-                const dueDate = new Date(item.dueDate);
-                const timeDiff = dueDate.getTime() - now.getTime();
-                const hoursDiff = timeDiff / (1000 * 3600);
-                return hoursDiff <= 24 && hoursDiff > 0 && item.status !== 'completed';
-            });
-            
-            const upcomingItems = allItems.filter(item => {
-                const dueDate = new Date(item.dueDate);
-                const timeDiff = dueDate.getTime() - now.getTime();
-                const daysDiff = timeDiff / (1000 * 3600 * 24);
-                return daysDiff > 1 && daysDiff <= 3 && item.status !== 'completed';
-            });
-
-            // Show browser notifications if permission granted
-            if (Notification.permission === 'granted') {
-                // Notify about overdue items (limit to avoid spam)
-                overdueItems.slice(0, 3).forEach(item => {
-                    const daysOverdue = Math.ceil((now.getTime() - new Date(item.dueDate).getTime()) / (1000 * 3600 * 24));
-                    const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
-                    
-                    new Notification(`Academic Planner - Overdue!`, {
-                        body: `${title} was due ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
-                        icon: '/favicon.ico',
-                        tag: `overdue-${item.id}`,
-                        requireInteraction: true
-                    });
-                });
+                // Get all tasks and their subtasks for deadline checking
+                const allItems = [];
                 
-                // Notify about items due today
-                dueTodayItems.forEach(item => {
-                    const timeDiff = new Date(item.dueDate).getTime() - now.getTime();
-                    const hoursDiff = Math.max(1, Math.round(timeDiff / (1000 * 3600)));
-                    const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
-                    
-                    new Notification(`Academic Planner - Due Today!`, {
-                        body: `${title} is due in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`,
-                        icon: '/favicon.ico',
-                        tag: `today-${item.id}`
-                    });
-                });
-            }
-            
-            // Log deadline summary for debugging
-            if (overdueItems.length > 0 || dueTodayItems.length > 0 || upcomingItems.length > 0) {
-                console.log('Deadline Summary:', {
-                    overdue: overdueItems.length,
-                    dueToday: dueTodayItems.length,
-                    upcoming: upcomingItems.length,
-                    totalTracked: allItems.length
-                });
-            }
-        };
-
-        // Request notification permission on component mount
-        const requestNotificationPermission = async () => {
-            if ('Notification' in window && Notification.permission === 'default') {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        showToast('Notifications enabled! You\'ll receive deadline alerts.', 'success');
+                tasks.forEach(task => {
+                    // Add main task if it has a due date
+                    if (task.dueDate) {
+                        allItems.push({
+                            ...task,
+                            itemType: 'task'
+                        });
                     }
-                } catch (error) {
-                    console.log('Notification permission error:', error);
+                    
+                    // Add subtasks if they have due dates
+                    if (task.subtasks) {
+                        task.subtasks.forEach(subtask => {
+                            if (subtask.dueDate) {
+                                allItems.push({
+                                    ...subtask,
+                                    itemType: 'subtask',
+                                    parentTitle: task.title
+                            });
+                            }
+                        });
+                    }
+                });
+                
+                // Filter for items due within different time windows
+                const overdueItems = allItems.filter(item => {
+                    const dueDate = new Date(item.dueDate);
+                    return dueDate < now && item.status !== 'completed';
+                });
+                
+                const dueTodayItems = allItems.filter(item => {
+                    const dueDate = new Date(item.dueDate);
+                    const timeDiff = dueDate.getTime() - now.getTime();
+                    const hoursDiff = timeDiff / (1000 * 3600);
+                    return hoursDiff <= 24 && hoursDiff > 0 && item.status !== 'completed';
+                });
+                
+                const upcomingItems = allItems.filter(item => {
+                    const dueDate = new Date(item.dueDate);
+                    const timeDiff = dueDate.getTime() - now.getTime();
+                    const daysDiff = timeDiff / (1000 * 3600 * 24);
+                    return daysDiff > 1 && daysDiff <= 3 && item.status !== 'completed';
+                });
+
+                // Show browser notifications if permission granted
+                if (Notification.permission === 'granted') {
+                    // Notify about overdue items (limit to avoid spam)
+                    overdueItems.slice(0, 3).forEach(item => {
+                        const daysOverdue = Math.ceil((now.getTime() - new Date(item.dueDate).getTime()) / (1000 * 3600 * 24));
+                        const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
+                        
+                        new Notification(`Academic Planner - Overdue!`, {
+                            body: `${title} was due ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
+                            icon: '/favicon.ico',
+                            tag: `overdue-${item.id}`,
+                            requireInteraction: true
+                        });
+                    });
+                    
+                    // Notify about items due today
+                    dueTodayItems.forEach(item => {
+                        const timeDiff = new Date(item.dueDate).getTime() - now.getTime();
+                        const hoursDiff = Math.max(1, Math.round(timeDiff / (1000 * 3600)));
+                        const title = item.itemType === 'subtask' ? `${item.parentTitle} - ${item.title}` : item.title;
+                        
+                        new Notification(`Academic Planner - Due Today!`, {
+                            body: `${title} is due in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`,
+                            icon: '/favicon.ico',
+                            tag: `today-${item.id}`
+                        });
+                    });
                 }
+                
+                // Log deadline summary for debugging
+                if (overdueItems.length > 0 || dueTodayItems.length > 0 || upcomingItems.length > 0) {
+                    console.log('Deadline Summary:', {
+                        overdue: overdueItems.length,
+                        dueToday: dueTodayItems.length,
+                        upcoming: upcomingItems.length,
+                        totalTracked: allItems.length
+                    });
+                }
+            };
+            if (window.requestIdleCallback) {
+                idleId = window.requestIdleCallback(run, { timeout: 2000 });
+            } else {
+                setTimeout(run, 200);
             }
         };
+        schedule();
+        interval = setInterval(schedule, 60000); // Check every minute
+        schedule(); // Initial check
 
-        requestNotificationPermission();
-        const interval = setInterval(checkDeadlines, 60000); // Check every minute
-        checkDeadlines(); // Initial check
-
-        return () => clearInterval(interval);
+        return () => { if (idleId && window.cancelIdleCallback) window.cancelIdleCallback(idleId); clearInterval(interval); };
     }, [tasks]);
 
     // Function to show toast
@@ -881,368 +860,6 @@ const AcademicPlanner = () => {
                 )
             );
         }
-    };
-
-    // NEW TIMER SYSTEM - Enhanced with persistent data
-    // Helper function to find a task or subtask by ID
-    const findTaskOrSubtask = (taskId) => {
-        // First, look for the task in the main tasks array
-        const mainTask = tasks.find(t => t.id === taskId);
-        if (mainTask) {
-            return { task: mainTask, isSubtask: false, parentTask: null };
-        }
-        
-        // If not found, look for it as a subtask
-        for (const task of tasks) {
-            if (task.subtasks) {
-                const subtask = task.subtasks.find(st => st.id === taskId);
-                if (subtask) {
-                    return { task: subtask, isSubtask: true, parentTask: task };
-                }
-            }
-        }
-        
-        return null;
-    };
-
-    const startStudyTimer = (taskId) => {
-        console.log("🎯 Starting timer for task:", taskId);
-        
-        // Stop any existing timer first
-        if (studyTimer.isRunning) {
-            stopStudyTimer();
-        }
-        
-        // Find the task or subtask
-        const taskInfo = findTaskOrSubtask(taskId);
-        if (!taskInfo) {
-            console.error("❌ Task not found:", taskId);
-            return;
-        }
-        
-        const { task, isSubtask, parentTask } = taskInfo;
-        const now = new Date();
-        
-        // Create new timer state
-        const newTimerState = {
-            taskId,
-            startTime: now,
-            isRunning: true
-        };
-        
-        // Set timer state immediately for instant UI feedback
-        setStudyTimer(newTimerState);
-        
-        // Update task with active timer state
-        if (isSubtask) {
-            // Update subtask within its parent task
-            setTasks(prevTasks =>
-                prevTasks.map(t =>
-                    t.id === parentTask.id
-                        ? {
-                            ...t,
-                            subtasks: t.subtasks.map(st =>
-                                st.id === taskId
-                                    ? {
-                                        ...st,
-                                        status: 'in-progress',
-                                        timerData: {
-                                            ...st.timerData,
-                                            lastStartTime: now.toISOString(),
-                                            isActive: true
-                                        }
-                                    }
-                                    : st
-                            )
-                        }
-                        : t
-                )
-            );
-        } else {
-            // Update main task
-            setTasks(prevTasks =>
-                prevTasks.map(t =>
-                    t.id === taskId
-                        ? { 
-                            ...t, 
-                            status: 'in-progress',
-                            timerData: {
-                                ...t.timerData,
-                                lastStartTime: now.toISOString(),
-                                isActive: true
-                            }
-                        }
-                        : t
-                )
-            );
-        }
-        
-        // Show success toast
-        showToast(`Timer started for "${task.title}" ⏱️`, 'timer');
-        
-        console.log("✅ Timer started successfully");
-    };
-
-    const stopStudyTimer = () => {
-        console.log("⏹️ Stopping timer");
-        
-        if (!studyTimer.isRunning || !studyTimer.taskId) {
-            console.log("⚠️ No active timer to stop");
-            return;
-        }
-        
-        const now = new Date();
-        const sessionDuration = Math.floor((now - studyTimer.startTime) / 1000); // in seconds
-        
-        // Find the task or subtask
-        const taskInfo = findTaskOrSubtask(studyTimer.taskId);
-        if (!taskInfo) {
-            console.error("❌ Task not found:", studyTimer.taskId);
-            setStudyTimer({ taskId: null, startTime: null, isRunning: false });
-            return;
-        }
-        
-        const { task, isSubtask, parentTask } = taskInfo;
-        
-        // Only record time if session was longer than 5 seconds
-        if (sessionDuration >= 5) {
-            // Update task with session data
-            if (isSubtask) {
-                // Update subtask within its parent task
-                setTasks(prevTasks =>
-                    prevTasks.map(t =>
-                        t.id === parentTask.id
-                            ? {
-                                ...t,
-                                subtasks: t.subtasks.map(st =>
-                                    st.id === studyTimer.taskId
-                                        ? {
-                                            ...st,
-                                            timerData: {
-                                                ...st.timerData,
-                                                totalTimeSpent: (st.timerData?.totalTimeSpent || 0) + sessionDuration,
-                                                lastStartTime: null,
-                                                isActive: false,
-                                                sessions: [
-                                                    ...(st.timerData?.sessions || []),
-                                                    {
-                                                        startTime: studyTimer.startTime.toISOString(),
-                                                        endTime: now.toISOString(),
-                                                        duration: sessionDuration
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                        : st
-                                )
-                            }
-                            : t
-                    )
-                );
-            } else {
-                // Update main task
-                setTasks(prevTasks =>
-                    prevTasks.map(t =>
-                        t.id === studyTimer.taskId
-                            ? { 
-                                ...t, 
-                                timerData: {
-                                    ...t.timerData,
-                                    totalTimeSpent: (t.timerData?.totalTimeSpent || 0) + sessionDuration,
-                                    lastStartTime: null,
-                                    isActive: false,
-                                    sessions: [
-                                        ...(t.timerData?.sessions || []),
-                                        {
-                                            startTime: studyTimer.startTime.toISOString(),
-                                            endTime: now.toISOString(),
-                                            duration: sessionDuration
-                                        }
-                                    ]
-                                }
-                            }
-                            : t
-                    )
-                );
-            }
-            
-            const timeSpentFormatted = formatSecondsToTimeString(sessionDuration);
-            showToast(`Study session complete! Time: ${timeSpentFormatted} ✅`, 'success');
-        }
-        
-        // Reset timer state
-        setStudyTimer({ taskId: null, startTime: null, isRunning: false });
-        
-        console.log("✅ Timer stopped successfully");
-    };
-
-    // Helper function to format seconds to time string
-    const formatSecondsToTimeString = (seconds) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = seconds % 60;
-        
-        if (hours > 0) {
-            return `${hours}h ${minutes}m`;
-        } else if (minutes > 0) {
-            return `${minutes}m ${remainingSeconds}s`;
-        } else {
-            return `${remainingSeconds}s`;
-        }
-    };
-
-    // TIMER DISPLAY AND PROGRESS MANAGEMENT
-    const getTimerDisplay = (taskId = null) => {
-        // If a specific taskId is provided, check if it's the currently running timer
-        const activeTaskId = taskId || studyTimer.taskId;
-        
-        if (!studyTimer.isRunning || !studyTimer.startTime || (taskId && studyTimer.taskId !== taskId)) {
-            // If no active timer for this specific task, check if it has previous time
-            if (taskId) {
-                const taskInfo = findTaskOrSubtask(taskId);
-                if (taskInfo && taskInfo.task.timerData && taskInfo.task.timerData.totalTimeSpent > 0) {
-                    const totalSeconds = taskInfo.task.timerData.totalTimeSpent;
-                    const minutes = Math.floor(totalSeconds / 60);
-                    const seconds = totalSeconds % 60;
-                    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
-            } else if (focusTask && focusTask.timerData && focusTask.timerData.totalTimeSpent > 0) {
-                const totalSeconds = focusTask.timerData.totalTimeSpent;
-                const minutes = Math.floor(totalSeconds / 60);
-                const seconds = totalSeconds % 60;
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-            return '00:00';
-        }
-        
-        // Find the current task or subtask
-        const taskInfo = findTaskOrSubtask(activeTaskId);
-        if (!taskInfo) {
-            return '00:00';
-        }
-        
-        const { task } = taskInfo;
-        const previousTimeSpent = task?.timerData?.totalTimeSpent || 0;
-        
-        // Calculate current session time
-        const currentSessionSeconds = Math.floor((new Date() - studyTimer.startTime) / 1000);
-        
-        // Total time is previous + current session
-        const totalSeconds = previousTimeSpent + currentSessionSeconds;
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
-
-    // Get estimated time countdown
-    const getEstimatedTimeCountdown = (task) => {
-        if (!task || !studyTimer.isRunning || studyTimer.taskId !== task.id || !studyTimer.startTime) {
-            return task?.estimatedTime || 'Unknown';
-        }
-        
-        const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
-        const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
-        const remainingMinutes = Math.max(0, estimatedMinutes - elapsedMinutes);
-        
-        if (remainingMinutes < 1) {
-            return 'Time up!';
-        }
-        
-        return formatMinutesToTimeString(Math.round(remainingMinutes)) + ' remaining';
-    };
-
-    // Simplified timer interval - only updates display and progress
-    useEffect(() => {
-        let interval;
-        
-        if (studyTimer.isRunning && studyTimer.taskId && studyTimer.startTime) {
-            interval = setInterval(() => {
-                // Force re-render to update timer display
-                setStudyTimer(prev => ({ ...prev, lastUpdate: new Date() }));
-                
-                // Find the task or subtask that's currently running
-                const taskInfo = findTaskOrSubtask(studyTimer.taskId);
-                if (taskInfo) {
-                    const { task, isSubtask, parentTask } = taskInfo;
-                    const elapsedMinutes = (new Date() - studyTimer.startTime) / (1000 * 60);
-                    const estimatedMinutes = parseTimeToMinutes(task.estimatedTime || '1 hour');
-                    const timerProgress = Math.min((elapsedMinutes / estimatedMinutes) * 100, 100);
-                    
-                    // Only update if progress has increased significantly
-                    if (timerProgress > (task.progress || 0)) {
-                        if (isSubtask) {
-                            // Update subtask within its parent task
-                            setTasks(prevTasks =>
-                                prevTasks.map(t =>
-                                    t.id === parentTask.id
-                                        ? {
-                                            ...t,
-                                            subtasks: t.subtasks.map(st =>
-                                                st.id === studyTimer.taskId
-                                                    ? { ...st, progress: Math.max(st.progress || 0, timerProgress) }
-                                                    : st
-                                            )
-                                        }
-                                        : t
-                                )
-                            );
-                        } else {
-                            // Update main task
-                            setTasks(prevTasks =>
-                                prevTasks.map(t =>
-                                    t.id === studyTimer.taskId
-                                        ? { ...t, progress: Math.max(t.progress || 0, timerProgress) }
-                                        : t
-                                )
-                            );
-                        }
-                    }
-                }
-            }, 1000); // Update every second
-        }
-        
-        return () => {
-            if (interval) {
-                clearInterval(interval);
-            }
-        };
-    }, [studyTimer.isRunning, studyTimer.taskId, studyTimer.startTime, tasks]);
-
-    // HELPER FUNCTIONS
-    const addTimeSpent = (existingTime, newTime) => {
-        const parseTime = (timeStr) => {
-            if (!timeStr || timeStr === '0 hours') return 0;
-            
-            let totalMinutes = 0;
-            const hourMatch = timeStr.match(/(\d+)h/);
-            const minuteMatch = timeStr.match(/(\d+)m/);
-            const hoursOnlyMatch = timeStr.match(/(\d+)\s*hours?/);
-            const minutesOnlyMatch = timeStr.match(/(\d+)\s*minutes?/);
-            
-            if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
-            if (minuteMatch) totalMinutes += parseInt(minuteMatch[1]);
-            if (hoursOnlyMatch && !hourMatch) totalMinutes += parseInt(hoursOnlyMatch[1]) * 60;
-            if (minutesOnlyMatch && !minuteMatch) totalMinutes += parseInt(minutesOnlyMatch[1]);
-            
-            return totalMinutes;
-        };
-        
-        const formatTime = (totalMinutes) => {
-            if (totalMinutes === 0) return '0 hours';
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            
-            if (hours === 0) return `${minutes} minutes`;
-            if (minutes === 0) return `${hours} hours`;
-            return `${hours}h ${minutes}m`;
-        };
-        
-        const existingMinutes = parseTime(existingTime);
-        const newMinutes = parseTime(newTime);
-        const totalMinutes = existingMinutes + newMinutes;
-        
-        return formatTime(totalMinutes);
     };
 
     // AI Suggestions based on task analysis
@@ -2048,50 +1665,56 @@ const AcademicPlanner = () => {
             {/* Templates Modal */}
             {showTemplates && (
                 <div ref={templatesModalRef}>
-                <TaskTemplates
-                    onApplyTemplate={createTaskFromTemplate}
-                    onClose={() => setShowTemplates(false)}
-                    onSaveTemplate={(template) => {
-                        // Add the new template to the taskTemplates array
-                        setTaskTemplates(prev => [...prev, {
-                            id: template.id,
-                            name: template.title,
-                            template: {
-                                type: template.type,
-                                priority: template.priority,
-                                estimatedTime: template.estimatedTime,
-                                description: template.description
+                <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+                    <TaskTemplates
+                        onApplyTemplate={createTaskFromTemplate}
+                        onClose={() => setShowTemplates(false)}
+                        onSaveTemplate={(template) => {
+                            // Add the new template to the taskTemplates array
+                            setTaskTemplates(prev => [...prev, {
+                                id: template.id,
+                                name: template.title,
+                                template: {
+                                    type: template.type,
+                                    priority: template.priority,
+                                    estimatedTime: template.estimatedTime,
+                                    description: template.description
                             }
                         }]);
                         showToast('Template saved successfully!', 'success');
                     }}
                 />
+                </Suspense>
                 </div>
             )}
             
             {/* Advanced Search Modal */}
             {showAdvancedSearch && (
                 <div ref={advancedSearchModalRef}>
-                <AdvancedSearch
-                    onSearch={(filters) => {
-                        setSearchFilters(filters);
-                        setShowAdvancedSearch(false);
-                        // Implement advanced search logic here
-                        showToast('Search filters applied', 'info');
-                    }}
-                    onClose={() => setShowAdvancedSearch(false)}
-                    initialFilters={searchFilters}
-                />
+                <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+                    <AdvancedSearch
+                        onSearch={(filters) => {
+                            setSearchFilters(filters);
+                            setShowAdvancedSearch(false);
+                            // Implement advanced search logic here
+                            showToast('Search filters applied', 'info');
+                        }}
+                        onClose={() => setShowAdvancedSearch(false)}
+                        initialFilters={searchFilters}
+                    />
+                </Suspense>
                 </div>
             )}
             
             {/* Analytics Dashboard */}
             {showDataVisualization && (
                 <div ref={analyticsDashboardRef}>
-                <AnalyticsDashboard
-                    tasks={tasks}
-                    onClose={() => setShowDataVisualization(false)}
-                />
+                <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+                    <AnalyticsDashboard
+                        tasks={tasks}
+                        onClose={() => setShowDataVisualization(false)}
+                    />
+                </Suspense>
                 </div>
             )}
             
@@ -2207,22 +1830,26 @@ const AcademicPlanner = () => {
 
             {showAddTaskModal && (
                 <div ref={addTaskModalRef}>
-                    <AddTaskForm
-                        onAddTask={handleAddTask}
-                        onClose={() => setShowAddTaskModal(false)}
-                        // Pass any other necessary props like subjects, task types if AddTaskForm needs them for dropdowns
-                        initialData={editingTask} // Pass editingTask data to the form for editing
-                    />
+                    <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+                        <AddTaskForm
+                            onAddTask={handleAddTask}
+                            onClose={() => setShowAddTaskModal(false)}
+                            // Pass any other necessary props like subjects, task types if AddTaskForm needs them for dropdowns
+                            initialData={editingTask} // Pass editingTask data to the form for editing
+                        />
+                    </Suspense>
                 </div>
             )}
 
             {showAddAssignmentModal && (
                 <div ref={addTaskModalRef}>
-                    <AddAssignmentForm
-                        onAddAssignment={handleAddAssignment}
-                        onClose={() => setShowAddAssignmentModal(false)}
-                        initialData={editingAssignment} // Pass editingAssignment data to the form for editing
-                    />
+                    <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+                        <AddAssignmentForm
+                            onAddAssignment={handleAddAssignment}
+                            onClose={() => setShowAddAssignmentModal(false)}
+                            initialData={editingAssignment} // Pass editingAssignment data to the form for editing
+                        />
+                    </Suspense>
                 </div>
             )}
 

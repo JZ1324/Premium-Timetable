@@ -10,25 +10,11 @@
     gap: 1rem;
     flex-shrink: 0;
     width: 100%;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 300ms var(--ease-out, cubic-bezier(.16,.8,.24,1)), transform 400ms var(--ease-out, cubic-bezier(.16,.8,.24,1));
 }
-
-.view-buttons-row, .date-navigation-row, .actions-row {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-}
-
-.actions-row {
-    justify-content: space-between;
-    margin-bottom: 0;
-}
-
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
+.top-navigation.nav-mounted { opacity: 1; transform: translateY(0); }
 
 .view-buttons {
     display: flex;
@@ -36,7 +22,22 @@
     background-color: #f3f4f6;
     border-radius: 8px;
     padding: 4px;
+    position: relative;
 }
+
+.active-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    border-radius: 6px;
+    background: linear-gradient(90deg,var(--color-accent-solid,#4f46e5),var(--color-accent,#6366f1));
+    box-shadow: 0 2px 6px -1px rgba(0,0,0,.15),0 0 0 1px hsl(var(--h-accent,250) 90% 40% / .25);
+    transition: transform 360ms cubic-bezier(.16,.8,.24,1), width 360ms cubic-bezier(.16,.8,.24,1);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.view-buttons .view-btn { position: relative; z-index: 1; }
 
 .view-btn {
     padding: 0.5rem 1rem;
@@ -228,4 +229,9 @@
 
 .dropdown-item:hover {
     background-color: #f3f4f6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-navigation { transition: none; transform: none !important; opacity: 1 !important; }
+  .active-indicator { transition: none; }
 }

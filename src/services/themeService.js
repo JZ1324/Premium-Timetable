@@ -80,10 +80,68 @@ const setTheme = (theme) => {
     return false;
 };
 
-const initTheme = () => {
-    // Initialize theme from localStorage or default to light
-    const savedTheme = localStorage.getItem('preferred-theme');
-    loadTheme(savedTheme || 'light');
+const ACCENT_STYLE_ID = 'dynamic-accent-style';
+
+/**
+ * Update accent hue (0-359) and optionally persist
+ */
+const setAccentHue = (hue, persist = true) => {
+  const clamped = Math.max(0, Math.min(359, parseInt(hue, 10) || 0));
+  document.documentElement.style.setProperty('--h-accent', clamped);
+  if (persist) {
+    try { localStorage.setItem('accent-hue', clamped); } catch (e) {}
+  }
+  injectDynamicAccentStyle();
 };
 
-export { loadTheme, getCurrentTheme, setTheme, initTheme };
+/**
+ * Injects a small style block that recalculates derived accent shades when hue changes.
+ * (Modern browsers update HSL derived vars automatically, but we can provide extra utilities.)
+ */
+const injectDynamicAccentStyle = () => {
+  let style = document.getElementById(ACCENT_STYLE_ID);
+  if (!style) {
+    style = document.createElement('style');
+    style.id = ACCENT_STYLE_ID;
+    document.head.appendChild(style);
+  }
+  // Could add darker/lighter algorithmic overrides here if needed.
+  style.textContent = `/* dynamic accent overrides */\n:root { /* current hue: ${getAccentHue()} */ }`;
+};
+
+const getAccentHue = () => {
+  const stored = localStorage.getItem('accent-hue');
+  if (stored) return parseInt(stored, 10);
+  // fallback to computed value
+  const val = getComputedStyle(document.documentElement).getPropertyValue('--h-accent').trim();
+  return parseInt(val || '230', 10);
+};
+
+/**
+ * Create / update a fully custom theme based on user parameters.
+ * @param {Object} opts
+ * @param {number} opts.hue base accent hue
+ * @param {number} opts.contrastBoost 0-1 range to increase contrast
+ * @param {string} opts.id custom theme id (default 'custom')
+ */
+const applyCustomTheme = ({ hue = 230, contrastBoost = 0, id = 'custom' } = {}) => {
+  setAccentHue(hue, true);
+  const styleId = `custom-theme-${id}`;
+  let style = document.getElementById(styleId);
+  if (!style) { style = document.createElement('style'); style.id = styleId; document.head.appendChild(style); }
+  // Adjust background & text lightness based on contrastBoost
+  const boost = Math.max(0, Math.min(1, contrastBoost));
+  const darken = boost * 6; // reduce L by up to 6%
+  style.textContent = `/* custom theme ${id} */\nhtml[data-theme='${id}'], body[data-theme='${id}'] {\n  --h-accent: ${hue};\n  --color-bg-app: hsl(220 20% ${98 - darken}%);\n  --color-bg-surface: hsl(0 0% ${100 - darken * 1.2}%);\n  --color-bg-elevated: hsl(220 20% ${97 - darken}%);\n  --color-text-main: hsl(220 25% ${12 + boost * 5}%);\n  --color-text-muted: hsl(220 10% ${35 - boost * 5}%);\n}`;
+};
+
+// Extend init to load accent hue
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('preferred-theme');
+  loadTheme(savedTheme || 'light');
+  const savedHue = localStorage.getItem('accent-hue');
+  if (savedHue) setAccentHue(parseInt(savedHue, 10), false); else injectDynamicAccentStyle();
+};
+
+// Export new functions
+export { loadTheme, getCurrentTheme, setTheme, initTheme, setAccentHue, getAccentHue, applyCustomTheme };

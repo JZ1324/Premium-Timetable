@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import TaskCard from './TaskCard';
 import AssignmentCard from './AssignmentCard';
 import '../../styles/components/AcademicPlanner/day.css';
 import { getPriorityColor, getStatusBadgeConfig } from './utils';
+import { FixedSizeList as List } from 'react-window';
 
 const DayView = ({
     currentDate,
@@ -108,6 +109,65 @@ const DayView = ({
     
     const regularTaskGroups = groupTasksByStatus(regularTasks);
     const assignmentGroups = groupTasksByStatus(assignments);
+
+    // Flatten regular task groups preserving order for virtualization
+    const orderedRegularTasks = useMemo(()=>[
+        ...regularTaskGroups.overdue,
+        ...regularTaskGroups.today,
+        ...regularTaskGroups.tomorrow,
+        ...regularTaskGroups.upcoming
+    ], [regularTaskGroups.overdue, regularTaskGroups.today, regularTaskGroups.tomorrow, regularTaskGroups.upcoming]);
+
+    const VIRTUAL_THRESHOLD = 30; // only virtualize if many tasks
+    const useVirtual = orderedRegularTasks.length > VIRTUAL_THRESHOLD;
+
+    const ROW_HEIGHT = 210; // approximate TaskCard height; adjust if needed
+
+    const Row = useCallback(({ index, style }) => {
+        const task = orderedRegularTasks[index];
+        return (
+            <div style={style}>
+                <TaskCard 
+                    key={task.id}
+                    task={task}
+                    handleEditTask={handleEditTask}
+                    handleDeleteTask={handleDeleteTask}
+                    enterFocusMode={enterFocusMode}
+                    shareTask={shareTask}
+                    studyTimer={studyTimer}
+                    startStudyTimer={startStudyTimer}
+                    stopStudyTimer={stopStudyTimer}
+                    handleTaskComplete={handleTaskComplete}
+                    handleProgressUpdate={handleProgressUpdate}
+                    getTimerDisplay={getTimerDisplay}
+                    getEstimatedTimeCountdown={getEstimatedTimeCountdown}
+                />
+            </div>
+        );
+    }, [orderedRegularTasks, handleEditTask, handleDeleteTask, enterFocusMode, shareTask, studyTimer, startStudyTimer, stopStudyTimer, handleTaskComplete, handleProgressUpdate, getTimerDisplay, getEstimatedTimeCountdown]);
+
+    // If no upcoming items at all, show a friendly empty state
+    if (upcomingItems.length === 0) {
+        return (
+            <div className="day-view">
+                <div className="tasks-section">
+                    <div className="no-tasks">
+                        <i className="ri-sparkling-line" aria-hidden="true"></i>
+                        <h3 style={{margin: '0 0 8px 0'}}>You're all caught up</h3>
+                        <p style={{margin: 0, color: 'var(--color-text-subtle)'}}>Add your first task or assignment to get started.</p>
+                        <div style={{display:'flex', gap: '8px', marginTop: '16px'}}>
+                            <button className="add-btn" onClick={handleOpenAddTaskModal} aria-label="Add a new task">
+                                <i className="ri-add-line"></i> New Task
+                            </button>
+                            <button className="add-btn" onClick={handleOpenAddAssignmentModal} aria-label="Add a new assignment" style={{background: 'var(--color-accent-hover)'}}>
+                                <i className="ri-add-circle-line"></i> New Assignment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="day-view">
@@ -235,135 +295,52 @@ const DayView = ({
                     </div>
                 )}
 
-                {/* Regular Tasks Section */}
+                {/* Regular Tasks Section (virtualized if large) */}
                 <div className="tasks-section">
-                    <div className="section-header-with-count">
-                        <h3 className="section-header">Tasks & Activities</h3>
-                        <span className="task-count">{regularTasks.length}</span>
+                    <div className="section-header-with-actions">
+                        <div className="section-header-with-count">
+                            <h3 className="section-header">Tasks</h3>
+                            <span className="task-count">{orderedRegularTasks.length}</span>
+                        </div>
+                        <button 
+                            className="add-btn"
+                            onClick={handleOpenAddTaskModal}
+                            title="Add new task"
+                        >
+                            <i className="ri-add-line"></i> New Task
+                        </button>
                     </div>
-                    
-                    {/* Overdue Tasks */}
-                    {regularTaskGroups.overdue.length > 0 && (
-                        <div className="task-group overdue-group">
-                            <h4 className="group-header overdue">
-                                <i className="ri-error-warning-line"></i>
-                                Overdue ({regularTaskGroups.overdue.length})
-                            </h4>
-                            <div className="tasks-list">
-                                {regularTaskGroups.overdue.map(task => (
-                                    <TaskCard 
-                                        key={task.id}
-                                        task={task}
-                                        handleEditTask={handleEditTask}
-                                        handleDeleteTask={handleDeleteTask}
-                                        enterFocusMode={enterFocusMode}
-                                        shareTask={shareTask}
-                                        studyTimer={studyTimer}
-                                        startStudyTimer={startStudyTimer}
-                                        stopStudyTimer={stopStudyTimer}
-                                        handleTaskComplete={handleTaskComplete}
-                                        handleProgressUpdate={handleProgressUpdate}
-                                        getTimerDisplay={getTimerDisplay}
-                                        getEstimatedTimeCountdown={getEstimatedTimeCountdown}
-                                    />
-                                ))}
-                            </div>
+                    {!useVirtual && (
+                        <div className="tasks-list non-virtual">
+                            {orderedRegularTasks.map(task => (
+                                <TaskCard 
+                                    key={task.id}
+                                    task={task}
+                                    handleEditTask={handleEditTask}
+                                    handleDeleteTask={handleDeleteTask}
+                                    enterFocusMode={enterFocusMode}
+                                    shareTask={shareTask}
+                                    studyTimer={studyTimer}
+                                    startStudyTimer={startStudyTimer}
+                                    stopStudyTimer={stopStudyTimer}
+                                    handleTaskComplete={handleTaskComplete}
+                                    handleProgressUpdate={handleProgressUpdate}
+                                    getTimerDisplay={getTimerDisplay}
+                                    getEstimatedTimeCountdown={getEstimatedTimeCountdown}
+                                />
+                            ))}
                         </div>
                     )}
-                    
-                    {/* Today's Tasks */}
-                    {regularTaskGroups.today.length > 0 && (
-                        <div className="task-group today-group">
-                            <h4 className="group-header today">
-                                <i className="ri-time-line"></i>
-                                Due Today ({regularTaskGroups.today.length})
-                            </h4>
-                            <div className="tasks-list">
-                                {regularTaskGroups.today.map(task => (
-                                    <TaskCard 
-                                        key={task.id}
-                                        task={task}
-                                        handleEditTask={handleEditTask}
-                                        handleDeleteTask={handleDeleteTask}
-                                        enterFocusMode={enterFocusMode}
-                                        shareTask={shareTask}
-                                        studyTimer={studyTimer}
-                                        startStudyTimer={startStudyTimer}
-                                        stopStudyTimer={stopStudyTimer}
-                                        handleTaskComplete={handleTaskComplete}
-                                        handleProgressUpdate={handleProgressUpdate}
-                                        getTimerDisplay={getTimerDisplay}
-                                        getEstimatedTimeCountdown={getEstimatedTimeCountdown}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Tomorrow's Tasks */}
-                    {regularTaskGroups.tomorrow.length > 0 && (
-                        <div className="task-group tomorrow-group">
-                            <h4 className="group-header tomorrow">
-                                <i className="ri-calendar-line"></i>
-                                Due Tomorrow ({regularTaskGroups.tomorrow.length})
-                            </h4>
-                            <div className="tasks-list">
-                                {regularTaskGroups.tomorrow.map(task => (
-                                    <TaskCard 
-                                        key={task.id}
-                                        task={task}
-                                        handleEditTask={handleEditTask}
-                                        handleDeleteTask={handleDeleteTask}
-                                        enterFocusMode={enterFocusMode}
-                                        shareTask={shareTask}
-                                        studyTimer={studyTimer}
-                                        startStudyTimer={startStudyTimer}
-                                        stopStudyTimer={stopStudyTimer}
-                                        handleTaskComplete={handleTaskComplete}
-                                        handleProgressUpdate={handleProgressUpdate}
-                                        getTimerDisplay={getTimerDisplay}
-                                        getEstimatedTimeCountdown={getEstimatedTimeCountdown}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Upcoming Tasks */}
-                    {regularTaskGroups.upcoming.length > 0 && (
-                        <div className="task-group upcoming-group">
-                            <h4 className="group-header upcoming">
-                                <i className="ri-calendar-2-line"></i>
-                                Upcoming ({regularTaskGroups.upcoming.length})
-                            </h4>
-                            <div className="tasks-list">
-                                {regularTaskGroups.upcoming.map(task => (
-                                    <TaskCard 
-                                        key={task.id}
-                                        task={task}
-                                        handleEditTask={handleEditTask}
-                                        handleDeleteTask={handleDeleteTask}
-                                        enterFocusMode={enterFocusMode}
-                                        shareTask={shareTask}
-                                        studyTimer={studyTimer}
-                                        startStudyTimer={startStudyTimer}
-                                        stopStudyTimer={stopStudyTimer}
-                                        handleTaskComplete={handleTaskComplete}
-                                        handleProgressUpdate={handleProgressUpdate}
-                                        getTimerDisplay={getTimerDisplay}
-                                        getEstimatedTimeCountdown={getEstimatedTimeCountdown}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    
-                    {regularTasks.length === 0 && (
-                        <div className="no-tasks">
-                            <i className="ri-checkbox-circle-line"></i>
-                            <p>No upcoming tasks within the next {UPCOMING_DAYS_RANGE} days!</p>
-                            <p>Click "New Task" to add one.</p>
-                        </div>
+                    {useVirtual && (
+                        <List 
+                            height={Math.min(window.innerHeight - 300, 800)}
+                            itemCount={orderedRegularTasks.length}
+                            itemSize={ROW_HEIGHT}
+                            width={'100%'}
+                            className="tasks-virtual-list"
+                        >
+                            {Row}
+                        </List>
                     )}
                 </div>
 

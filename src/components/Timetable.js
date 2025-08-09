@@ -197,61 +197,54 @@ const Timetable = () => {
         try {
             const buttons = document.querySelectorAll('button');
             console.log(`Adding hover animations to ${buttons.length} buttons`);
-            
+
             buttons.forEach(button => {
-                button.addEventListener('mouseenter', () => {
+                const onEnter = () => {
                     try {
-                        button.style.transform = 'scale(1.1)';
-                        button.style.transition = 'transform 0.2s ease';
+                        button.style.transform = 'scale(1.06)';
+                        button.style.transition = 'transform 0.15s ease';
                     } catch (e) {
                         console.warn('Error in button hover animation:', e);
                     }
-                });
-                
-                button.addEventListener('mouseleave', () => {
+                };
+                const onLeave = () => {
                     try {
                         button.style.transform = 'scale(1)';
-                        button.style.transition = 'transform 0.2s ease';
+                        button.style.transition = 'transform 0.15s ease';
                     } catch (e) {
                         console.warn('Error in button leave animation:', e);
                     }
-                });
+                };
+                button.addEventListener('mouseenter', onEnter);
+                button.addEventListener('mouseleave', onLeave);
             });
         } catch (error) {
             console.warn('Error in addButtonHoverAnimations:', error);
         }
     };
-    
-    // Test animation function you can call manually
+
+    // Simple test animation helper to validate DOM manipulation
     const testAnimation = () => {
-        console.log('testAnimation called!');
-        
-        const timeSlots = document.querySelectorAll('.time-slot');
-        console.log('Found time slots:', timeSlots.length);
-        
         try {
-            console.log('Running CSS animation test...');
+            const timeSlots = document.querySelectorAll('.time-slot');
+            const duration = 1000;
             timeSlots.forEach((slot, i) => {
+                slot.style.transition = 'transform 0.6s ease';
                 setTimeout(() => {
                     slot.style.transform = 'scale(1.2) rotate(10deg)';
-                    slot.style.backgroundColor = '#ffeb3b';
-                    slot.style.transition = 'all 1s ease';
-                    
                     setTimeout(() => {
                         slot.style.transform = 'scale(1) rotate(0deg)';
-                        slot.style.backgroundColor = '';
-                    }, 1000);
+                    }, duration);
                 }, i * 150);
             });
-            
             setTimeout(() => {
                 console.log('Animation completed!');
-            }, timeSlots.length * 150 + 1000);
+            }, timeSlots.length * 150 + duration);
         } catch (error) {
             console.warn('Error in testAnimation:', error);
         }
     };
-    
+
     // Simple test function without anime.js to check DOM elements
     const testDOMElements = () => {
         const timeSlots = document.querySelectorAll('.time-slot');
@@ -1314,6 +1307,74 @@ const Timetable = () => {
         return labelRefs.current[period];
     };
 
+    // Keep left period labels aligned in height with right rows
+    useEffect(() => {
+        const periods = getPeriods();
+        const syncHeights = () => {
+            periods.forEach(p => {
+                const labelEl = labelRefs.current[p]?.current;
+                const rowEl = document.querySelector(`.day-column .period-row[data-period="${p}"]`);
+                if (!labelEl || !rowEl) return;
+                // Reset to auto first to measure natural heights
+                labelEl.style.height = 'auto';
+                rowEl.style.height = 'auto';
+                const labelMin = parseFloat(getComputedStyle(labelEl).minHeight || '0');
+                const rowMin = parseFloat(getComputedStyle(rowEl).minHeight || '0');
+                const labelH = Math.max(labelEl.scrollHeight || 0, labelEl.offsetHeight || 0);
+                const rowH = Math.max(rowEl.scrollHeight || 0, rowEl.offsetHeight || 0);
+                const target = Math.max(labelH, rowH, labelMin, rowMin);
+                labelEl.style.height = `${target}px`;
+                rowEl.style.height = `${target}px`;
+            });
+        };
+
+        // Throttle reflows with rAF to avoid ResizeObserver loops
+        let rafId = null;
+        let pending = false;
+        const scheduleSync = () => {
+            if (pending) return;
+            pending = true;
+            rafId = requestAnimationFrame(() => {
+                pending = false;
+                syncHeights();
+            });
+        };
+
+        // Run after paint with a second pass for animation settle
+        const raf = requestAnimationFrame(() => {
+            scheduleSync();
+            setTimeout(scheduleSync, 200);
+        });
+        // Resize observer to react to content changes
+        const ro = new ResizeObserver(() => {
+            scheduleSync();
+        });
+        periods.forEach(p => {
+            const rowEl = document.querySelector(`.day-column .period-row[data-period="${p}"]`);
+            if (rowEl) {
+                ro.observe(rowEl);
+                const editEl = rowEl.querySelector('.time-slot.editing');
+                if (editEl) ro.observe(editEl);
+            }
+        });
+        const resizeHandler = () => scheduleSync();
+        window.addEventListener('resize', resizeHandler);
+
+        return () => {
+            cancelAnimationFrame(raf);
+            if (rafId) cancelAnimationFrame(rafId);
+            try { ro.disconnect(); } catch {}
+            window.removeEventListener('resize', resizeHandler);
+            // Cleanup explicit heights to allow CSS to control
+            periods.forEach(p => {
+                const labelEl = labelRefs.current[p]?.current;
+                const rowEl = document.querySelector(`.day-column .period-row[data-period="${p}"]`);
+                if (labelEl) labelEl.style.height = '';
+                if (rowEl) rowEl.style.height = '';
+            });
+        };
+    }, [timeSlots, currentDay, editMode, visiblePeriods.Recess, visiblePeriods.Lunch, currentEditingSlot]);
+
     // Listen for color changes
     useEffect(() => {
         const handleColorChange = () => {
@@ -1541,7 +1602,6 @@ const Timetable = () => {
                                 className={`period-label ${isEditingThisPeriod ? 'editing' : ''}`}
                                 data-period={period}
                                 ref={getPeriodLabelRef(period)}
-                                style={isEditingThisPeriod && editingRowHeight ? { height: `${editingRowHeight}px` } : {}}
                             >
                                 <span>{period}</span>
                                 {period === '1' && <span className="time">8:35am–9:35am</span>}

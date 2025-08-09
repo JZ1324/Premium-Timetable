@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import '../../styles/components/AcademicPlanner/taskCard.css';
 import '../../styles/components/AcademicPlanner/progressBar.css';
 import '../../styles/components/AcademicPlanner/animations.css';
@@ -244,4 +244,19 @@ const TaskCard = ({
     );
 };
 
-export default TaskCard;
+// Memo comparison to avoid re-render if key props unchanged
+const areEqual = (prev, next) => {
+  const a = prev.task; const b = next.task;
+  if (a.id !== b.id) return false;
+  if (a.status !== b.status) return false;
+  if (a.progress !== b.progress) return false;
+  if (a.dueDate !== b.dueDate) return false;
+  if (a.priority !== b.priority) return false;
+  // Timer changes
+  const prevTimerActive = prev.studyTimer.isRunning && prev.studyTimer.taskId === a.id;
+  const nextTimerActive = next.studyTimer.isRunning && next.studyTimer.taskId === b.id;
+  if (prevTimerActive !== nextTimerActive) return false;
+  return true;
+};
+
+export default memo(TaskCard, areEqual);

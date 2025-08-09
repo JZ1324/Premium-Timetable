@@ -449,10 +449,29 @@ input:checked + .switch-slider:before {
 /* View Content */
 .view-content {
     flex: 1;
-    padding: 1.5rem;
+    padding: 2rem min(3vw, 24px);
     width: 100%;
-    overflow-x: auto;
+    max-width: 1200px;
+    margin-inline: auto;
+    overflow-x: visible;
 }
+
+/* Elevate white boxes with tokens */
+.quote-section, .tasks-section, .ai-suggestions {
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    border: 1px solid var(--color-border-subtle);
+}
+
+.section-header { color: var(--color-text-main); }
+.task-count { background: var(--color-accent); }
+
+/* Top Navigation overrides harmonized with nav.css */
+.top-navigation { background: var(--color-bg-surface); border-bottom: 1px solid var(--color-border-subtle); }
+.view-buttons { background: var(--color-bg-elevated); }
+.view-btn.active { background: var(--color-bg-surface); color: var(--color-accent); box-shadow: var(--shadow-1); }
+.view-btn:hover:not(.active) { background: var(--color-bg-inset); color: var(--color-text-main); }
 
 /* Day View */
 .day-view {

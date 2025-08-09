@@ -6,9 +6,10 @@
 }
 
 .tasks-section, .ai-suggestions, .assignments-section {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    border: 1px solid var(--color-border-subtle);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
@@ -16,7 +17,7 @@
 .section-header {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--color-text-main);
     margin: 0 0 1rem 0;
 }
 
@@ -26,11 +27,16 @@
     gap: 1rem;
 }
 
-.no-tasks-message {
-    color: #6b7280;
+.no-tasks-message, .no-tasks {
+    color: var(--color-text-subtle);
     text-align: center;
-    padding: 2rem;
+    padding: 2.25rem;
+    background: var(--color-bg-elevated);
+    border: 1px dashed var(--color-border-subtle);
+    border-radius: var(--radius-md);
 }
+
+.no-tasks i { font-size: 2rem; margin-bottom: 0.5rem; color: var(--neutral-400); }
 
 .section-header-with-actions {
     display: flex;
@@ -39,190 +45,43 @@
     margin-bottom: 1rem;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
 .add-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #4f46e5;
+    background: var(--color-accent);
     color: white;
     border: none;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.add-btn:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
-}
-
-.assignments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.no-tasks {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: #f9fafb;
     border-radius: 8px;
-    color: #6b7280;
-    text-align: center;
-}
-
-.no-tasks i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #9ca3af;
-}
-
-.suggestion-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: #f9fafb;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.suggestion-item:hover {
-    background: #f3f4f6;
-}
-
-.suggestion-icon {
-    width: 40px;
-    height: 40px;
-    background: #ede9fe;
-    color: #4f46e5;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.suggestion-content {
-    flex-grow: 1;
-}
-
-.suggestion-title {
-    font-weight: 500;
-    color: #111827;
-    margin: 0 0 0.25rem 0;
-}
-
-.suggestion-description {
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin: 0;
-}
-
-/* Task and Assignment Grouping Styles */
-.task-group, .assignment-group {
-    margin-bottom: 1.5rem;
-}
-
-.group-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    border-left: 4px solid;
+    cursor: pointer;
+    transition: transform .15s ease, background .2s ease;
 }
+.add-btn:hover { background: var(--color-accent-hover); transform: translateY(-1px); }
+.add-btn:active { transform: translateY(0); }
 
-.group-header i {
-    font-size: 1rem;
-}
+.assignments-list { display: flex; flex-direction: column; gap: 1rem; }
 
-/* Overdue group styling */
-.group-header.overdue {
-    background-color: rgba(239, 68, 68, 0.1);
-    border-left-color: #ef4444;
-    color: #dc2626;
-}
+/* Suggestion items */
+.suggestion-item { background: var(--color-bg-elevated); border: 1px solid var(--color-border-subtle); }
+.suggestion-item:hover { background: var(--color-bg-inset); }
+.suggestion-icon { background: var(--color-accent-soft); color: var(--color-accent); }
+.suggestion-title { color: var(--color-text-main); }
+.suggestion-description { color: var(--color-text-subtle); }
 
-/* Today group styling */
-.group-header.today {
-    background-color: rgba(245, 158, 11, 0.1);
-    border-left-color: #f59e0b;
-    color: #d97706;
-}
-
-/* Tomorrow group styling */
-.group-header.tomorrow {
-    background-color: rgba(253, 224, 71, 0.1);
-    border-left-color: #eab308;
-    color: #ca8a04;
-}
-
-/* Upcoming group styling */
-.group-header.upcoming {
-    background-color: rgba(59, 130, 246, 0.1);
-    border-left-color: #3b82f6;
-    color: #2563eb;
-}
-
-/* Task badges styling */
-.task-badges {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.due-date-badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    white-space: nowrap;
-}
-
-/* Responsive improvements */
-@media (max-width: 768px) {
-    .task-badges {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.25rem;
-    }
-    
-    .group-header {
-        font-size: 0.875rem;
-        padding: 0.375rem 0.5rem;
-    }
-}
+/* Group headers */
+.group-header { background: var(--color-bg-elevated); }
+.group-header.overdue { background-color: color-mix(in oklab, var(--color-danger-bg) 80%, transparent); border-left-color: var(--color-danger); color: var(--color-danger); }
+.group-header.today { background-color: color-mix(in oklab, var(--color-warning-bg) 80%, transparent); border-left-color: #f59e0b; color: #b45309; }
+.group-header.tomorrow { background-color: color-mix(in oklab, #fff6b3 80%, transparent); border-left-color: #eab308; color: #a16207; }
+.group-header.upcoming { background-color: color-mix(in oklab, var(--color-info-bg) 80%, transparent); border-left-color: var(--color-info); color: #1d4ed8; }
 
 /* Animation for new task groups */
-.task-group, .assignment-group {
-    animation: fadeInUp 0.3s ease-out;
-}
+.task-group, .assignment-group { animation: fadeInUp 0.3s ease-out; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Responsive */
+@media (max-width: 768px) {
+    .day-tasks { grid-template-columns: 1fr; }
 }

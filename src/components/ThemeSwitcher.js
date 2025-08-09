@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/components/ThemeSwitcher.css';
+import { setAccentHue, getAccentHue, applyCustomTheme, setTheme } from '../services/themeService';
 
 const ThemeSwitcher = ({ onThemeChange, currentTheme }) => {
+    const [accentHue, setHue] = useState(getAccentHue());
+    const [contrastBoost, setContrastBoost] = useState(0);
+
+    useEffect(() => {
+        setAccentHue(accentHue);
+    }, [accentHue]);
+
     const handleClick = (event, theme) => {
         // Prevent default behavior and stop propagation
         event.preventDefault();
@@ -22,8 +30,15 @@ const themes = [
     { id: 'colorful', name: 'Colorful' },
     { id: 'minimal', name: 'Minimal' },
     { id: 'pastel', name: 'Pastel' },
-    { id: 'cosmos', name: 'Cosmos' }
+    { id: 'cosmos', name: 'Cosmos' },
+    { id: 'custom', name: 'Custom' }
 ];
+
+    const applyCustom = () => {
+        applyCustomTheme({ hue: accentHue, contrastBoost, id: 'custom' });
+        setTheme('custom');
+        onThemeChange('custom');
+    };
 
     return (
         <div className="theme-switcher-container">
@@ -45,6 +60,26 @@ const themes = [
             </div>
             <div className="current-theme-label">
                 Current theme: <span>{currentTheme ? currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1) : 'Light'}</span>
+            </div>
+            <div className="accent-controls">
+                <label>Accent Hue: <strong>{accentHue}</strong></label>
+                <input
+                    type="range"
+                    min="0"
+                    max="359"
+                    value={accentHue}
+                    onChange={(e)=> setHue(Number(e.target.value))}
+                />
+                <label>Contrast Boost: <strong>{contrastBoost.toFixed(2)}</strong></label>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={contrastBoost}
+                    onChange={(e)=> setContrastBoost(Number(e.target.value))}
+                />
+                <button type="button" className="apply-custom-button" onClick={applyCustom}>Apply Custom Theme</button>
             </div>
         </div>
     );

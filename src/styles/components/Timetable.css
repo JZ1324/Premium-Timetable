@@ -491,7 +491,7 @@
     overflow: visible; /* Changed from hidden to visible to allow elements to pop out */
     width: 100%;
     margin-bottom: 20px; /* Add bottom margin */
-    min-height: 0 !important; /* Prevent excess height */
+    transition: transform .2s ease, box-shadow .25s ease, opacity .3s ease;
     height: auto !important; /* Only as tall as content */
     position: relative; /* Ensure proper z-index stacking */
     scrollbar-width: none; /* Firefox */
@@ -500,6 +500,10 @@
 
 .timetable::-webkit-scrollbar {
     display: none;
+
+/* Reveal styling for timetable slots */
+.time-slot.reveal { opacity: 0; transform: translateY(6px); }
+.time-slot.reveal.is-visible { opacity: 1; transform: translateY(0); }
     width: 0;
     background: transparent;
 }
@@ -728,8 +732,8 @@
 .period-row > :last-child { margin-bottom: 0; }
 
 .time-slot:hover {
-    transform: translateY(-2px); /* Match other themes */
-    box-shadow: 0 4px 8px var(--shadow-color);
+    transform: translateY(-1px); /* subtle hover intent */
+    box-shadow: 0 3px 6px var(--shadow-color);
 }
 
 .time-slot:active {
@@ -844,6 +848,22 @@
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
+}
+
+/* Current period pulse halo (subtle) */
+.time-slot.current-period::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        pointer-events: none;
+        box-shadow: 0 0 0 0 rgba(255,255,255,.35);
+        animation: currentPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes currentPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.22); }
+    50% { box-shadow: 0 0 0 6px rgba(255,255,255,.08); }
 }
 
 @keyframes highlight-edit {

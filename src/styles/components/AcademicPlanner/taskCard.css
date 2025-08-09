@@ -4,13 +4,17 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     margin-bottom: 1rem;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, opacity .35s, transform .35s;
     border-left: 4px solid #e5e7eb;
     overflow: hidden;
     cursor: default;
     /* Use transform-style to isolate the transform */
     transform-style: preserve-3d;
 }
+
+/* Reveal on scroll baseline */
+.task-card.reveal { opacity: 0; transform: translateY(10px); }
+.task-card.reveal.is-visible { opacity: 1; transform: translateY(0); }
 
 .task-card:hover {
     transform: translateY(-2px);
@@ -116,7 +120,7 @@
     height: 100%;
     background-color: #4f46e5;
     border-radius: 3px;
-    transition: width 0.3s ease;
+    transition: width 0.4s cubic-bezier(.2,.8,.2,1), background-color .4s ease;
 }
 
 .progress-slider {

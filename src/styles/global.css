@@ -260,6 +260,7 @@ html[data-contrast="high"] {
 /* Reduced motion respect */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; }
 }
 
 /* Focus ring utility */

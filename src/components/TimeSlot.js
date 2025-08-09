@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import colorService from '../services/colorService';
 
 const TimeSlot = ({ 
@@ -16,6 +17,7 @@ const TimeSlot = ({
 }) => {
     const [editedSlot, setEditedSlot] = useState({ ...slot });
     const timeSlotRef = useRef(null);
+    useRevealOnScroll(timeSlotRef, { rootMargin: '0px 0px -15% 0px', threshold: 0.05 });
     
     // Update edited slot when the original slot changes
     useEffect(() => {

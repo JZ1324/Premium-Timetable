@@ -1,8 +1,9 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import '../../styles/components/AcademicPlanner/taskCard.css';
 import '../../styles/components/AcademicPlanner/progressBar.css';
 import '../../styles/components/AcademicPlanner/animations.css';
 import { getPriorityColor, getStatusBadgeConfig } from './utils';
+import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 
 // Helper function to determine progress bar color based on completion
 const getProgressBarColor = (progress) => {
@@ -25,6 +26,8 @@ const TaskCard = ({
     getTimerDisplay,
     getEstimatedTimeCountdown
 }) => {
+    const rootRef = useRef(null);
+    useRevealOnScroll(rootRef);
     // NEW TIMER SYSTEM - Simplified state management
     const [localProgress, setLocalProgress] = useState(task.progress || 0);
     const isTimerRunning = studyTimer.isRunning && studyTimer.taskId === task.id;
@@ -59,7 +62,7 @@ const TaskCard = ({
     }, [isTimerRunning, task.progress, task.estimatedTime, studyTimer.startTime]);
 
     // Simplified timer button click handler
-    const handleTimerClick = () => {
+    const handleTimerClick = (e) => {
         console.log(`🎯 Timer button clicked for task: ${task.title}`);
         
         // Don't allow timer to start if task is completed
@@ -68,6 +71,17 @@ const TaskCard = ({
             return;
         }
         
+        // Add a quick ripple effect
+        try {
+            const btn = e.currentTarget;
+            if (btn) {
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple-effect';
+                btn.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 800);
+            }
+        } catch {}
+
         if (isTimerRunning) {
             console.log('⏹️ Stopping timer');
             stopStudyTimer();
@@ -119,7 +133,7 @@ const TaskCard = ({
     const { text: statusText, className: statusClass, color: statusColor } = getStatusBadgeConfig(task.status);
 
     return (
-        <div className={`task-card ${isTimerRunning ? 'timer-active' : ''}`} data-task-id={task.id}>
+    <div ref={rootRef} className={`task-card ${isTimerRunning ? 'timer-active' : ''}`} data-task-id={task.id}>
             <div className="task-header">
                 <div className="task-title-section">
                     <h3 className="task-title">{task.title}</h3>

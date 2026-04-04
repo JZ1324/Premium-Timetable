@@ -186,12 +186,14 @@ input:checked + .switch-slider:before {
     background-color: #3b82f6;
 }
 
-/* Main Content */
-.main-content {
+/* Planner content column */
+.academic-planner-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     width: 100%;
+    min-width: 0;
+    min-height: 0;
     overflow-x: hidden;
 }
 
@@ -454,7 +456,22 @@ input:checked + .switch-slider:before {
     font-weight: 600;
 }
 
-/* View Content */
+/* Outer view wrapper that owns planner scrolling */
+.planner-view-content {
+    flex: 1;
+    min-height: 0;
+    padding: 1.5rem;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Day view internal content wrapper */
 .view-content {
     flex: 1;
     padding: 1.5rem;
@@ -467,7 +484,7 @@ input:checked + .switch-slider:before {
 }
 
 /* Week View specific container - no max-width constraint */
-.view-content:has(.week-view) {
+.planner-view-content:has(.week-view) {
     align-items: stretch;
     max-width: none;
 }
@@ -1287,10 +1304,11 @@ input:checked + .switch-slider:before {
         overflow-y: auto;
     }
     
-    .main-content {
+    .academic-planner-main {
         flex: 1;
     }
     
+    .planner-view-content,
     .view-content {
         padding: 1rem;
     }
@@ -1332,6 +1350,7 @@ input:checked + .switch-slider:before {
 }
 
 @media (max-width: 480px) {
+    .planner-view-content,
     .view-content {
         padding: 1rem;
     }

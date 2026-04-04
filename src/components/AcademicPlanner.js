@@ -1547,7 +1547,7 @@ const AcademicPlanner = () => {
                 handleOpenAddTaskModal={handleOpenAddTaskModal}
                 handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
             />
-            <div className={`main-content ${currentView === 'year' ? 'year-view-active' : ''}`}>
+            <div className={`academic-planner-main ${currentView === 'year' ? 'year-view-active' : ''}`}>
                 <TopNavigation 
                     currentView={currentView}
                     currentDate={currentDate}
@@ -1574,7 +1574,7 @@ const AcademicPlanner = () => {
                     handleOpenAddAssignmentModal={handleOpenAddAssignmentModal}
                 />
                 
-                <div className="view-content">
+                <div className="planner-view-content">
                     {currentView === 'day' && (
                         <DayView 
                             currentDate={currentDate}

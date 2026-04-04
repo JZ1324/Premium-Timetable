@@ -103,14 +103,6 @@ const AcademicPlanner = () => {
     };
     useEffect(() => { dispatchTasks({ type: 'set', payload: tasks }); }, []);
 
-    // Study timer extracted to hook
-    const { studyTimer, startStudyTimer, stopStudyTimer, restoreActiveTimer } = useStudyTimer(tasks, setTasks, showToast);
-    useEffect(() => { restoreActiveTimer(); }, []);
-    
-    // Save tasks to localStorage whenever tasks change (debounced now)
-    // useEffect(() => { /* replaced by useDebouncedLocalStorage */ }, [tasks]);
-    useDebouncedLocalStorage('academicPlannerTasks', tasks, 900);
-
     const [filters, setFilters] = useState({
         hideCompleted: false,
         showOnlyUpcoming: false, // Changed to match the property name used in Sidebar
@@ -121,6 +113,75 @@ const AcademicPlanner = () => {
     const [toastMessage, setToastMessage] = useState(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState({ show: false });
+
+    function showToast(message, type = 'success') {
+        setToastMessage(null);
+
+        setTimeout(() => {
+            setToastMessage({ message, type });
+            setTimeout(() => setToastMessage(null), 3500);
+        }, 50);
+    }
+
+    function findTaskOrSubtask(taskId) {
+        const mainTask = tasks.find(task => task.id === taskId);
+        if (mainTask) {
+            return { task: mainTask, isSubtask: false, parentTask: null };
+        }
+
+        for (const task of tasks) {
+            if (!task.subtasks) continue;
+            const subtask = task.subtasks.find(item => item.id === taskId);
+            if (subtask) {
+                return { task: subtask, isSubtask: true, parentTask: task };
+            }
+        }
+
+        return null;
+    }
+
+    function getTimerDisplay(taskId = studyTimer.taskId) {
+        if (!studyTimer.isRunning || !studyTimer.startTime) {
+            return '00:00';
+        }
+
+        if (taskId && studyTimer.taskId !== taskId) {
+            return '00:00';
+        }
+
+        return formatTimerDisplay(studyTimer.startTime);
+    }
+
+    function getEstimatedTimeCountdown(task) {
+        if (!task) {
+            return 'Unknown';
+        }
+
+        const estimatedMinutes = parseTimeToMinutes(task.estimatedTime);
+        if (!estimatedMinutes) {
+            return 'No estimate';
+        }
+
+        let totalTimeSpentSeconds = task.timerData?.totalTimeSpent || 0;
+        if (studyTimer.isRunning && studyTimer.taskId === task.id && studyTimer.startTime) {
+            totalTimeSpentSeconds += Math.floor((Date.now() - studyTimer.startTime.getTime()) / 1000);
+        }
+
+        const remainingMinutes = Math.max(
+            0,
+            Math.ceil(((estimatedMinutes * 60) - totalTimeSpentSeconds) / 60)
+        );
+
+        return remainingMinutes === 0 ? 'Due now' : formatMinutesToTimeString(remainingMinutes);
+    }
+
+    // Study timer extracted to hook
+    const { studyTimer, startStudyTimer, stopStudyTimer, restoreActiveTimer } = useStudyTimer(tasks, setTasks, showToast);
+    useEffect(() => { restoreActiveTimer(); }, []);
+    
+    // Save tasks to localStorage whenever tasks change (debounced now)
+    // useEffect(() => { /* replaced by useDebouncedLocalStorage */ }, [tasks]);
+    useDebouncedLocalStorage('academicPlannerTasks', tasks, 900);
     
     // New features state
     const [draggedTask, setDraggedTask] = useState(null);
@@ -377,18 +438,6 @@ const AcademicPlanner = () => {
 
         return () => { if (idleId && window.cancelIdleCallback) window.cancelIdleCallback(idleId); clearInterval(interval); };
     }, [tasks]);
-
-    // Function to show toast
-    const showToast = (message, type = 'success') => {
-        // Clear any existing toast first
-        setToastMessage(null);
-        
-        // Delay slightly before showing new toast to ensure animation works
-        setTimeout(() => {
-            setToastMessage({ message, type });
-            setTimeout(() => setToastMessage(null), 3500);
-        }, 50);
-    };
 
     // Function to handle opening add task modal with smooth scroll
     const handleOpenAddTaskModal = () => {
